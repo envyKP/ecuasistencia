@@ -1,0 +1,284 @@
+table#miyazaki { 
+  margin: 0 auto;
+  border-collapse: collapse;
+  font-family: Agenda-Light, sans-serif;
+  font-weight: 100; 
+  background: #2DA2C8; color: #fff;
+  text-rendering: optimizeLegibility;
+  border-radius: 5px; 
+}
+table#miyazaki caption { 
+  font-size: 2rem; color: #444;
+  margin: 1rem;
+  background-image: url(https://s3-us-west-2.amazonaws.com/s.cdpn.io/4273/miyazaki.png), url(https://s3-us-west-2.amazonaws.com/s.cdpn.io/4273/miyazaki2.png);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center left, center right; 
+}
+table#miyazaki thead th { font-weight: 600; }
+table#miyazaki thead th, table#miyazaki tbody td { 
+  padding: .8rem; font-size: 1.2rem;
+}
+table#miyazaki tbody td { 
+  padding: .8rem; font-size: 0.9rem;
+  color: #444; background: #eee; 
+}
+table#miyazaki tbody tr:not(:last-child) { 
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;  
+}
+
+@media screen and (max-width: 500px) {
+  table#miyazaki caption { background-image: none; }
+  table#miyazaki thead { display: none; }
+  table#miyazaki tbody td { 
+    display: block; padding: .6rem; 
+  }
+  table#miyazaki tbody tr td:first-child { 
+    background: #2DA2C8; color: #fff; 
+  }
+  table#miyazaki tbody td:before { 
+    content: attr(data-th); 
+    font-weight: bold;
+    display: inline-block;
+    width: 10rem;  
+  }
+}
+
+table#miyazaki2 { 
+  margin: 0 auto;
+  border-collapse: collapse;
+  font-family: Agenda-Light, sans-serif;
+  font-weight: 100; 
+  background: #2DA2C8; color: #fff;
+  text-rendering: optimizeLegibility;
+  border-radius: 5px; 
+}
+table#miyazaki2 caption { 
+  font-size: 2rem; color: #444;
+  margin: 1rem;
+  background-image: url(https://s3-us-west-2.amazonaws.com/s.cdpn.io/4273/miyazaki2.png), url(https://s3-us-west-2.amazonaws.com/s.cdpn.io/4273/miyazaki22.png);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center left, center right; 
+}
+table#miyazaki2 thead th { font-weight: 600; }
+table#miyazaki2 thead th, table#miyazaki2 tbody td { 
+  padding: .8rem; font-size: 1.2rem;
+}
+table#miyazaki2 tbody td { 
+  padding: .8rem; font-size: 0.9rem;
+  color: #444; background: #eee; 
+}
+table#miyazaki2 tbody tr:not(:last-child) { 
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;  
+}
+
+@media screen and (max-width: 500px) {
+  table#miyazaki2 caption { background-image: none; }
+  table#miyazaki2 thead { display: none; }
+  table#miyazaki2 tbody td { 
+    display: block; padding: .6rem; 
+  }
+  table#miyazaki2 tbody tr td:first-child { 
+    background: #2DA2C8; color: #fff; 
+  }
+  table#miyazaki2 tbody td:before { 
+    content: attr(data-th); 
+    font-weight: bold;
+    display: inline-block;
+    width: 10rem;  
+  }
+}
+
+table#miyazaki3 { 
+  margin: 0 auto;
+  border-collapse: collapse;
+  font-family: Agenda-Light, sans-serif;
+  font-weight: 100; 
+  background: #2DA2C8; color: #fff;
+  text-rendering: optimizeLegibility;
+  border-radius: 5px; 
+}
+table#miyazaki3 caption { 
+  font-size: 2rem; color: #444;
+  margin: 1rem;
+  background-image: url(https://s3-us-west-2.amazonaws.com/s.cdpn.io/4273/miyazaki3.png), url(https://s3-us-west-2.amazonaws.com/s.cdpn.io/4273/miyazaki32.png);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center left, center right; 
+}
+table#miyazaki3 thead th { font-weight: 600; }
+table#miyazaki3 thead th, table#miyazaki3 tbody td { 
+  padding: .8rem; font-size: 1.2rem;
+}
+table#miyazaki3 tbody td { 
+  padding: .8rem; font-size: 0.9rem;
+  color: #444; background: #eee; 
+}
+table#miyazaki3 tbody tr:not(:last-child) { 
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;  
+}
+
+@media screen and (max-width: 600px) {
+  table#miyazaki3 caption { background-image: none; }
+  table#miyazaki3 thead { display: none; }
+  table#miyazaki3 tbody td { 
+    display: block; padding: .6rem; 
+  }
+  table#miyazaki3 tbody tr td:first-child { 
+    background: #2DA2C8; color: #fff; 
+  }
+  table#miyazaki3 tbody td:before { 
+    content: attr(data-th); 
+    font-weight: bold;
+    display: inline-block;
+    width: 10rem;  
+  }
+}
+
+table#miyazaki4 { 
+  margin: 0 auto;
+  border-collapse: collapse;
+  font-family: Agenda-Light, sans-serif;
+  font-weight: 100; 
+  background: #2DA2C8; color: #fff;
+  text-rendering: optimizeLegibility;
+  border-radius: 5px; 
+}
+table#miyazaki4 caption { 
+  font-size: 2rem; color: #444;
+  margin: 1rem;
+  background-image: url(https://s3-us-west-2.amazonaws.com/s.cdpn.io/4273/miyazaki4.png), url(https://s3-us-west-2.amazonaws.com/s.cdpn.io/4273/miyazaki42.png);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center left, center right; 
+}
+table#miyazaki4 thead th { font-weight: 600; }
+table#miyazaki4 thead th, table#miyazaki4 tbody td { 
+  padding: .8rem; font-size: 1.2rem;
+}
+table#miyazaki4 tbody td { 
+  padding: .8rem; font-size: 0.9rem;
+  color: #444; background: #eee; 
+}
+table#miyazaki4 tbody tr:not(:last-child) { 
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;  
+}
+
+@media screen and (max-width: 600px) {
+  table#miyazaki4 caption { background-image: none; }
+  table#miyazaki4 thead { display: none; }
+  table#miyazaki4 tbody td { 
+    display: block; padding: .6rem; 
+  }
+  table#miyazaki4 tbody tr td:first-child { 
+    background: #2DA2C8; color: #fff; 
+  }
+  table#miyazaki4 tbody td:before { 
+    content: attr(data-th); 
+    font-weight: bold;
+    display: inline-block;
+    width: 10rem;  
+  }
+}
+
+
+table#miyazaki5 { 
+  margin: 0 auto;
+  border-collapse: collapse;
+  font-family: Agenda-Light, sans-serif;
+  font-weight: 100; 
+  background: #2DA2C8; color: #fff;
+  text-rendering: optimizeLegibility;
+  border-radius: 5px; 
+}
+table#miyazaki5 caption { 
+  font-size: 2rem; color: #444;
+  margin: 1rem;
+  background-image: url(https://s3-us-west-2.amazonaws.com/s.cdpn.io/4273/miyazaki5.png), url(https://s3-us-west-2.amazonaws.com/s.cdpn.io/4273/miyazaki52.png);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center left, center right; 
+}
+table#miyazaki5 thead th { font-weight: 600; }
+table#miyazaki5 thead th, table#miyazaki5 tbody td { 
+  padding: .8rem; font-size: 1.2rem;
+}
+table#miyazaki5 tbody td { 
+  padding: .8rem; font-size: 0.9rem;
+  color: #444; background: #eee; 
+}
+table#miyazaki5 tbody tr:not(:last-child) { 
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;  
+}
+
+@media screen and (max-width: 600px) {
+  table#miyazaki5 caption { background-image: none; }
+  table#miyazaki5 thead { display: none; }
+  table#miyazaki5 tbody td { 
+    display: block; padding: .6rem; 
+  }
+  table#miyazaki5 tbody tr td:first-child { 
+    background: #2DA2C8; color: #fff; 
+  }
+  table#miyazaki5 tbody td:before { 
+    content: attr(data-th); 
+    font-weight: bold;
+    display: inline-block;
+    width: 10rem;  
+  }
+}
+
+
+table#miyazaki6 { 
+  margin: 0 auto;
+  border-collapse: collapse;
+  font-family: Agenda-Light, sans-serif;
+  font-weight: 100; 
+  background: #2DA2C8; color: #fff;
+  text-rendering: optimizeLegibility;
+  border-radius: 5px; 
+}
+table#miyazaki6 caption { 
+  font-size: 2rem; color: #444;
+  margin: 1rem;
+  background-image: url(https://s3-us-west-2.amazonaws.com/s.cdpn.io/4273/miyazaki6.png), url(https://s3-us-west-2.amazonaws.com/s.cdpn.io/4273/miyazaki62.png);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center left, center right; 
+}
+table#miyazaki6 thead th { font-weight: 600; }
+table#miyazaki6 thead th, table#miyazaki6 tbody td { 
+  padding: .8rem; font-size: 1.2rem;
+}
+table#miyazaki6 tbody td { 
+  padding: .8rem; font-size: 0.9rem;
+  color: #444; background: #eee; 
+}
+table#miyazaki6 tbody tr:not(:last-child) { 
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;  
+}
+
+@media screen and (max-width: 600px) {
+  table#miyazaki6 caption { background-image: none; }
+  table#miyazaki6 thead { display: none; }
+  table#miyazaki6 tbody td { 
+    display: block; padding: .6rem; 
+  }
+  table#miyazaki6 tbody tr td:first-child { 
+    background: #2DA2C8; color: #fff; 
+  }
+  table#miyazaki6 tbody td:before { 
+    content: attr(data-th); 
+    font-weight: bold;
+    display: inline-block;
+    width: 10rem;  
+  }
+}
+
