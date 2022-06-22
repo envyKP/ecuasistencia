@@ -111,7 +111,7 @@ class FortifyServiceProvider extends ServiceProvider
                         ->update(['num_intentos' => $num_intentos ]);
 
                         // dd( $num_intentos);
-                        back()->with('error', 'Contraseña incorrecta!.');
+                        back()->with('error', 'Credencial incorrecta!.');
 
                 } else if ( $user && Hash::check($request->password, $user->password) ) {
 

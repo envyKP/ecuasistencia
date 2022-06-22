@@ -21,7 +21,8 @@ use  App\Http\Controllers\EaRecepArchiFinanController;
 use  App\Http\Controllers\EaFactMasSeguviajeController;
 use  Laravel\Fortify\Http\Controllers\AuthenticatedSessionController;
 use  App\Http\Controllers\EaUtilController;
-
+use  App\Http\Controllers\EaCargaIndividualExport;
+use  App\Http\Controllers\EaCargaIndividualImport;
 
 /*
 |--------------------------------------------------------------------------
@@ -169,6 +170,15 @@ Route::middleware(['auth', 'prevent-back-history', 'isAdmin'])->group(function (
     Route::post('recepcion/archivo/financiero/subirArchivo/', [EaRecepArchiFinanController::class, 'uploadArchivos'])->name('EaRecepArchiFinanController.uploadArchivos');
     Route::post('recepcion/archivo/financiero/destroy/', [EaRecepArchiFinanController::class, 'destroy'])->name('EaRecepArchiFinanController.destroy');
     Route::post('recepcion/archivo/financiero/procesar/', [EaRecepArchiFinanController::class, 'procesar'])->name('EaRecepArchiFinanController.procesar');
+
+    Route::get('generacion/archivo/cargaIndividual/index/', [EaCargaIndividualExport::class, 'index'])->name('EaCargaIndividualExport.index');
+    Route::post('generacion/archivo/cargaIndividual/destroy/', [EaCargaIndividualExport::class, 'destroy'])->name('EaCargaIndividualExport.destroy');
+
+    Route::get('recepcion/archivo/cargaIndividual/index/', [EaCargaIndividualImport::class, 'index'])->name('EaCargaIndividualImport.index');
+    Route::post('recepcion/archivo/cargaIndividual/subirArchivo/', [EaCargaIndividualImport::class, 'uploadArchivos'])->name('EaCargaIndividualImport.uploadArchivos');
+    Route::post('recepcion/archivo/cargaIndividual/destroy/', [EaCargaIndividualImport::class, 'destroy'])->name('EaCargaIndividualImport.destroy');
+    Route::post('recepcion/archivo/cargaIndividual/procesar/', [EaCargaIndividualImport::class, 'update'])->name('EaCargaIndividualImport.update');
+ 
 });
 
 
@@ -210,6 +220,9 @@ Route::middleware(['auth', 'isAdmin' ])->group(function () {
     Route::get('generacion/archivo/financiero/export/', [EaGenArchiFinanController::class, 'exportar_archivo'])->name('EaGenArchiFinanController.exportar_archivo');
     Route::get('generacion/archivo/sinInformacionFinanciera/export/{cod_carga}', [EaRecepArchiFinanController::class, 'export_sin_infor_finan'])->name('EaGenArchiFinanController.export_sin_infor_finan');
     Route::post('reporte/cargaInicial/', [EaCabCargaInicialController::class, 'exportar_reporte'])->name('EaCabCargaInicialController.exportar_reporte');
+
 });
+
+
 
 

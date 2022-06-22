@@ -42,7 +42,7 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
 
         RateLimiter::for('login', function (Request $request) {
-            return Limit::perMinute(1)->by($request->email.$request->ip());
+            return Limit::perMinute(1)->by($request->email . $request->ip());
         });
 
 
@@ -58,69 +58,64 @@ class FortifyServiceProvider extends ServiceProvider
 
         Fortify::authenticateUsing(function (Request $request) {
 
-           $num_intentos= 0;
+            $num_intentos = 0;
 
-           $user_exists = User::where('username', $request->username)
-                               ->where('estado', 'A')
-                               ->where('status', '1')
-                               ->exists();
+          /*  $user_exists = User::where('username', $request->username)
+                ->exists();
+            */
 
-            if ( $user_exists ) {
-
-
+            if (User::where('username',  $request->username)->exists()) {
+               
                 $user = User::where('username', $request->username)
-                            ->where('estado', 'A')
-                            ->where('status', '1')
-                            ->first();
-
+                    ->first();
 
                 if ($user->num_intentos == 2) {
                     # code...
                     $num_intentos =  $user->num_intentos + 1;
 
                     User::where('id', $user->id)
-                        ->update([ 'estado' => 'I',
-                                   'status' => '0',
-                                   'num_intentos' => $num_intentos ]);
+                        ->update([
+                            'estado' => 'I',
+                            'status' => '0',
+                            'num_intentos' => $num_intentos
+                        ]);
 
                     Auth::logout();
                     $request->session()->invalidate();
                     $request->session()->regenerateToken();
 
-                    back()->with('error', 'Cuenta suspendida, Comuníquese con sistemas.');
+                    back()->with('error', 'Cuenta bloqueada, Comuníquese con sistemas.');
                     //return abort(410, 'Cuenta suspendida, Comuníquese con sistemas.');
 
                 }
 
-                if ( ! Hash::check($request->password, $user->password) ) {
+                if (!Hash::check($request->password, $user->password) && $user->num_intentos<2) {
                     # code...
 
-                    if (isset($user->num_intentos) && $user->num_intentos >=1 ) {
+                    if (isset($user->num_intentos) && $user->num_intentos >= 1) {
                         $num_intentos =  $user->num_intentos + 1;
-                    }  else {
+                    } else {
                         $num_intentos = 1;
                     }
 
                     User::where('id', $user->id)
                         ->where('estado', 'A')
                         ->where('status', '1')
-                        ->update(['num_intentos' => $num_intentos ]);
+                        ->update(['num_intentos' => $num_intentos]);
 
-                    back()->with('error', 'Contraseña incorrecta!.');
-
-                } else if ( $user && Hash::check($request->password, $user->password) ) {
+                    back()->with('error', 'Credenciales erroneas.');
+                } else if ($user && Hash::check($request->password, $user->password)) {
 
                     return $user;
                 }
 
-            }else {
+            } else {
 
-                back()->with('error', 'Usuario bloqueado!.');
-               // return abort(423 , 'Credenciales erroneas');
+                back()->with('error', 'Credenciales erroneas.');
+                // return abort(423 , 'Credenciales erroneas');
 
 
             }
         });
-
     }
 }
