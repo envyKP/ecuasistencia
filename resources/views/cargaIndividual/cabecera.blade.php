@@ -84,10 +84,10 @@
 
                         <div class="col-sm-2 col-md-2">
                             <div class="form-group">
-                                <button class="btn btn-success" id="btn-subirArchivo" title="Subir Archivo" type="submit">
+                                <button class="btn btn-success" id="btn-subirArchivo" title="Generar Archivo" type="submit">
                                     <svg class="c-icon c-icon-1xl">
                                         <use xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-cloud-download')}} "></use>
-                                    </svg> {{'Generar archivo'}}
+                                    </svg> {{'Generar Archivo'}}
                                 </button>
                             </div>
                         </div>

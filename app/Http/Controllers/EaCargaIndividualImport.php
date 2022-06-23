@@ -15,6 +15,7 @@ use App\Http\Controllers\EaProductoController;
 use App\Http\Controllers\EaCabCargaInicialBitacoraController;
 use App\Http\Controllers\EaDetalleCargaCorpController;
 use App\Exports\EaReporteCargaInicialExport;
+use App\Models\EaCliente;
 
 class EaCargaIndividualImport extends Controller
 {
@@ -59,7 +60,30 @@ class EaCargaIndividualImport extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $datosCliente = $request->except('_token', '_method');
+        $datosCliente['estado'] = "A";
+ 
+        $idCliente = EaCliente::All()->max('id_cliente');
+ 
+        if ( isset($idCliente) && $idCliente !== 1 ) {
+             $idCliente++;
+             $datosCliente['id_cliente'] = $idCliente;
+        }else {
+             $datosCliente['id_cliente'] = 1;
+        }
+ 
+ 
+        if ($request->hasfile('logotipo')) {
+ 
+             $nombre_archivo = $request->file('logotipo')->getClientOriginalName();
+             $datosCliente['logotipo'] = $request->file('logotipo')->storeAs('LogosClientes', $nombre_archivo, 'public');
+        }
+ 
+        EaCliente::insert($datosCliente);
+ 
+        return redirect()->route('EaClienteController.index')->with([ 'cliente' => $request->cliente,
+                                                                      'trxcliente' => 'store' ]);
+ 
     }
 
     /**
