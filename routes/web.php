@@ -173,6 +173,8 @@ Route::middleware(['auth', 'prevent-back-history', 'isAdmin'])->group(function (
 
     Route::get('generacion/archivo/cargaIndividual/index/', [EaCargaIndividualExport::class, 'index'])->name('EaCargaIndividualExport.index');
     Route::post('generacion/archivo/cargaIndividual/destroy/', [EaCargaIndividualExport::class, 'destroy'])->name('EaCargaIndividualExport.destroy');
+    Route::get('generacion/archivo/cargaIndividual/export/', [EaCargaIndividualExport::class, 'export'])->name('EaCargaIndividualExport.export');
+    
 
     Route::get('recepcion/archivo/cargaIndividual/index/', [EaCargaIndividualImport::class, 'index'])->name('EaCargaIndividualImport.index');
     Route::post('recepcion/archivo/cargaIndividual/subirArchivo/', [EaCargaIndividualImport::class, 'uploadArchivos'])->name('EaCargaIndividualImport.uploadArchivos');

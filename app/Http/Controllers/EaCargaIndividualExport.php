@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Models\EaCabeceraCargaCorp;
 use App\Models\EaDetalleCargaCorp;
 use App\Models\EaProducto;
@@ -16,6 +17,14 @@ use App\Http\Controllers\EaCabCargaInicialBitacoraController;
 use App\Http\Controllers\EaDetalleCargaCorpController;
 use App\Exports\EaReporteCargaInicialExport;
 use App\Models\EaCliente;
+use App\Exports\EaGenCamExport;
+use Illuminate\Http\Response;
+
+require_once "../vendor/autoload.php";
+
+use Defuse\Crypto\Crypto;
+use Defuse\Crypto\Key;
+use PhpParser\Node\Expr\Cast\Double;
 
 class EaCargaIndividualExport extends Controller
 {
@@ -28,11 +37,98 @@ class EaCargaIndividualExport extends Controller
     {
         $clientes =  (new EaClienteController)->getAllCampanas();
         $RegistrosPendientes = EaCabeceraCargaCorp::where('estado', 'PENDIENTE')
-                                                  ->orderBy('cliente')->paginate(5);
+            ->orderBy('cliente')->paginate(5);
 
-        return view ('cargaIndividual.home')->with(compact('clientes'))
-                                         ->with(compact('RegistrosPendientes'));
+        return view('cargaIndividual.home')->with(compact('clientes'))
+            ->with(compact('RegistrosPendientes'));
     }
+
+
+    //metodo de exportacion
+    public function export()
+    {
+        $contenido = file_get_contents("../salsa.txt");
+        $clave = Key::loadFromAsciiSafeString($contenido);
+        $objEXPORT = new EaGenCamExport;
+        
+        //existen 3 tipos de formas unicamente existir para el import , todos son texto plano . 
+        $recorrido = $objEXPORT->collection();
+        $textoPlano = "";
+        $cont = 0;
+        foreach ($recorrido as $individual) {
+            $subtotal = $individual->subtotal;
+            $numberCeros = 17 - strlen((string)(floatval($subtotal) * 100));
+            $cerossub = "";
+            for ($i = 0; $i < $numberCeros; $i++) {
+                $cerossub .= "0";
+            }
+            $subtotalF = $cerossub . floatval($subtotal) * 100;
+            $numberCeros = 17 - strlen((string)(floatval($individual->deduccion_impuesto) * 100));
+            $cerossub = "";
+            for ($i = 0; $i < $numberCeros; $i++) {
+                $cerossub .= "0";
+            }
+            $impuestoF = $cerossub . (floatval($individual->deduccion_impuesto) * 100);
+            //$textoPlano .= "\t";
+            //$textoPlano .= "-1-";
+            $textoPlano .= (isset($individual->tarjeta)) ? Crypto::decrypt($individual->tarjeta, $clave) : "0000000000000000";
+            //$textoPlano .= "-2-";
+            $textoPlano .= (isset($individual->cod_establecimiento)) ? $$individual->cod_establecimiento : "00000000";
+            //$textoPlano .= "-3-";
+            $textoPlano .= (isset($individual->date)) ? $individual->date : "000000";
+            //$individual->date;
+            //$textoPlano .= "-4-";
+            $textoPlano .= $subtotalF;
+            //$textoPlano .= "-5-";
+            $textoPlano .= $individual->constante1;
+            //$textoPlano .= "-6-";
+            $textoPlano .= $individual->constante2;
+            //$textoPlano .= "-7-";
+            $textoPlano .= $individual->constante3;
+            //$textoPlano .= "-8-";
+            $textoPlano .= $individual->constante4;
+            $cont++;
+            $cont_prin = 6 - strlen((string)($cont));
+            $cont_ceros2 = "";
+            for ($i = 0; $i < $cont_prin; $i++) {
+                $cont_ceros2 .= "0";
+            }
+            //$textoPlano .= "-9-";
+            $textoPlano .= $cont_ceros2 . $cont;
+            //$textoPlano .= "\t";
+            //$textoPlano .= "-10-";
+            $textoPlano .= $individual->constante5;
+            //$textoPlano .= "-11-";
+            $textoPlano .= (isset($individual->feccad)) ? $individual->feccad : "000000";
+            //$textoPlano .= $individual->feccad;
+            //$textoPlano .= "-12-";
+            $textoPlano .= $impuestoF;
+            //$textoPlano .= "-13-";
+            $textoPlano .= $individual->constante6;
+            //$textoPlano .= "-14-";
+            $textoPlano .= $individual->constante7;
+            //$textoPlano .= "-15-";
+            $textoPlano .= $individual->constante8;
+            //$textoPlano .= "-16-";
+            $cerossub = "";
+            $numberCeros = 15 - strlen((string)(floatval($individual->subtotal) * 100));
+            for ($i = 0; $i < $numberCeros; $i++) {
+                $cerossub .= "0";
+            }
+            $subtotalF = $cerossub . floatval($subtotal) * 100;
+            $textoPlano .= $subtotalF;
+            //$textoPlano .= "-17-";
+            $textoPlano .= $individual->constante9;
+            $textoPlano .= "\n";
+        }
+
+
+
+
+
+        dd($textoPlano);
+    }
+
 
     /**
      * Store a newly created resource in storage.
@@ -44,28 +140,25 @@ class EaCargaIndividualExport extends Controller
     {
         $datosCliente = $request->except('_token', '_method');
         $datosCliente['estado'] = "A";
- 
+
         $idCliente = EaCliente::All()->max('id_cliente');
- 
-        if ( isset($idCliente) && $idCliente !== 1 ) {
-             $idCliente++;
-             $datosCliente['id_cliente'] = $idCliente;
-        }else {
-             $datosCliente['id_cliente'] = 1;
+
+        if (isset($idCliente) && $idCliente !== 1) {
+            $idCliente++;
+            $datosCliente['id_cliente'] = $idCliente;
+        } else {
+            $datosCliente['id_cliente'] = 1;
         }
- 
- 
         if ($request->hasfile('logotipo')) {
- 
-             $nombre_archivo = $request->file('logotipo')->getClientOriginalName();
-             $datosCliente['logotipo'] = $request->file('logotipo')->storeAs('LogosClientes', $nombre_archivo, 'public');
+
+            $nombre_archivo = $request->file('logotipo')->getClientOriginalName();
+            $datosCliente['logotipo'] = $request->file('logotipo')->storeAs('LogosClientes', $nombre_archivo, 'public');
         }
- 
         EaCliente::insert($datosCliente);
- 
-        return redirect()->route('EaClienteController.index')->with([ 'cliente' => $request->cliente,
-                                                                      'trxcliente' => 'store' ]);
- 
+        return redirect()->route('EaClienteController.index')->with([
+            'cliente' => $request->cliente,
+            'trxcliente' => 'store'
+        ]);
     }
 
     /**
@@ -76,8 +169,8 @@ class EaCargaIndividualExport extends Controller
      */
     public function show($id)
     {
-        
-     /*   $clientes =  (new EaClienteController)->getAllCampanas();
+
+        /*   $clientes =  (new EaClienteController)->getAllCampanas();
         $RegistrosPendientes = EaCabeceraCargaCorp::where('estado', 'PENDIENTE')
                                                   ->orderBy('cliente')->paginate(5);
 
@@ -109,7 +202,7 @@ class EaCargaIndividualExport extends Controller
         //
     }
 
-        /**
+    /**
      * Display the specified resource.
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response

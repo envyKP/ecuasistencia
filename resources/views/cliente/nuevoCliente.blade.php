@@ -49,7 +49,8 @@
                                 <use xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-address-book')}} "></use>
                             </svg>
                             <label>{{'Identificación'}}</label>
-                            <input class="form-control"  maxlength="16"  maxlength="16" name="cedula_id" value="" type="number" placeholder="Identificación del cliente" required>
+                            <input class="form-control"  maxlength="16" onkeypress="return isNumberKey(event)"
+                            maxlength="16" name="cedula_id" value="" type="number" placeholder="Identificación del cliente" required>
                         </div>
                     </div>
                 </div>
