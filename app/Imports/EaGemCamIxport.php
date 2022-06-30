@@ -69,22 +69,18 @@ class EaGemCamIxport implements ToCollection, WithValidation, WithHeadingRow
                         try {
 
                             EaDetalleCargaCorp::create([
-
                                 'id_carga' => isset($this->cod_carga)  ? $this->cod_carga : '',
                                 'cliente' => isset($this->cliente) ? trim($this->cliente) : '',
+                                'producto' => isset($this->producto)  ? $this->producto : '',
+                                'cliente' => isset($this->cliente)  ? $this->cliente : '',
                                 'secuencia' => isset($row['vale']) ? trim($row['vale']) : null,
-                                'detalle' => isset($row['Descripción']) ? $row['Descripción'] : '',
-                                'cedula_id' => isset($row['cedula']) ? trim($row['cedula']) : null,
-                                'genero' => isset($row['genero']) ? $row['genero'] : null,
-                                'email' => isset($row['email']) ? $row['email'] : null,
+                                'detalle' => isset($row['Descripción']) ? (isset($row['Cod Error']) ? $row['Cod Error'] : "") . "-" . $row['Descripción'] : '',
+                                'Establecimiento' => isset($row['Establecimiento']) ? trim($row['Establecimiento']) : null,
+                                'bin' => isset($row['Tarjeta']) ? substr($row['Tarjeta'], 0 , 6) : null,
                                 'fecha_registro' => Date('d/m/Y H:i:s'),
-                                'fecha_autorizacion' => Date('d/m/Y H:i:s'),
-
+                                'fecha_actualizacion' => Date('d/m/Y H:i:s'),
+                                'estado' => isset($row['fecha_autorizacion']) ? '1' : null
                             ]);
-
-                            /*Fecha Autorización	Establecimiento	Recap	Vale	Tarjeta	Tipo Consumo	Consumo	Iva	Otros	Total	Comisión	RFTE	RIVA	Total a Pagar	Monto Con Iva	Monto Sin Iva
-2022-01-28 00:00:00.000	873134	63508	0000000005	421907******1010	202	6,24	0,75	0,00	6,99	0,31	0,12	0,15	6,41	6,24	0,00
- */
                         } catch (\Exception $e) {
 
                             $obj_det_carga_corp->truncate($this->cod_carga, $this->cliente);

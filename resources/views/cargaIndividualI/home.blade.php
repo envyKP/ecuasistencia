@@ -95,6 +95,6 @@ $(document).ready(function(){
 
 
 @section('content')
-    @include('cargaIndividualI.cabecera')
-    @include('cargaIndividualI.detalle')
+    @include('cargaIndividuali.cabecera')
+    @include('cargaIndividuali.detalle')
 @endsection

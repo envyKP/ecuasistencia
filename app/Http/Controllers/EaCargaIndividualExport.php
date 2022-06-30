@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Response;
+use Illuminate\Http\Request;
+use App\Http\Requests;
+use App\Http\Controllers\Controller;
 use App\Models\EaCabeceraCargaCorp;
 use App\Models\EaDetalleCargaCorp;
 use App\Models\EaProducto;
 use App\Models\EaSubproducto;
-use Illuminate\Http\Request;
 use App\Http\Controllers\EaClienteController;
 use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
@@ -16,14 +19,17 @@ use App\Http\Controllers\EaProductoController;
 use App\Http\Controllers\EaCabCargaInicialBitacoraController;
 use App\Http\Controllers\EaDetalleCargaCorpController;
 use App\Exports\EaReporteCargaInicialExport;
+use Maatwebsite\Excel\Concerns\Exportable;
 use App\Models\EaCliente;
 use App\Exports\EaGenCamExport;
-use Illuminate\Http\Response;
+//use Illuminate\Http\Response;
+
 
 require_once "../vendor/autoload.php";
 
 use Defuse\Crypto\Crypto;
 use Defuse\Crypto\Key;
+use Illuminate\Support\Arr;
 use PhpParser\Node\Expr\Cast\Double;
 
 class EaCargaIndividualExport extends Controller
@@ -44,17 +50,29 @@ class EaCargaIndividualExport extends Controller
     }
 
 
-    //metodo de exportacion
-    public function export()
+    /**
+     * Remove the specified resource from storage.
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function exporta(Request $request)
     {
         $contenido = file_get_contents("../salsa.txt");
         $clave = Key::loadFromAsciiSafeString($contenido);
-        $objEXPORT = new EaGenCamExport;
-        
-        //existen 3 tipos de formas unicamente existir para el import , todos son texto plano . 
+        //,$request->id_carga  ,$request->carga_resp
+        //$objEXPORT = new EaGenCamExport($request->clinte,$request->producto,$request->carga_resp);
+        $request->carga_resp = null;
+        $request->clinte = "INTER";
+        $request->producto = "400100012008312";
+        $objEXPORT = new EaGenCamExport("INTER", "400100012008312", $request->carga_resp);
         $recorrido = $objEXPORT->collection();
+        $ultima_carga = $objEXPORT->is_carga_older();
+        //añadir funcion solo para evaluar o agarrar la carga
         $textoPlano = "";
         $cont = 0;
+        $condicion = false;
+        // $id_carga = 0;
+        //echo Crypto::decrypt("def5020036e1089730e8f5189b4a1e57a1e16c7892ea4a9878691afde1da1d6a807b8700423479af767ba61366aee1f01c1ba242e760c3c131910e263260594f119959ae0854364ded35a1756a3dbebb05b2cf37f3e4458eb5865d063533bc", $clave);
         foreach ($recorrido as $individual) {
             $subtotal = $individual->subtotal;
             $numberCeros = 17 - strlen((string)(floatval($subtotal) * 100));
@@ -70,8 +88,15 @@ class EaCargaIndividualExport extends Controller
             }
             $impuestoF = $cerossub . (floatval($individual->deduccion_impuesto) * 100);
             //$textoPlano .= "\t";
+            $example = "0";
+            if (isset($individual->tarjeta) and (strlen($individual->tarjeta) > 20)) {
+                $example = Crypto::decrypt($individual->tarjeta, $clave);
+            } else {
+                $example = "1234560000000056";
+            }
+            //$textoPlano .= (isset($individual->tarjeta)) ? Crypto::decrypt($individual->tarjeta, $clave) : "0000000000000000";
             //$textoPlano .= "-1-";
-            $textoPlano .= (isset($individual->tarjeta)) ? Crypto::decrypt($individual->tarjeta, $clave) : "0000000000000000";
+            $textoPlano .= $example;
             //$textoPlano .= "-2-";
             $textoPlano .= (isset($individual->cod_establecimiento)) ? $$individual->cod_establecimiento : "00000000";
             //$textoPlano .= "-3-";
@@ -95,6 +120,7 @@ class EaCargaIndividualExport extends Controller
             }
             //$textoPlano .= "-9-";
             $textoPlano .= $cont_ceros2 . $cont;
+            ///bloque para realizar insert en base con la secuencia en la tabla ea_detalle_debito
             //$textoPlano .= "\t";
             //$textoPlano .= "-10-";
             $textoPlano .= $individual->constante5;
@@ -120,13 +146,81 @@ class EaCargaIndividualExport extends Controller
             //$textoPlano .= "-17-";
             $textoPlano .= $individual->constante9;
             $textoPlano .= "\n";
+
+            if (!isset($request->carga_resp)) {
+               
+                $condicion=true;
+                $id_carga = (isset($individual->id_carga) ? $individual->id_carga : 0);
+                $fecha_generacion = (isset($ultima_carga->fecha_generacion) ? $ultima_carga->fecha_generacion : 0);
+                if ($fecha_generacion != date('mY')) {
+                    $id_carga = (isset($ultima_carga->id_carga) ? $ultima_carga->id_carga : 0);
+                    //$id_carga = $ultima_carga->id_carga;
+                }
+                $row_insert_detalle = array();
+                $row_insert_detalle['id_sec'] = $individual->id_sec;
+                $row_insert_detalle['id_carga'] = $id_carga;
+                $row_insert_detalle['secuencia'] = $cont_ceros2 . $cont;
+                $row_insert_detalle['fecha_actualizacion'] = null;
+                $row_insert_detalle['fecha_registro'] = date('d/m/Y H:i:s');
+                $row_insert_detalle['producto'] = $request->producto;
+                $row_insert_detalle['cliente'] = $request->clinte;
+                $row_insert_detalle['estado'] = "0";
+                $row_insert_detalle['detalle'] = null;
+                $row_insert_detalle['bin'] = $example;
+                $row_insert_detalle['fecha_generacion'] =  date('mY');
+                //crear registro nuevo.
+
+                $objEXPORT->view_reg_state($row_insert_detalle);
+            }
+        }
+
+        if ($condicion == true) {
+            $id_carga = (isset($ultima_carga->id_carga) ? $ultima_carga->id_carga : 0);
+            $fecha_generacion = (isset($ultima_carga->fecha_generacion) ? $ultima_carga->fecha_generacion : 0);
+            $file_reg_carga = array();
+            $file_reg_carga['cod_carga'] = $id_carga;
+            $file_reg_carga['cliente'] = $request->clinte;
+            $file_reg_carga['producto'] = $request->producto;
+            $file_reg_carga['fecha_registro'] = date('d/m/Y H:i:s');
+            $file_reg_carga['fec_carga'] = $fecha_generacion;
+            $objEXPORT->registro_cargas($file_reg_carga);
         }
 
 
+        /*
+         $datosCabecera = array();
+        $headers = [
+            'Content-Type' => 'application/pdf',
+         ];
+
+        return response()->download($textoPlano, 'filename.txt', $headers);
+        */
+
+        //->deleteFileAfterSend(true);
+        //$objEXPORT->toResponse($objEXPORT->collection());
 
 
 
-        dd($textoPlano);
+        //dd($textoPlano);
+
+        // prepare content
+        /* $logs = Log::all();
+        $content = "Logs \n";
+        foreach ($logs as $log) {
+            $content .= $logs->id;
+            $content .= "\n";
+        }*/
+
+        // file name that will be used in the download
+        $fileName = "Inter" . date("Ym") . ".txt";
+
+        // use headers in order to generate the download
+        $headers = [
+            'Content-type' => 'text/plain',
+            'Content-Disposition' => sprintf('attachment; filename="%s"', $fileName),
+        ];
+        // make a response, with the content, a 200 response code and the headers
+        return Response::make($textoPlano, 200, $headers);
     }
 
 

@@ -21,7 +21,7 @@
         @php $row++; @endphp
     <tr>
         <td class="text-center"><strong>{{ $registro->cod_carga }}</strong></td>
-        <td>{{ explode("/", substr($registro->archivo, strpos($registro->archivo, $registro->cliente)) )[1] }}</td>
+        
         <td>
             <div>
                 <svg class="c-icon c-icon-1xl mr-1">
@@ -29,7 +29,8 @@
                 </svg> {{ $registro->cliente }}
             </div>
         </td>
-        <td>{{ $registro->desc_producto }}</td>
+        <td>{{ $registro->producto }}</td>
+        
         <td>
             <svg class="c-icon c-icon-1xl">
                 <use xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-calendar')}} "></use>

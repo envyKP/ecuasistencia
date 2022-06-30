@@ -1,7 +1,9 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Models\EaCabeceraCargaCorp;
+use App\Models\EaCabeceraCargaCorpBitacora;
 use App\Models\EaDetalleCargaCorp;
 use App\Models\EaProducto;
 use App\Models\EaSubproducto;
@@ -26,28 +28,37 @@ class EaCargaIndividualImport extends Controller
      */
     public function index()
     {
-        $clientes =  (new EaClienteController)->getAllCampanas();
+        /* $clientes =  (new EaClienteController)->getAllCampanas();
         $RegistrosPendientes = EaCabeceraCargaCorp::where('estado', 'PENDIENTE')
-                                                  ->orderBy('cliente')->paginate(5);
+            ->orderBy('cliente')->paginate(5);
 
-        return view ('cargaIndividualI.home')->with(compact('clientes'))
-                                         ->with(compact('RegistrosPendientes'));
+        return view('cargaIndividualI.home')->with(compact('clientes'))
+            ->with(compact('RegistrosPendientes'));
+        */
+
+        $clientes =  (new EaClienteController)->getAllCampanas();
+        $resumen_cabecera = EaCabeceraCargaCorpBitacora::orderBy('cod_carga')
+            ->paginate(5);
+       
+       // dd($resumen_cabecera);
+        return view('cargaIndividualI.home')->with(compact('clientes'))
+            ->with(isset($resumen_cabecera) ? compact('resumen_cabecera') : '');
     }
 
-      /**
+    /**
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
-    */
+     */
     public function get_cabecera_carga_inicial_recaif($proceso)
     {
 
-        $cabecera = EaCabeceraCargaCorp::where(function($query){
-                                                $query->where('proceso', 'recepcion_infor_finan')
-                                                      ->orWhere('proceso', 'generacion_infor_finan');
-                                        })->orderBy('cliente')
-                                          ->paginate(5);
+        $cabecera = EaCabeceraCargaCorp::where(function ($query) {
+            $query->where('proceso', 'recepcion_infor_finan')
+                ->orWhere('proceso', 'generacion_infor_finan');
+        })->orderBy('cliente')
+            ->paginate(5);
 
         return $cabecera;
     }
@@ -62,28 +73,29 @@ class EaCargaIndividualImport extends Controller
     {
         $datosCliente = $request->except('_token', '_method');
         $datosCliente['estado'] = "A";
- 
+
         $idCliente = EaCliente::All()->max('id_cliente');
- 
-        if ( isset($idCliente) && $idCliente !== 1 ) {
-             $idCliente++;
-             $datosCliente['id_cliente'] = $idCliente;
-        }else {
-             $datosCliente['id_cliente'] = 1;
+
+        if (isset($idCliente) && $idCliente !== 1) {
+            $idCliente++;
+            $datosCliente['id_cliente'] = $idCliente;
+        } else {
+            $datosCliente['id_cliente'] = 1;
         }
- 
- 
+
+
         if ($request->hasfile('logotipo')) {
- 
-             $nombre_archivo = $request->file('logotipo')->getClientOriginalName();
-             $datosCliente['logotipo'] = $request->file('logotipo')->storeAs('LogosClientes', $nombre_archivo, 'public');
+
+            $nombre_archivo = $request->file('logotipo')->getClientOriginalName();
+            $datosCliente['logotipo'] = $request->file('logotipo')->storeAs('LogosClientes', $nombre_archivo, 'public');
         }
- 
+
         EaCliente::insert($datosCliente);
- 
-        return redirect()->route('EaClienteController.index')->with([ 'cliente' => $request->cliente,
-                                                                      'trxcliente' => 'store' ]);
- 
+
+        return redirect()->route('EaClienteController.index')->with([
+            'cliente' => $request->cliente,
+            'trxcliente' => 'store'
+        ]);
     }
 
     /**
@@ -119,7 +131,7 @@ class EaCargaIndividualImport extends Controller
     {
         //
     }
-  /**
+    /**
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request

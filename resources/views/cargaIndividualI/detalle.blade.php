@@ -1,8 +1,8 @@
 <table class="table table-responsive-sm table-hover table-outline mb-0" id="tabla-det-caraga-corp">
 <thead class="thead-light">
     <tr>
-        <th class="text-center">{{'Código de generacion'}}</th>
-        <th>{{'Nombre del archivo'}}</th>
+        <th class="text-center">{{'Código de carga'}}</th>
+       
         <th>{{'Cliente'}}</th>
         <th>{{'Producto'}}</th>
         <th>{{'Fecha de carga'}}</th>
@@ -21,7 +21,7 @@
         @php $row++; @endphp
     <tr>
         <td class="text-center"><strong>{{ $registro->cod_carga }}</strong></td>
-        <td>{{ explode("/", substr($registro->archivo, strpos($registro->archivo, $registro->cliente)) )[1] }}</td>
+        
         <td>
             <div>
                 <svg class="c-icon c-icon-1xl mr-1">
@@ -29,7 +29,7 @@
                 </svg> {{ $registro->cliente }}
             </div>
         </td>
-        <td>{{ $registro->desc_producto }}</td>
+        <td>{{ $registro->producto }}</td>
         <td>
             <svg class="c-icon c-icon-1xl">
                 <use xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-calendar')}} "></use>
