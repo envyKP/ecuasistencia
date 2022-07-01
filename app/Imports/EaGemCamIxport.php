@@ -94,6 +94,7 @@ class EaGemCamIxport implements ToCollection, WithValidation, WithHeadingRow
 
                     $this->total_registros_gestionados_otras_campanas++;
                 }
+                //
             } else {
 
                 if (!empty($row['ordinal'])) {

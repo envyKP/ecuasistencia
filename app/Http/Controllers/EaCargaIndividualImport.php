@@ -28,17 +28,9 @@ class EaCargaIndividualImport extends Controller
      */
     public function index()
     {
-        /* $clientes =  (new EaClienteController)->getAllCampanas();
-        $RegistrosPendientes = EaCabeceraCargaCorp::where('estado', 'PENDIENTE')
-            ->orderBy('cliente')->paginate(5);
-
-        return view('cargaIndividualI.home')->with(compact('clientes'))
-            ->with(compact('RegistrosPendientes'));
-        */
-
         $clientes =  (new EaClienteController)->getAllCampanas();
         $resumen_cabecera = EaCabeceraCargaCorpBitacora::orderBydesc('cod_carga')->where('is_det_debito','1')
-            ->paginate(5);
+            ->paginate(15);
        
        // dd($resumen_cabecera);
         return view('cargaIndividualI.home')->with(compact('clientes'))

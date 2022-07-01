@@ -46,9 +46,9 @@
 <div class="row">
     <div class="col">
     <div class="card">
-            <!-- <div class="card-header"><strong>Credit Card</strong> <small>Form</small></div> -->
+            <!-- <div class="card-header"><strong>Credit Card</strong> <small>Form</small></div> -->          
             <div class="card-body">
-                <form action="{{route('EaRecepArchiFinanController.uploadArchivos')}}" method="post" enctype="multipart/form-data"  accept-charset="utf-8">
+                <form action="{{route('EaCargaIndividualExport.exporta')}}"method="get" enctype="multipart/form-data"  accept-charset="utf-8">
                     @csrf
                 <div class="row">
                     <input type="hidden" name="usuario_registra" value="{{ Auth::user()->username }}">
@@ -102,7 +102,7 @@
                     </div>
                     <div class="col-sm-2 col-md-2">
                         <div class="form-group">
-                            <button class="btn btn-success" id="btn-subirArchivo" title="Subir Archivo" type="submit">
+                            <button class="btn btn-success" id="btn-genera" title="Generar Carga" type="submit">
                                 <svg class="c-icon c-icon-1xl">
                                     <use xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-cloud-download')}} "></use>
                                 </svg> {{'Generar carga'}}
