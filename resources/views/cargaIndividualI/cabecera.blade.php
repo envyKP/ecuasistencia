@@ -71,23 +71,7 @@
                             </select>
                         </div>
                     </div>
-                    <div class="col-sm-5 col-md-5">
-                        <div class="form-group">
-                            <div class="input-group">
-                                <div class="input-group-prepend">
-                                    <span class="input-group-text form-control">
-                                        <label class="c-switch c-switch-label c-switch-success mt-2">
-                                            <input class="c-switch-input" required  type="checkbox" name="filtro_proce_carga" id="filtro_proce_carga" value="generacion_infor_finan"><span class="c-switch-slider" data-checked="On" data-unchecked="Off"></span>
-                                        </label>
-                                        <strong class="ml-1"> {{'Procesos de carga/codigo de generacion/fecha (preguntar): '}} </strong>
-                                    </span>
-                                </div>
-                                <select class="form-control" name="cod_carga" id="cod_carga" style="display:none" required>
-                                    <option value="" selected>{{'Seleccione un código de carga'}}</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
+
                     <div class="col-sm-3 col-md-3">
                         <div class="form-group">
                             <div class="input-group">
@@ -107,17 +91,21 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-sm-3 col-md-3">
+                    <div class="col-sm-2 col-md-2">
                         <div class="form-group">
-                            <input class="form-control pt-1" id="archivo" type="file" name="archivo" required><!-- <span class="help-block">{{'Archivo debe ser de extensión .xlsx'}}</span> -->
+                            <button class="btn btn-success" id="btn-subirArchivo" title="Subir Archivo" type="submit">
+                                <svg class="c-icon c-icon-1xl">
+                                    <use xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-cloud-download')}} "></use>
+                                </svg> {{'Buscar'}}
+                            </button>
                         </div>
                     </div>
                     <div class="col-sm-2 col-md-2">
                         <div class="form-group">
                             <button class="btn btn-success" id="btn-subirArchivo" title="Subir Archivo" type="submit">
                                 <svg class="c-icon c-icon-1xl">
-                                    <use xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-cloud-upload')}} "></use>
-                                </svg> {{'Subir Archivo'}}
+                                    <use xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-cloud-download')}} "></use>
+                                </svg> {{'Generar carga'}}
                             </button>
                         </div>
                     </div>

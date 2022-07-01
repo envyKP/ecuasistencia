@@ -37,7 +37,7 @@ class EaCargaIndividualImport extends Controller
         */
 
         $clientes =  (new EaClienteController)->getAllCampanas();
-        $resumen_cabecera = EaCabeceraCargaCorpBitacora::orderBy('cod_carga')
+        $resumen_cabecera = EaCabeceraCargaCorpBitacora::orderBydesc('cod_carga')->where('is_det_debito','1')
             ->paginate(5);
        
        // dd($resumen_cabecera);

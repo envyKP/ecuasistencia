@@ -70,7 +70,7 @@ class EaGenCamExport implements FromCollection
                     echo "  ";
                     echo $detalles->producto;
                     echo $this->producto;*/
-                    return EaBaseActiva::join("ea_subproductos", "ea_subproductos.contrato_ama", "=", "ea_base_activa.producto")
+                    return EaBaseActiva::join("ea_subproductos", "ea_subproductos.desc_subproducto", "=", "ea_base_activa.subproducto")
                         ->join("ea_detalle_debito", "ea_detalle_debito.id_sec", "=", "ea_base_activa.id_sec")
                         ->select(
                             'tarjeta',
@@ -101,6 +101,7 @@ class EaGenCamExport implements FromCollection
                         ->where('ea_base_activa.estado', 'Z')
                         ->where('ea_detalle_debito.estado', '0')
                         ->get();
+                        //->where('ea_detalle_debito.producto', $this->producto)
                 } else {
                     return EaBaseActiva::join("ea_subproductos", "ea_subproductos.contrato_ama", "=", "ea_base_activa.producto")
                         ->select(
@@ -123,12 +124,13 @@ class EaGenCamExport implements FromCollection
                             EaBaseActiva::raw("'000000000000000' as constante9"),
                             'ea_base_activa.id_sec'
                         )
-                        ->where('producto', $this->producto)
+                        ->where('desc_subproducto', $this->producto)
                         ->where('tipresp', '1')
                         ->where('codresp', '100')
                         ->where('detresp', 'ACEPTA SERVICIO')
                         ->where('estado', 'Z')
                         ->get();
+                        //->where('producto', $this->producto)
                 }
                 break;
 
@@ -449,6 +451,7 @@ class EaGenCamExport implements FromCollection
                 'fecha_actualizacion' => isset($row['fecha_actualizacion']) ? $rows['fecha_actualizacion'] : '',
                 'fecha_registro' => isset($rows['fecha_registro']) ? trim($rows['fecha_registro']) : null,
                 'producto' => isset($this->producto) ? trim($this->producto) : '',
+                'subproducto' => isset($this->producto) ? trim($this->producto) : '',
                 'cliente' => isset($this->cliente) ? trim($this->cliente) : '',
                 'estado' => '0',
                 'bin' => isset($rows['bin']) ? trim(substr($rows['bin'], 0, 6)) : null,
@@ -473,11 +476,12 @@ class EaGenCamExport implements FromCollection
                 'cod_carga' => isset($rows['cod_carga']) ? $rows['cod_carga'] + 1 : null,
                 'fecha_actualizacion' => isset($row['fecha_actualizacion']) ? $rows['fecha_actualizacion'] : '',
                 'fec_registro' => isset($rows['fecha_registro']) ? trim($rows['fecha_registro']) : null,
-                'producto' => isset($this->producto) ? trim($this->producto) : '',
+                'desc_producto' => isset($this->producto) ? trim($this->producto) : '',
                 'cliente' => isset($this->cliente) ? trim($this->cliente) : '',
                 'fec_carga' => isset($rows['fecha_generacion']) ? trim($rows['fecha_generacion']) : null,
                 'usuario_registra' => 'pruebas',
                 'estado' => 'PENDIENTE',
+                'is_det_debito' => '1',
             ]);
         } catch (\Exception $e) {
             // $obj_det_carga_corp->truncate($this->cod_carga, $this->cliente );

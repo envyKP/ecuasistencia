@@ -8,7 +8,7 @@ $(document).ready(function(){
     $("#cliente").change(function(){
 
         $.ajax({
-            url: "{{route('EaProductoController.getProducto')}}?cliente="+$(this).val(),
+            url: "{{route('EaSubproductoController.getSubproductoNoAMA')}}?cliente="+$(this).val(),
             method:"get",
             success: function(data){
                $("#producto").html(data.htmlProducto);

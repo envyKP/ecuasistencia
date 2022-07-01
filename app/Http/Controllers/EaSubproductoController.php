@@ -39,7 +39,7 @@ class EaSubproductoController extends Controller
     public function store(Request $request)
     {
         $util = (new EaUtilController);
-        $datoSubprod = $request->except('_token','_method', "desc_productoAddSub");
+        $datoSubprod = $request->except('_token', '_method', "desc_productoAddSub");
 
         $datoSubprod['cliente'] = $request->clienteAddSub;
         $datoSubprod['subproducto'] = $util->quitar_tildes($request->subproducto);
@@ -49,23 +49,25 @@ class EaSubproductoController extends Controller
 
         $idSubproducto = EaSubproducto::all()->max('id_subproducto');
 
-        if ( isset($idSubproducto) &&  $idSubproducto !== 1 ){
+        if (isset($idSubproducto) &&  $idSubproducto !== 1) {
             $idSubproducto++;
             $datoSubprod['id_subproducto'] = $idSubproducto;
-        }else {
+        } else {
             $datoSubprod['id_subproducto'] = 1;
         }
 
-        if ( is_null($request->desc_subproducto)) {
+        if (is_null($request->desc_subproducto)) {
             $datoSubproducto['desc_subproducto'] = $util->quitar_tildes($request->subproducto);
         }
 
         EaSubproducto::insert($datoSubprod);
 
-        return redirect()->route('EaProductoController.index')->with([ 'clienteAddSub' => $request->clienteAddSub,
-                                                                       'desc_subproducto' => $request->subproducto,
-                                                                       'productoAddSub' => $request->desc_productoAddSub,
-                                                                       'trxsubprod' => 'store' ]);
+        return redirect()->route('EaProductoController.index')->with([
+            'clienteAddSub' => $request->clienteAddSub,
+            'desc_subproducto' => $request->subproducto,
+            'productoAddSub' => $request->desc_productoAddSub,
+            'trxsubprod' => 'store'
+        ]);
     }
 
 
@@ -75,44 +77,58 @@ class EaSubproductoController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function getSubproducto (Request  $request){
-
-        $html ='<option value="" selected>Selecciona Sub-Producto</option>';
-        $subproductos = EaSubproducto::where('cliente', $request->cliente)
-                                     ->where('contrato_ama', $request->contrato_ama)
-                                     ->get();
-
-        foreach ($subproductos as $subproducto) {
-
-            $html .='<option value="'.$subproducto->id_subproducto.'">'.$subproducto->desc_subproducto.'</option>';
-        }
-
-       return response()->json( ['htmlSubproducto' => $html] );
-
-    }
-
-
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function getSubproductoCli (Request  $request){
+    public function getSubproducto(Request  $request)
+    {
 
         $html = '<option value="" selected>Selecciona Sub-Producto</option>';
         $subproductos = EaSubproducto::where('cliente', $request->cliente)
-                                     ->where('contrato_ama', $request->contrato_ama)
-                                     ->get();
+            ->where('contrato_ama', $request->contrato_ama)
+            ->get();
 
         foreach ($subproductos as $subproducto) {
 
-            $html .='<option value="'.$subproducto->desc_subproducto.'">'.$subproducto->desc_subproducto.'</option>';
+            $html .= '<option value="' . $subproducto->id_subproducto . '">' . $subproducto->desc_subproducto . '</option>';
         }
 
-       return response()->json( ['htmlSubproducto' => $html] );
+        return response()->json(['htmlSubproducto' => $html]);
+    }
+    
+    public function getSubproductoNoAMA(Request  $request)
+    {
+        $html = '<option value="" selected>Selecciona Producto</option>';
+        $subproductos = EaSubproducto::where('cliente', $request->cliente)
+            ->get();
 
+        foreach ($subproductos as $subproducto) {
+
+            $html .= '<option value="' . $subproducto->desc_subproducto  . '">' . (substr($subproducto->desc_subproducto, -strlen($subproducto->tipo_subproducto)) == $subproducto->tipo_subproducto ? $subproducto->desc_subproducto : ($subproducto->desc_subproducto) . " " . ($subproducto->tipo_subproducto)) . '</option>';
+        }
+
+        return response()->json(['htmlProducto' => $html]);
+    }
+
+
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function getSubproductoCli(Request  $request)
+    {
+
+        $html = '<option value="" selected>Selecciona Sub-Producto</option>';
+        $subproductos = EaSubproducto::where('cliente', $request->cliente)
+            ->where('contrato_ama', $request->contrato_ama)
+            ->get();
+
+        foreach ($subproductos as $subproducto) {
+
+            $html .= '<option value="' . $subproducto->desc_subproducto . '">' . $subproducto->desc_subproducto . '</option>';
+        }
+
+        return response()->json(['htmlSubproducto' => $html]);
     }
 
 
@@ -122,11 +138,12 @@ class EaSubproductoController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function getSubproductoDetalle($id_cliente, $id_subproducto){
+    public function getSubproductoDetalle($id_cliente, $id_subproducto)
+    {
 
         $subProducto = EaSubproducto::where('cliente', $id_cliente)
-                                    ->where('id_subproducto', $id_subproducto)
-                                    ->first();
+            ->where('id_subproducto', $id_subproducto)
+            ->first();
 
         return  $subProducto;
     }
@@ -138,42 +155,41 @@ class EaSubproductoController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function getSubproductoModel(Request  $request){
+    public function getSubproductoModel(Request  $request)
+    {
 
         $subproducto = EaSubproducto::where('cliente', $request->cliente)
-                                     ->where('contrato_ama',$request->contrato_ama)
-                                     ->where('id_subproducto', $request->id_subproducto)
-                                     ->get();
+            ->where('contrato_ama', $request->contrato_ama)
+            ->where('id_subproducto', $request->id_subproducto)
+            ->get();
 
-        return response()->json( ['subProductoModel' => $subproducto] );
-
+        return response()->json(['subProductoModel' => $subproducto]);
     }
 
 
-     /**
+    /**
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function getSubproductoSap (Request  $request){
+    public function getSubproductoSap(Request  $request)
+    {
 
-        $html ='<option value="" selected>Selecciona Sub-Producto</option>';
+        $html = '<option value="" selected>Selecciona Sub-Producto</option>';
         $subproductos = EaSubproducto::where('cliente', $request->cliente)
-                                   //->where('contrato_ama', $request->contrato_ama)
-                                     ->get();
+            //->where('contrato_ama', $request->contrato_ama)
+            ->get();
 
         foreach ($subproductos as $subproducto) {
 
-            if ( isset($subproducto->nombre_contrato_ama)) {
+            if (isset($subproducto->nombre_contrato_ama)) {
                 # code...
-                $html .='<option value="'.$subproducto->id_subproducto.'">'.$subproducto->nombre_contrato_ama.'</option>';
+                $html .= '<option value="' . $subproducto->id_subproducto . '">' . $subproducto->nombre_contrato_ama . '</option>';
             }
-
         }
 
-       return response()->json( ['htmlSubproducto' => $html] );
-
+        return response()->json(['htmlSubproducto' => $html]);
     }
 
     /**
@@ -198,15 +214,14 @@ class EaSubproductoController extends Controller
     {
 
         $trx = EaSubproducto::where('cliente', $request->cliente)
-                            ->where('contrato_ama', $request->contrato_amaOLD)
-                            ->exists();
+            ->where('contrato_ama', $request->contrato_amaOLD)
+            ->exists();
 
-        if ( $trx ){
-            EaSubproducto::where ('cliente', $request->cliente)
-                         ->where ('contrato_ama', $request->contrato_amaOLD)
-                         ->update( ['contrato_ama' => $request->contrato_ama] );
+        if ($trx) {
+            EaSubproducto::where('cliente', $request->cliente)
+                ->where('contrato_ama', $request->contrato_amaOLD)
+                ->update(['contrato_ama' => $request->contrato_ama]);
         }
-
     }
 
 
@@ -221,7 +236,7 @@ class EaSubproductoController extends Controller
     {
 
         $util = (new EaUtilController);
-        $datoSubproducto = $request->except("_token", "_method", "cod_establecimientoEdit", "cod_establecimientoEditOLD", "contrato_amaEdit", "desc_productoEditSub", "id_subproducto", "subproductoOLD", "desc_subproductoOLD", "valorOld","deduccion_impuestoEditSubOld", "subtotalEditSubOld", "nom_impuestoEditOld", "deduccion_impuestoEditOld", "subtotalEditOld");
+        $datoSubproducto = $request->except("_token", "_method", "cod_establecimientoEdit", "cod_establecimientoEditOLD", "contrato_amaEdit", "desc_productoEditSub", "id_subproducto", "subproductoOLD", "desc_subproductoOLD", "valorOld", "deduccion_impuestoEditSubOld", "subtotalEditSubOld", "nom_impuestoEditOld", "deduccion_impuestoEditOld", "subtotalEditOld");
 
         $datoSubproducto['contrato_ama'] = $request->contrato_amaEdit;
         $datoSubproducto['cod_establecimiento'] = $request->cod_establecimientoEdit;
@@ -234,29 +249,31 @@ class EaSubproductoController extends Controller
         $datoSubproducto['valortotal'] = $request->valortotalEditSub;
         $datoSubproducto['subproducto'] = $util->quitar_tildes($request->subproducto);
 
-        unset($datoSubproducto['clienteSub'], $datoSubproducto['graba_impuestoEdit'], $datoSubproducto['graba_impuestoEditOld'] , $datoSubproducto['nom_impuestoEdit'], $datoSubproducto['nom_impuestoEditOld'] ,$datoSubproducto['valor_porcentajeEdit'], $datoSubproducto['deduccion_impuestoEditSub'], $datoSubproducto['subtotalEditSub'],  $datoSubproducto['valortotalEditSub'] );
+        unset($datoSubproducto['clienteSub'], $datoSubproducto['graba_impuestoEdit'], $datoSubproducto['graba_impuestoEditOld'], $datoSubproducto['nom_impuestoEdit'], $datoSubproducto['nom_impuestoEditOld'], $datoSubproducto['valor_porcentajeEdit'], $datoSubproducto['deduccion_impuestoEditSub'], $datoSubproducto['subtotalEditSub'],  $datoSubproducto['valortotalEditSub']);
 
-        if ( is_null($request->desc_subproducto)) {
+        if (is_null($request->desc_subproducto)) {
             $datoSubproducto['desc_subproducto'] = $util->quitar_tildes($request->subproducto);
         } else {
             $datoSubproducto['desc_subproducto'] = $util->quitar_tildes($request->desc_subproducto);
         }
 
         EaSubproducto::where('id_subproducto', $request->id_subproducto)
-                     ->update($datoSubproducto);
+            ->update($datoSubproducto);
 
-        return redirect()->route('EaProductoController.index')->with([ 'cliente' => $request->clienteSub,
-                                                                       'valor' => $request->valortotalEditSub,
-                                                                       'valorOLD' => $request->valorOld,
-                                                                       'producto' => $request->desc_productoEditSub,
-                                                                       'nom_subproducto' => $request->subproducto,
-                                                                       'nom_subproductoOLD' => $request->subproductoOLD,
-                                                                       'desc_subproducto' => $request->desc_subproducto,
-                                                                       'deduccion_impuestoOld' => $request->deduccion_impuestoEditSubOld,
-                                                                       'deduccion_impuesto' => $request->deduccion_impuestoEditSub,
-                                                                       'subtotalEditSubOld' => $request->subtotalEditSub,
-                                                                       'subtotal' => $request->subtotalEditSub,
-                                                                       'trxsubprod' => 'update' ]);
+        return redirect()->route('EaProductoController.index')->with([
+            'cliente' => $request->clienteSub,
+            'valor' => $request->valortotalEditSub,
+            'valorOLD' => $request->valorOld,
+            'producto' => $request->desc_productoEditSub,
+            'nom_subproducto' => $request->subproducto,
+            'nom_subproductoOLD' => $request->subproductoOLD,
+            'desc_subproducto' => $request->desc_subproducto,
+            'deduccion_impuestoOld' => $request->deduccion_impuestoEditSubOld,
+            'deduccion_impuesto' => $request->deduccion_impuestoEditSub,
+            'subtotalEditSubOld' => $request->subtotalEditSub,
+            'subtotal' => $request->subtotalEditSub,
+            'trxsubprod' => 'update'
+        ]);
     }
 
     /**
@@ -271,10 +288,12 @@ class EaSubproductoController extends Controller
 
         EaSubproducto::where('id_subproducto', $request->id_subprodFormSub)->delete();
 
-        return redirect()->route('EaProductoController.index')->with(['cliente' => $request->clienteFormSub,
-                                                                      'desc_subproductoForm' => $request->desc_subproductoForm,
-                                                                      'productoForm' => $request->desc_productoSubForm,
-                                                                      'trxsubprod' => 'delete' ]);
+        return redirect()->route('EaProductoController.index')->with([
+            'cliente' => $request->clienteFormSub,
+            'desc_subproductoForm' => $request->desc_subproductoForm,
+            'productoForm' => $request->desc_productoSubForm,
+            'trxsubprod' => 'delete'
+        ]);
     }
 
 
@@ -284,16 +303,16 @@ class EaSubproductoController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    function updateMaestroCliente( Request $request ){
+    function updateMaestroCliente(Request $request)
+    {
 
         $existe = EaSubproducto::where('cliente', $request->clienteEditOld)
-                               ->exists();
+            ->exists();
 
         if ($existe) {
             EaSubproducto::where('cliente', $request->clienteEditOld)
-                         ->update( ['cliente' => $request->clienteEdit] );
+                ->update(['cliente' => $request->clienteEdit]);
         }
-
     }
 
 
@@ -309,16 +328,13 @@ class EaSubproductoController extends Controller
 
         //llamado desde el destroy de producto
         $existe = EaSubproducto::where('cliente', $request->clienteForm)
-                               ->where('contrato_ama', $request->contrato_amaForm)
-                               ->exists();
+            ->where('contrato_ama', $request->contrato_amaForm)
+            ->exists();
 
         if ($existe) {
             EaSubproducto::where('cliente', $request->clienteForm)
-                         ->where('contrato_ama', $request->contrato_amaForm)
-                         ->delete();
+                ->where('contrato_ama', $request->contrato_amaForm)
+                ->delete();
         }
-
     }
-
-
 }

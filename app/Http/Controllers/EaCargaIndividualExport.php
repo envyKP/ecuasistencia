@@ -63,8 +63,10 @@ class EaCargaIndividualExport extends Controller
         //$objEXPORT = new EaGenCamExport($request->clinte,$request->producto,$request->carga_resp);
         $request->carga_resp = null;
         $request->clinte = "INTER";
-        $request->producto = "400100012008312";
-        $objEXPORT = new EaGenCamExport("INTER", "400100012008312", $request->carga_resp);
+        
+        //$request->producto = "400100012008312";
+        $request->producto ="ASISTENCIA FAMILIA/HOGAR CTAS";
+        $objEXPORT = new EaGenCamExport( $request->clinte, $request->producto, $request->carga_resp);
         $recorrido = $objEXPORT->collection();
         $ultima_carga = $objEXPORT->is_carga_older();
         //añadir funcion solo para evaluar o agarrar la carga

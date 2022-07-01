@@ -6,11 +6,10 @@
         <th>{{'Cliente'}}</th>
         <th>{{'Producto'}}</th>
         <th>{{'Fecha de carga'}}</th>
-        <th class="text-center">{{'Total de registros'}}</th>
         <th >{{'Usuario registra'}}</th>
         <th>{{'Fecha registro'}}</th>
         <th class="text-center">{{'Estado'}}</th>
-        <th class="text-center">{{'Proceso'}}</th>
+        <th class="text-center">{{'Archivo'}}</th>
         <th class="text-center">{{'Acciones'}}</th>
     </tr>
 </thead>
@@ -29,13 +28,13 @@
                 </svg> {{ $registro->cliente }}
             </div>
         </td>
-        <td>{{ $registro->producto }}</td>
+        <td>{{ $registro->desc_producto }}</td>
         <td>
             <svg class="c-icon c-icon-1xl">
                 <use xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-calendar')}} "></use>
             </svg> {{ $registro->fec_carga }}
         </td>
-        <td class="text-center">{{ $registro->total_registros_archivo }}</td>
+        
         <td>
             <div>
                 <svg class="c-icon c-icon-1xl mr-1">
@@ -52,13 +51,27 @@
            <strong>{{ $registro->estado }} </strong>
         </td>
         <td class="text-center">
-           <strong>{{ strtoupper($registro->proceso) }} </strong>
+            
+                <div class="form-group">
+                    <input class="form-control pt-1" id="archivo" type="file" name="archivo" required><!-- <span class="help-block">{{'Archivo debe ser de extensión .xlsx'}}</span> -->
+                </div>
+            
         </td>
-        <td class="col-sm-1 col-md-1">
+        <td class="col-sm-4 col-md-4">
             @php
                 ${'data'.$registro->cod_carga} = $registro;
             @endphp
             <div class="row content-center">
+                
+                
+                        <button class="btn btn-success" id="btn-subirArchivo" title="Carga Archivo xls o txt" type="submit">
+                            <svg class="c-icon c-icon-1xl">
+                                <use xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-cloud-upload')}} "></use>
+                            </svg> 
+                        </button>
+                  
+              
+
                 @if( stripos( $registro->estado,'PROCESADO') !== false )
                     <button class="btn btn-info mx-1" title="Ver detalles del registro" type="button" data-toggle="modal" data-target="{{ '#infoDetcarga'.$row }}">
                         <svg class="c-icon c-icon-1xl">
@@ -66,13 +79,14 @@
                         </svg>
                     </button>
                     @include('cargaInicial.detalleCarga', [ 'data' =>  ${'data'.$registro->cod_carga}, 'row' => $row,  'estado_cabecera' => $registro->estado, 'registros_no_cumplen' => session('registros_no_cumplen') ])
-                @endif
+               
+                    @endif
 
-                @if( strcmp( $registro->estado,'PENDIENTE') == 0 && $registro->visible =='S'  && strcmp($registro->proceso, 'carga_inicial') ==0 )
+                @if( strcmp( $registro->estado,'PENDIENTE') == 0 )
                 <form id="form-procesarCarga" action="{{ route('EaCabCargaInicialController.procesar')}}" method="post">
 	                @csrf
                     <input type="hidden" name="cod_carga" value="{{$registro->cod_carga}}">
-                    <button class="btn btn-success mx-1" title="Procesar Archivo" type="submit">
+                    <button class="btn btn-success mx-1" title="descargar generacion" type="submit">
                         <svg class="c-icon c-icon-1xl">
                             <use xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-save')}} "></use>
                         </svg>
@@ -80,11 +94,32 @@
                 </form>
                 @endif
 
-                <button class="btn btn-danger mx-1" title="Eliminar Carga" type="button" data-toggle="modal" data-target="{{ '#eliminar'.$registro->cod_carga }}">
+                <!-- con errores -->
+                <form id="form-procesarCarga" action="{{ route('EaCabCargaInicialController.procesar')}}" method="post">
+	                @csrf
+                    <input type="hidden" name="cod_carga" value="{{$registro->cod_carga}}">
+                    <button class="btn btn-warning mx-1" title="Reporte no procesados" type="submit">
+                        <svg class="c-icon c-icon-1xl">
+                            <use xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-save')}} "></use>
+                        </svg>
+                    </button>
+                </form>
+                <form id="form-noprocesadosCarga" action="{{ route('EaCabCargaInicialController.procesar')}}" method="post">
+	                @csrf
+                    <input type="hidden" name="cod_carga" value="{{$registro->cod_carga}}">
+                    <button class="btn btn-danger mx-1" title="Reporte no procesados" type="submit">
+                        <svg class="c-icon c-icon-1xl">
+                            <use xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-save')}} "></use>
+                        </svg>
+                    </button>
+                </form>
+
+                <!--<button class="btn btn-danger mx-1" title="Eliminar Carga" type="button" data-toggle="modal" data-target="{{ '#eliminar'.$registro->cod_carga }}">
                     <svg class="c-icon c-icon-1xl">
                         <use xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-trash')}} "></use>
                     </svg>
-                </button>
+                </button>-->
+
             </div>
             @include('cargaInicial.eliminarRegistro', ['row' => $registro->cod_carga, 'data' => ${'data'.$registro->cod_carga} ])
         </td>
