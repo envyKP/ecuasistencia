@@ -29,31 +29,16 @@ class EaCargaIndividualImport extends Controller
     public function index()
     {
         $clientes =  (new EaClienteController)->getAllCampanas();
-        $resumen_cabecera = EaCabeceraCargaCorpBitacora::orderBydesc('cod_carga')->where('is_det_debito','1')
+
+        $resumen_cabecera = EaCabeceraCargaCorpBitacora::orderBydesc('cod_carga')->where('is_det_debito', '1')
             ->paginate(15);
-       
-       // dd($resumen_cabecera);
+
+        // dd($resumen_cabecera);
         return view('cargaIndividualI.home')->with(compact('clientes'))
             ->with(isset($resumen_cabecera) ? compact('resumen_cabecera') : '');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function get_cabecera_carga_inicial_recaif($proceso)
-    {
 
-        $cabecera = EaCabeceraCargaCorp::where(function ($query) {
-            $query->where('proceso', 'recepcion_infor_finan')
-                ->orWhere('proceso', 'generacion_infor_finan');
-        })->orderBy('cliente')
-            ->paginate(5);
-
-        return $cabecera;
-    }
 
     /**
      * Store a newly created resource in storage.
@@ -130,7 +115,36 @@ class EaCargaIndividualImport extends Controller
      * @return \Illuminate\Http\Response
      */
     public function uploadArchivos(Request  $request)
-
     {
+        //no nescesario ---
+        $datosCab = $request->except('_token', 'subproducto', 'filtro_cliente', 'filtro_producto', 'filtro_subproducto');
+        $fecha = Date('Ymd');
+        //$productoDetalle = (new EaProductoController)->getProductoDetalle($request->cliente, $request->producto);
+        $extension = $request->file('archivo')->extension();
+        if (strtolower($extension) == 'xls' || strtolower($extension) == 'xlsx') {
+            $datosCab['fec_carga'] = Date('d/m/Y H:i:s');
+            if (isset($productoDetalle)) {
+                $datosCab['desc_producto'] = $request->ff;
+            } else {
+                $datosCab['producto'] = '';
+                $datosCab['desc_producto'] = '';
+            }
+            if ($request->hasfile('archivo')) {
+                $nombre_archivo = $request->file('archivo')->getClientOriginalName();
+                //$nombre_archivo = "BASE_COLOCACION_".$request->cliente.'_'.$fecha.'.xlsx';
+                $datosCab['archivo'] = $request->file('archivo')->storeAs('cargas_inicial/' . $request->cliente, $nombre_archivo, 'public');
+            }
+            $trx = EaCabeceraCargaCorp::insert($datosCab);
+            if ($trx) {
+                $rsp = (new EaCabCargaInicialBitacoraController)->create_bitacora($datosCab['cod_carga']);
+                $success = "Archivo: " . $nombre_archivo . ", del cliente: " . $request->cliente . " cargado en estado pendiente de procesar.";
+            }
+        } else {
+            $error = "Archivos permitidos: xls ó xlsx";
+        }
+        return redirect()->route('EaCargaIndividualImport.index')->with([
+            'success' => isset($success) ? $success : '',
+            'error' => isset($error) ? $error : ''
+        ]);
     }
 }

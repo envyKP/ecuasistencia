@@ -58,11 +58,19 @@
                         <strong>{{ $registro->estado }} </strong>
                     </td>
                     <td class="text-center">
-
+                        
                         <div class="form-group">
+                            @if (strcmp($registro->estado, 'PENDIENTE') == 0 || strcmp($registro->estado, 'REPROCESAR')== 0)
                             <input class="form-control pt-1" id="archivo" type="file" name="archivo" required>
                             <!-- <span class="help-block">{{ 'Archivo debe ser de extensión .xlsx' }}</span> -->
+                            @else
+                            <input class="form-control pt-1" type="file" disabled>
+                            @endif
+
                         </div>
+                        
+
+
 
                     </td>
                     <td class="col-sm-4 col-md-4">
@@ -81,26 +89,7 @@
                                 </svg>
                             </button>
 
-
-
-                            @if (stripos($registro->estado, 'PROCESADO') !== false)
-                                <button class="btn btn-info mx-1" title="Ver detalles del registro" type="button"
-                                    data-toggle="modal" data-target="{{ '#infoDetcarga' . $row }}">
-                                    <svg class="c-icon c-icon-1xl">
-                                        <use
-                                            xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-magnifying-glass') }} ">
-                                        </use>
-                                    </svg>
-                                </button>
-                                @include('cargaInicial.detalleCarga', [
-                                    'data' => ${'data' . $registro->cod_carga},
-                                    'row' => $row,
-                                    'estado_cabecera' => $registro->estado,
-                                    'registros_no_cumplen' => session('registros_no_cumplen'),
-                                ])
-                            @endif
-
-                            @if (strcmp($registro->estado, 'PENDIENTE') == 0)
+                            @if (strcmp($registro->estado, 'PENDIENTE') == 0 || strcmp($registro->estado, 'REPROCESAR')== 0)
                                 <form id="form-procesarCarga"
                                     action="{{ route('EaCabCargaInicialController.procesar') }}" method="post">
                                     @csrf
@@ -116,18 +105,22 @@
                             @endif
 
                             <!-- con errores -->
-                            <form id="form-procesarCarga" action="{{ route('EaCabCargaInicialController.procesar') }}"
-                                method="post">
-                                @csrf
-                                <input type="hidden" name="cod_carga" value="{{ $registro->cod_carga }}">
-                                <button class="btn btn-warning mx-1" title="Reporte no procesados" type="submit">
-                                    <svg class="c-icon c-icon-1xl">
-                                        <use
-                                            xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-save') }} ">
-                                        </use>
-                                    </svg>
-                                </button>
-                            </form>
+                            @if (stripos($registro->estado, 'PROCESADO') !== false)
+                                <form id="form-procesarCarga"
+                                    action="{{ route('EaCabCargaInicialController.procesar') }}" method="post">
+                                    @csrf
+                                    <input type="hidden" name="cod_carga" value="{{ $registro->cod_carga }}">
+                                    <button class="btn btn-warning mx-1" title="Reporte no procesados" type="submit">
+                                        <svg class="c-icon c-icon-1xl">
+                                            <use
+                                                xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-save') }} ">
+                                            </use>
+                                        </svg>
+                                    </button>
+                                </form>
+                            @endif
+                            
+                            @if (strcmp($registro->estado, 'REPROCESAR')== 0)
                             <form id="form-noprocesadosCarga"
                                 action="{{ route('EaCabCargaInicialController.procesar') }}" method="post">
                                 @csrf
@@ -140,6 +133,7 @@
                                     </svg>
                                 </button>
                             </form>
+                            @endif
 
                             <!--<button class="btn btn-danger mx-1" title="Eliminar Carga" type="button" data-toggle="modal" data-target="{{ '#eliminar' . $registro->cod_carga }}">
                     <svg class="c-icon c-icon-1xl">

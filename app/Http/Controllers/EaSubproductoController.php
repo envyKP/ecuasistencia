@@ -92,7 +92,7 @@ class EaSubproductoController extends Controller
 
         return response()->json(['htmlSubproducto' => $html]);
     }
-    
+
     public function getSubproductoNoAMA(Request  $request)
     {
         $html = '<option value="" selected>Selecciona Producto</option>';

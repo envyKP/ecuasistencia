@@ -398,7 +398,7 @@ class EaGenCamExport implements FromCollection
     public function view_reg_state(array $rows)
     {
 
-
+        
         try {
 
             EaDetalleDebito::create([
@@ -411,7 +411,6 @@ class EaGenCamExport implements FromCollection
                 'subproducto' => isset($this->producto) ? trim($this->producto) : '',
                 'cliente' => isset($this->cliente) ? trim($this->cliente) : '',
                 'estado' => '0',
-                'bin' => isset($rows['bin']) ? trim(substr($rows['bin'], 0, 6)) : null,
                 'fecha_generacion' => isset($rows['fecha_generacion']) ? trim($rows['fecha_generacion']) : null,
             ]);
         } catch (\Exception $e) {

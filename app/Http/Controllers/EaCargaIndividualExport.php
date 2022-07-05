@@ -61,6 +61,7 @@ class EaCargaIndividualExport extends Controller
         $clave = Key::loadFromAsciiSafeString($contenido);
     
         $varcontrolsecuencia = (isset($request->carga_resp) ? strval($request->carga_resp) : null);
+      
         $objEXPORT = new EaGenCamExport($request->cliente, $request->producto, $varcontrolsecuencia);
         $recorrido = $objEXPORT->collection();
         $ultima_carga = $objEXPORT->is_carga_older();
@@ -142,11 +143,12 @@ class EaCargaIndividualExport extends Controller
                     //$textoPlano .= "-17-";
                     $textoPlano .= $individual->constante9;
                     $textoPlano .= "\n";
-        
+                   
                     if (!isset($request->carga_resp)) {
-        
+                        
                         $condicion = true;
-                        $id_carga = (isset($individual->id_carga) ? $individual->id_carga : 0);
+                        $id_carga = (isset($individual->id_carga) ? $individual->id_carga :1);
+                        
                         $fecha_generacion = (isset($ultima_carga->fecha_generacion) ? $ultima_carga->fecha_generacion : 0);
                         if ($fecha_generacion != date('mY')) {
                             $id_carga = (isset($ultima_carga->id_carga) ? $ultima_carga->id_carga : 0);
@@ -159,13 +161,13 @@ class EaCargaIndividualExport extends Controller
                         $row_insert_detalle['fecha_actualizacion'] = null;
                         $row_insert_detalle['fecha_registro'] = date('d/m/Y H:i:s');
                         $row_insert_detalle['producto'] = $request->producto;
-                        $row_insert_detalle['cliente'] = $request->clinte;
+                        $row_insert_detalle['cliente'] = $request->cliente;
                         $row_insert_detalle['estado'] = "0";
                         $row_insert_detalle['detalle'] = null;
                         $row_insert_detalle['bin'] = $example;
                         $row_insert_detalle['fecha_generacion'] =  date('mY');
                         //crear registro nuevo.
-        
+                        //dd($row_insert_detalle);
                         $objEXPORT->view_reg_state($row_insert_detalle);
                     }
                 }
@@ -216,13 +218,14 @@ class EaCargaIndividualExport extends Controller
             $objEXPORT->registro_cargas($file_reg_carga);
         }
 
-        $fileName = $request->cliente . date("Ym")."-".($condicion==true ? $ultima_carga->id_carga+1 :$request->carga_resp). ".txt";
+        $fileName = $request->cliente . date("Ym")."-".($condicion==true ? (isset($ultima_carga->id_carga) ? $ultima_carga->id_carga+1: 1 )  :$request->carga_resp). ".txt";
 
         $headers = [
             'Content-type' => 'text/plain',
             'Content-Disposition' => sprintf('attachment; filename="%s"', $fileName),
         ];
         return Response::make($textoPlano, 200, $headers);
+        
     }
 
 
