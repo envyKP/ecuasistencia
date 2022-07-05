@@ -206,6 +206,7 @@ Route::middleware(['auth', 'prevent-back-history'])->group(function () {
     Route::get('getProducto/', [EaProductoController::class, 'getProducto'])->name('EaProductoController.getProducto');
     Route::get('getProductoModel/', [EaProductoController::class, 'getProductoModel'])->name('EaProductoController.getProductoModel');
     Route::get('getSubproducto/', [EaSubproductoController::class, 'getSubproducto'])->name('EaSubproductoController.getSubproducto');
+    Route::get('getSubproductoNoAMA/', [EaSubproductoController::class, 'getSubproductoNoAMA'])->name('EaSubproductoController.getSubproductoNoAMA');
     Route::get('getSubproducto/cliente', [EaSubproductoController::class, 'getSubproductoCli'])->name('EaSubproductoController.getSubproductoCli');
     Route::get('getSubproductoModel/', [EaSubproductoController::class, 'getSubproductoModel'])->name('EaSubproductoController.getSubproductoModel');
 

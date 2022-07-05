@@ -69,7 +69,7 @@
                     @include('cargaInicial.detalleCarga', [ 'data' =>  ${'data'.$registro->cod_carga}, 'row' => $row,  'estado_cabecera' => $registro->estado, 'registros_no_cumplen' => session('registros_no_cumplen') ])
                 @endif
 
-                @if( strcmp( $registro->estado,'PENDIENTE') == 0 && $registro->visible =='S'  && strcmp($registro->proceso, 'carga_inicial') ==0 )
+                @if( strcmp( $registro->estado,'PENDIENTE') == 0 && $registro->visible =='S')
                 <form id="form-procesarCarga" action="{{ route('EaCabCargaInicialController.procesar')}}" method="post">
 	                @csrf
                     <input type="hidden" name="cod_carga" value="{{$registro->cod_carga}}">

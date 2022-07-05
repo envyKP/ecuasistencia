@@ -27,6 +27,7 @@ class EaCabeceraCargaCorpBitacora extends Model
         'usuario_registra',
         'fec_registro',
         'estado',
-        'visible'
+        'visible',
+        'is_det_debito'
     ];
 }

@@ -31,24 +31,24 @@ class EaCabCargaInicialBitacoraController extends Controller
 
         $trx = EaCabeceraCargaCorpBitacora::create([
 
-                "cod_carga" => $datos_carga->cod_carga,
-                "proceso" => $datos_carga->proceso,
-                "cliente" => $datos_carga->cliente,
-                "producto" => $datos_carga->producto,
-                "desc_producto" => $datos_carga->desc_producto,
-                "fec_carga" => $datos_carga->fec_carga,
-                "archivo" => $datos_carga->archivo,
-                "total_registros_archivo" => $datos_carga->total_registros_archivo,
-                "total_registros_duplicados" =>  $datos_carga->total_registros_duplicados,
-                "total_registros_sin_infor" => $datos_carga->total_registros_sin_infor,
-                "total_registros_disponibles_gestion" => $datos_carga->total_registros_disponibles_gestion,
-                "total_registros_gestionados_otras_campanas" => $datos_carga->total_registros_gestionados_otras_campanas,
-                "total_registros_aceptan" => $datos_carga->total_registros_aceptan,
-                "total_otros_call_types" => $datos_carga->total_otros_call_types,
-                "usuario_registra" => $datos_carga->usuario_registra,
-                "fec_registro" => $datos_carga->fec_registro,
-                "estado" => $datos_carga->estado,
-                "visible" => $datos_carga->visible,
+            "cod_carga" => $datos_carga->cod_carga,
+            "proceso" => $datos_carga->proceso,
+            "cliente" => $datos_carga->cliente,
+            "producto" => $datos_carga->producto,
+            "desc_producto" => $datos_carga->desc_producto,
+            "fec_carga" => $datos_carga->fec_carga,
+            "archivo" => $datos_carga->archivo,
+            "total_registros_archivo" => $datos_carga->total_registros_archivo,
+            "total_registros_duplicados" =>  $datos_carga->total_registros_duplicados,
+            "total_registros_sin_infor" => $datos_carga->total_registros_sin_infor,
+            "total_registros_disponibles_gestion" => $datos_carga->total_registros_disponibles_gestion,
+            "total_registros_gestionados_otras_campanas" => $datos_carga->total_registros_gestionados_otras_campanas,
+            "total_registros_aceptan" => $datos_carga->total_registros_aceptan,
+            "total_otros_call_types" => $datos_carga->total_otros_call_types,
+            "usuario_registra" => $datos_carga->usuario_registra,
+            "fec_registro" => $datos_carga->fec_registro,
+            "estado" => $datos_carga->estado,
+            "visible" => $datos_carga->visible,
         ]);
 
         return $trx;
@@ -64,18 +64,16 @@ class EaCabCargaInicialBitacoraController extends Controller
      */
     public function get_max_cod_carga_bita()
     {
+        $cod_carga = EaCabeceraCargaCorpBitacora::whereNotNull('visible')->max('cod_carga');
+        //$cod_carga = EaCabeceraCargaCorpBitacora::max('cod_carga');
 
-        $cod_carga = EaCabeceraCargaCorpBitacora::max('cod_carga');
-
-        if (isset($cod_carga) && $cod_carga>= 1) {
+        if (isset($cod_carga) && $cod_carga >= 1) {
             $cod_carga++;
-
-        }else {
+        } else {
             $cod_carga = 1;
         }
 
         return  $cod_carga;
-
     }
 
 
@@ -92,7 +90,6 @@ class EaCabCargaInicialBitacoraController extends Controller
         $cod_carga = EaCabeceraCargaCorpBitacora::min('cod_carga');
 
         return  $cod_carga;
-
     }
 
 
@@ -106,13 +103,10 @@ class EaCabCargaInicialBitacoraController extends Controller
     {
 
         $trx = EaCabeceraCargaCorpBitacora::where('cod_carga', $cod_carga)
-                                          ->where('cliente', $cliente)
-                                          ->where('proceso', $proceso)
-                                          ->update($datos) ;
+            ->where('cliente', $cliente)
+            ->where('proceso', $proceso)
+            ->update($datos);
 
         return  $trx;
-
     }
-
-
 }
