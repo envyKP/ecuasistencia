@@ -93,6 +93,15 @@
                 }
             });
 
+            
+            $("#bloqueo_subida").click(function() {
+                if ($("#bloqueo_subida").is(":checked")) {
+                  
+                } else {
+                    $("#btn-genera").prop("disabled", true);
+                }
+            });
+
         });
     </script>
 @endsection

@@ -59,16 +59,16 @@ class EaCargaIndividualExport extends Controller
     {
         $contenido = file_get_contents("../salsa.txt");
         $clave = Key::loadFromAsciiSafeString($contenido);
-    
+
         $varcontrolsecuencia = (isset($request->carga_resp) ? strval($request->carga_resp) : null);
-      
+
         $objEXPORT = new EaGenCamExport($request->cliente, $request->producto, $varcontrolsecuencia);
         $recorrido = $objEXPORT->collection();
         $ultima_carga = $objEXPORT->is_carga_older();
-         $textoPlano = "";
+        $textoPlano = "";
         $cont = 0;
         $condicion = false;
-    
+       
         switch ($request->cliente) {
             case "INTER":
                 foreach ($recorrido as $individual) {
@@ -92,7 +92,7 @@ class EaCargaIndividualExport extends Controller
                     } else {
                         $example = "1234560000000056";
                     }
-                     //$textoPlano .= "-1-";
+                    //$textoPlano .= "-1-";
                     $textoPlano .= $example;
                     //$textoPlano .= "-2-";
                     $textoPlano .= (isset($individual->cod_establecimiento)) ? $$individual->cod_establecimiento : "00000000";
@@ -143,12 +143,12 @@ class EaCargaIndividualExport extends Controller
                     //$textoPlano .= "-17-";
                     $textoPlano .= $individual->constante9;
                     $textoPlano .= "\n";
-                   
+
                     if (!isset($request->carga_resp)) {
-                        
+
                         $condicion = true;
-                        $id_carga = (isset($individual->id_carga) ? $individual->id_carga :1);
-                        
+                        $id_carga = (isset($individual->id_carga) ? $individual->id_carga : 1);
+
                         $fecha_generacion = (isset($ultima_carga->fecha_generacion) ? $ultima_carga->fecha_generacion : 0);
                         if ($fecha_generacion != date('mY')) {
                             $id_carga = (isset($ultima_carga->id_carga) ? $ultima_carga->id_carga : 0);
@@ -175,8 +175,81 @@ class EaCargaIndividualExport extends Controller
             case "BBOLIVARIANO":
                 # code...
                 break;
-            case "BGR":
-                # code...
+            case "BGR": 
+                foreach ($recorrido as $individual) {
+
+                    $subtotal = $individual->subtotal;
+                    $numberCeros = 17 - strlen((string)(floatval($subtotal) * 100));
+                    $cerossub = "";
+                    for ($i = 0; $i < $numberCeros; $i++) {
+                        $cerossub .= "0";
+                    }
+                    $subtotalF = $cerossub . floatval($subtotal) * 100;
+                    $numberCeros = 17 - strlen((string)(floatval($individual->deduccion_impuesto) * 100));
+                    $cerossub = "";
+                    for ($i = 0; $i < $numberCeros; $i++) {
+                        $cerossub .= "0";
+                    }
+                    $impuestoF = $cerossub . (floatval($individual->deduccion_impuesto) * 100);
+                    //$textoPlano .= "\t";
+                    $example = "0";
+                    if (isset($individual->tarjeta) and (strlen($individual->tarjeta) > 20)) {
+                        $example = Crypto::decrypt($individual->tarjeta, $clave);
+                    } else {
+                        $example = "1234560000000056";
+                    }
+                    //$textoPlano .= "-1-";
+                    $textoPlano .= $example;
+                    //$textoPlano .= "-2-";
+                    $textoPlano .= (isset($individual->cod_establecimiento)) ? $$individual->cod_establecimiento : "00000000";
+                    //$textoPlano .= "-3-";
+                    $textoPlano .= (isset($individual->date)) ? $individual->date : "000000";
+                    //$individual->date;
+                    //$textoPlano .= "-4-";
+                    $textoPlano .= $subtotalF;
+                    //$textoPlano .= "-5-";
+                    $textoPlano .= $individual->constante1;
+                    //$textoPlano .= "-6-";
+                    $textoPlano .= $individual->constante2;
+                    //$textoPlano .= "-7-";
+                    $textoPlano .= $individual->constante3;
+                    //$textoPlano .= "-8-";
+                    $textoPlano .= $individual->constante4;
+                    $cont++;
+                    $cont_prin = 6 - strlen((string)($cont));
+                    $cont_ceros2 = "";
+                    for ($i = 0; $i < $cont_prin; $i++) {
+                        $cont_ceros2 .= "0";
+                    }
+                    //$textoPlano .= "-9-";
+                    $textoPlano .= $cont_ceros2 . $cont;
+                    ///bloque para realizar insert en base con la secuencia en la tabla ea_detalle_debito
+                    //$textoPlano .= "\t";
+                    //$textoPlano .= "-10-";
+                    $textoPlano .= $individual->constante5;
+                    //$textoPlano .= "-11-";
+                    $textoPlano .= (isset($individual->feccad)) ? $individual->feccad : "000000";
+                    //$textoPlano .= $individual->feccad;
+                    //$textoPlano .= "-12-";
+                    $textoPlano .= $impuestoF;
+                    //$textoPlano .= "-13-";
+                    $textoPlano .= $individual->constante6;
+                    //$textoPlano .= "-14-";
+                    $textoPlano .= $individual->constante7;
+                    //$textoPlano .= "-15-";
+                    $textoPlano .= $individual->constante8;
+                    //$textoPlano .= "-16-";
+                    $cerossub = "";
+                    $numberCeros = 15 - strlen((string)(floatval($individual->subtotal) * 100));
+                    for ($i = 0; $i < $numberCeros; $i++) {
+                        $cerossub .= "0";
+                    }
+                    $subtotalF = $cerossub . floatval($subtotal) * 100;
+                    $textoPlano .= $subtotalF;
+                    //$textoPlano .= "-17-";
+                    $textoPlano .= $individual->constante9;
+                    $textoPlano .= "\n";
+                }
                 break;
             case "PICHINCHA":
                 # code...
@@ -205,7 +278,7 @@ class EaCargaIndividualExport extends Controller
                 # code...
                 break;
         }
-        
+
         if ($condicion == true) {
             $id_carga = (isset($ultima_carga->id_carga) ? $ultima_carga->id_carga : 0);
             $fecha_generacion = (isset($ultima_carga->fecha_generacion) ? $ultima_carga->fecha_generacion : 0);
@@ -218,14 +291,15 @@ class EaCargaIndividualExport extends Controller
             $objEXPORT->registro_cargas($file_reg_carga);
         }
 
-        $fileName = $request->cliente . date("Ym")."-".($condicion==true ? (isset($ultima_carga->id_carga) ? $ultima_carga->id_carga+1: 1 )  :$request->carga_resp). ".txt";
+        $fileName = $request->cliente . date("Ym") . "-" . ($condicion == true ? (isset($ultima_carga->id_carga) ? $ultima_carga->id_carga + 1 : 1)  : $request->carga_resp) . ".txt";
 
         $headers = [
             'Content-type' => 'text/plain',
             'Content-Disposition' => sprintf('attachment; filename="%s"', $fileName),
         ];
-        return Response::make($textoPlano, 200, $headers);
-        
+        //return Response::make($textoPlano, 200, $headers);
+        Response::make($textoPlano, 200, $headers);
+        return redirect()->route('EaCargaIndividualImport.index');
     }
 
 
@@ -268,7 +342,6 @@ class EaCargaIndividualExport extends Controller
      */
     public function show($id)
     {
-
     }
 
     /**
