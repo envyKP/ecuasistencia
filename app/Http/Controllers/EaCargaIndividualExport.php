@@ -16,6 +16,8 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Imports\EaDetCargaCorpImport;
 use App\Http\Controllers\EaBaseActivaController;
 use App\Http\Controllers\EaProductoController;
+use App\Http\Controllers\EaSubproductoController;
+use App\Http\Controllers\EaParaInsert;
 use App\Http\Controllers\EaCabCargaInicialBitacoraController;
 use App\Http\Controllers\EaDetalleCargaCorpController;
 use App\Exports\EaReporteCargaInicialExport;
@@ -61,16 +63,23 @@ class EaCargaIndividualExport extends Controller
         $clave = Key::loadFromAsciiSafeString($contenido);
 
         $varcontrolsecuencia = (isset($request->carga_resp) ? strval($request->carga_resp) : null);
-
-        $objEXPORT = new EaGenCamExport($request->cliente, $request->producto, $varcontrolsecuencia);
+        $detalle_subproducto= ((new EaSubproductoController)->getSubproductoDetalle($request->cliente, $request->producto));
+       
+        $objEXPORT = new EaGenCamExport($request->cliente, $detalle_subproducto->desc_subproducto, $varcontrolsecuencia);
+       
         $recorrido = $objEXPORT->collection();
         $ultima_carga = $objEXPORT->is_carga_older();
         $textoPlano = "";
         $cont = 0;
         $condicion = false;
-       
+        ;
+        
+
+
         switch ($request->cliente) {
             case "INTER":
+                if($detalle_subproducto->tipo_subproducto == 'TC'){
+                    $tiempo_inicial = microtime(true);
                 foreach ($recorrido as $individual) {
                     $subtotal = $individual->subtotal;
                     $numberCeros = 17 - strlen((string)(floatval($subtotal) * 100));
@@ -95,7 +104,18 @@ class EaCargaIndividualExport extends Controller
                     //$textoPlano .= "-1-";
                     $textoPlano .= $example;
                     //$textoPlano .= "-2-";
-                    $textoPlano .= (isset($individual->cod_establecimiento)) ? $$individual->cod_establecimiento : "00000000";
+                    $establecimiento_print = "";
+                    if (isset($individual->cod_establecimiento)) {
+                        $cerosCod = 8 - strlen($individual->cod_establecimiento);
+                        if ($cerosCod > 0) {
+                            for ($i = 0; $i < $cerosCod; $i++) {
+                                $establecimiento_print .= "0";
+                            }
+                            $establecimiento_print .= $individual->cod_establecimiento;
+                        }
+                    }
+
+                    $textoPlano .= (isset($individual->cod_establecimiento)) ? $establecimiento_print : "00000000";
                     //$textoPlano .= "-3-";
                     $textoPlano .= (isset($individual->date)) ? $individual->date : "000000";
                     //$individual->date;
@@ -143,16 +163,16 @@ class EaCargaIndividualExport extends Controller
                     //$textoPlano .= "-17-";
                     $textoPlano .= $individual->constante9;
                     $textoPlano .= "\n";
-
+                    
+                    
                     if (!isset($request->carga_resp)) {
 
-                        $condicion = true;
+                     //   $condicion = true;
                         $id_carga = (isset($individual->id_carga) ? $individual->id_carga : 1);
 
                         $fecha_generacion = (isset($ultima_carga->fecha_generacion) ? $ultima_carga->fecha_generacion : 0);
                         if ($fecha_generacion != date('mY')) {
                             $id_carga = (isset($ultima_carga->id_carga) ? $ultima_carga->id_carga : 0);
-                            //$id_carga = $ultima_carga->id_carga;
                         }
                         $row_insert_detalle = array();
                         $row_insert_detalle['id_sec'] = $individual->id_sec;
@@ -166,16 +186,29 @@ class EaCargaIndividualExport extends Controller
                         $row_insert_detalle['detalle'] = null;
                         $row_insert_detalle['bin'] = $example;
                         $row_insert_detalle['fecha_generacion'] =  date('mY');
-                        //crear registro nuevo.
-                        //dd($row_insert_detalle);
-                        $objEXPORT->view_reg_state($row_insert_detalle);
+                       // $objEXPORT->view_reg_state($row_insert_detalle);
+                       // EaParaInsert::dispatch($row_insert_detalle);
+                        dispatch(EaParaInsert::handle($row_insert_detalle));
+
                     }
+                  
+                    
                 }
+               
+                $tiempo_final = microtime(true);
+                echo "tiempo ".($tiempo_final-$tiempo_inicial);echo "   \n  " ;
+                }
+                if($detalle_subproducto->tipo_subproducto == 'CTAS'){
+                    echo "todavia no implementado la parte de CTAS";
+                    dd();
+                }
+
+               
                 break;
             case "BBOLIVARIANO":
                 # code...
                 break;
-            case "BGR": 
+            case "BGR":
                 foreach ($recorrido as $individual) {
 
                     $subtotal = $individual->subtotal;
@@ -297,9 +330,12 @@ class EaCargaIndividualExport extends Controller
             'Content-type' => 'text/plain',
             'Content-Disposition' => sprintf('attachment; filename="%s"', $fileName),
         ];
-        //return Response::make($textoPlano, 200, $headers);
-        Response::make($textoPlano, 200, $headers);
-        return redirect()->route('EaCargaIndividualImport.index');
+
+        dd();
+
+        return Response::make($textoPlano, 200, $headers);
+        //Response::make($textoPlano, 200, $headers);
+        //return redirect()->route('EaCargaIndividualImport.index');
     }
 
 

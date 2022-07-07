@@ -46,6 +46,7 @@ class EaGenCamExport implements FromCollection
                     return EaBaseActiva::join("ea_subproductos", "ea_subproductos.desc_subproducto", "=", "ea_base_activa.subproducto")
                         ->join("ea_detalle_debito", "ea_detalle_debito.id_sec", "=", "ea_base_activa.id_sec")
                         ->select(
+                            'ea_base_activa.id_sec',
                             'tarjeta',
                             'ea_subproductos.cod_establecimiento',
                             EaBaseActiva::raw("FORMAT (getdate(), 'yyyyMMdd') as date"),
@@ -71,14 +72,23 @@ class EaGenCamExport implements FromCollection
                         ->where('ea_base_activa.cliente', $this->cliente)
                         ->where('tipresp', '1')
                         ->where('codresp', '100')
-                        ->where('detresp', 'ACEPTA SERVICIO')
+                        ->where('detresp', 'ACEPTA')
                         ->where('ea_base_activa.estado', 'Z')
                         ->where('ea_detalle_debito.estado', '0')
+                        ->orderby('ea_base_activa.id_sec')
                         ->get();
+                    // preguntar luego
+                    /*
+                        ->where('detresp', 'ACEPTA SERVICIO')
+                        ->where('ea_base_activa.estado', 'Z')
+                    */
+
+
                     //->where('ea_detalle_debito.producto', $this->producto)
                 } else {
-                    return EaBaseActiva::join("ea_subproductos", "ea_subproductos.contrato_ama", "=", "ea_base_activa.producto")
+                    return  EaBaseActiva::join("ea_subproductos", "ea_subproductos.contrato_ama", "=", "ea_base_activa.producto")
                         ->select(
+                            'ea_base_activa.id_sec',
                             'tarjeta',
                             'ea_subproductos.cod_establecimiento',
                             EaBaseActiva::raw("FORMAT (getdate(), 'yyyyMMdd') as date"),
@@ -101,12 +111,19 @@ class EaGenCamExport implements FromCollection
                         ->where('desc_subproducto', $this->producto)
                         ->where('ea_base_activa.cliente', $this->cliente)
                         ->where('tipresp', '1')
+                        ->where('detresp', 'ACEPTA')
+                        ->where('ea_base_activa.estado', 'Z')
                         ->where('codresp', '100')
-                        ->where('detresp', 'ACEPTA SERVICIO')
-                        ->where('estado', 'Z')
+                        ->orderby('ea_base_activa.id_sec')
                         ->get();
+                    // preguntar luego
+                    /*
+                        ->where('detresp', 'ACEPTA')
+                        ->where('ea_base_activa.estado', 'Z')
+                    */
                     //->where('producto', $this->producto)
                 }
+
                 break;
 
             case "BBOLIVARIANO":
@@ -141,7 +158,6 @@ class EaGenCamExport implements FromCollection
 
                 break;
             case "BGR":
-                echo "esta en gem";
                 return EaBaseActiva::where('cliente', 'BGR')->select(
                     'tarjeta',
                     EaBaseActiva::raw("FORMAT (getdate(), 'yyyyMMdd') as date"),
