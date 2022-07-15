@@ -3,11 +3,11 @@
     <div class="modal-dialog modal-info" role="document">
     <div class="modal-content" style="width:1200px; right:350px"  >
         <div class="modal-header">
-            <h4 class="modal-title">{{'Detalle de carga'}}</h4>
+            <h4 class="modal-title">{{'Detalle de carga '.$cod_carga}}</h4>
             <button class="close" type="button" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
         </div>
         <div class="modal-body">
-            <strong>{{'Detalle del archivo procesado'}}</strong>
+            <strong>{{'Detalle del archivo de debito asociado a '.$cliente }}</strong>
             @if ( $estado_cabecera == 'PROCESADO')
             <div class="row col">
                 <div class="form-group">
@@ -30,25 +30,35 @@
             <table class="table table-responsive-sm table-hover table-outline">
                 <thead class="thead-light">
                     <tr>
-                        <th class="text-center">{{'Total de registros en archivo'}}</th>
-                        <th class="text-center">{{'Total de registros duplicados'}}</th>
-                        <th class="text-center">{{'Total de registros sin información'}}</th>
-                        <th class="text-center">{{'Total de registros disponibles para la gestión'}}</th>
-                        <th class="text-center">{{'Total de registros gestionados en otras campañas'}}</th>
+                        <th class="text-center">{{''}}</th>
+                        <th class="text-center" colspan="2">{{'Acciones'}}</th>
                     </tr>
                 </thead>
                 <tbody>
                 @if (isset($data))
                     <tr>
-                        <td>{{ $data->total_registros_archivo }}</td>
-                        <td>{{ $data->total_registros_duplicados }}</td>
-                        <td>{{ $data->total_registros_sin_infor  }}</td>
-                        <td>{{ $data->total_registros_disponibles_gestion  }}</td>
-                        <td>{{ $data->total_registros_gestionados_otras_campanas }}</td>
+                        <td class="col-sm-2 col-md-10">  <input class="form-control pt-1" id="archivo" type="file" name="archivo" required> </td>
+                        <td > <button class="btn btn-info mx-1" title="Subir archivo XLS/XLSX/txt" type="button" data-toggle="modal" data-target="{{ '#infoDetcarga'.$row }}">
+                            <svg class="c-icon c-icon-1xl">
+                                <use xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-data-transfer-up')}} "></use>
+                            </svg>
+                        </button></td>
+                        <td > <button class="btn btn-info mx-1" title="Guardar" type="button" data-toggle="modal" data-target="{{ '#infoDetcarga'.$row }}">
+                            <svg class="c-icon c-icon-1xl">
+                                <use xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-save')}} "></use>
+                            </svg>
+                        </button></td>
+                      
                     </tr>
                 @endif
+                <!--<tr>
+                    <td><p><small>{{'Por favor asegurese que el nombre del archivo no tenga espacios o caracteres especiales'}}</small></p></td>
+                </tr>-->
+                
                 </tbody>
+                
             </table>
+            
             @if ( isset( $registros_no_cumplen))
             <strong>{{'Detalle de regsitros sin información'}}</strong>
             <table class="table table-responsive-sm table-hover table-outline">

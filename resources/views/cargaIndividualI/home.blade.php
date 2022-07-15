@@ -2,6 +2,7 @@
 @section('scripts')
 
 @section('scripts')
+<!-- notas es cargaIndividualI   el final es una i mayuscula-->
     <script type="text/javascript">
         $(document).ready(function() {
             $("#cliente").change(function() {
