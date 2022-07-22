@@ -123,7 +123,6 @@ class EaGenCamExport implements FromCollection
                     */
                     //->where('producto', $this->producto)
                 }
-
                 break;
 
             case "BBOLIVARIANO":
@@ -408,7 +407,9 @@ class EaGenCamExport implements FromCollection
      * */
     public function view_reg_state(array $rows)
     {
-
+        //MODIFICAR EN EL FUTURO LA TABLA QUE SE DEBE INSERTAR O CREAR UN ALTER ESPÉCIFICO PARA PRODUBANCO DEBIDO A QUE ESTE NO CUENTA CON EL CAMPO SECUENCIA
+        
+        
 
         try {
 
@@ -416,13 +417,12 @@ class EaGenCamExport implements FromCollection
                 'id_carga' => isset($rows['id_carga']) ? $rows['id_carga'] + 1 : null,
                 'id_sec' => isset($rows['id_sec']) ? trim($rows['id_sec']) : null,
                 'secuencia' => isset($rows['secuencia']) ? trim($rows['secuencia']) : null,
-                'fecha_actualizacion' => isset($rows['fecha_actualizacion']) ? $rows['fecha_actualizacion'] : '',
                 'fecha_registro' => isset($rows['fecha_registro']) ? trim($rows['fecha_registro']) : null,
                 'producto' => isset($this->producto) ? trim($this->producto) : '',
-                'subproducto' => isset($this->producto) ? trim($this->producto) : '',
                 'cliente' => isset($this->cliente) ? trim($this->cliente) : '',
                 'estado' => '0',
                 'fecha_generacion' => isset($rows['fecha_generacion']) ? trim($rows['fecha_generacion']) : null,
+                'subproducto_id' => isset($this->id_subproducto) ? trim($this->id_subproducto) : '',
             ]);
         } catch (\Exception $e) {
             // $obj_det_carga_corp->truncate($this->cod_carga, $this->cliente );
@@ -432,7 +432,6 @@ class EaGenCamExport implements FromCollection
 
     public function registro_cargas(array $rows)
     {
-
         try {
             EaCabeceraCargaCorpBitacora::create([
                 'cod_carga' => isset($rows['cod_carga']) ? $rows['cod_carga'] + 1 : null,
@@ -441,6 +440,7 @@ class EaGenCamExport implements FromCollection
                 'producto' =>  isset($rows['producto']) ? trim($rows['producto']) : null,
                 'desc_producto' => isset($this->producto) ? trim($this->producto) : '',
                 'cliente' => isset($this->cliente) ? trim($this->cliente) : '',
+                'producto' => $this->id_subproducto,
                 'fec_carga' => isset($rows['fecha_generacion']) ? trim($rows['fecha_generacion']) : null,
                 'usuario_registra' => isset($rows['usuario']) ? trim($rows['usuario']) : null,
                 'estado' => 'PENDIENTE',
@@ -460,11 +460,31 @@ class EaGenCamExport implements FromCollection
             ->first();
     }
 
-    public function __construct(string $cliente, string $producto, string $cod_carga_corp = null)
-    {
+    public function fact_excel(){
+        return EaBaseActiva::join("ea_detalle_debito", "ea_detalle_debito.id_sec", "=", "ea_base_activa.id_sec")
+        ->select(
+            'ea_base_activa.cedula_id as \'ID  Cliente\'',
+            'ea_base_activa.nombre as \'Nombres Cliente\'',
+            EaBaseActiva::raw("'S/N' as 'Dirección Cliente'"),
+            EaBaseActiva::raw("'S/N' as 'Correo Cliente'"),
+            EaBaseActiva::raw("'S/N' as 'Cta / TC'"),
+            EaBaseActiva::raw("FORMAT (getdate(), 'yyyyMMdd') as 'Fecha Débito'"),
+            'ea_detalle_debito.valor_debitado as \'Valor Debitado\''
+        )
+        ->where('ea_detalle_debito.producto', $this->producto)
+        ->where('ea_detalle_debito.id_carga', $this->cod_carga_corp)
+        ->where('ea_base_activa.cliente', $this->cliente)
+        ->orderby('ea_base_activa.cedula_id')
+        ->get();
 
+    }
+
+    public function __construct(string $cliente, string $producto, string $cod_carga_corp = null,string $sub_producto_id)
+    {
+        
         $this->cliente = $cliente;
         $this->cod_carga_corp = $cod_carga_corp;
         $this->producto = $producto;
+        $this->id_subproducto = $sub_producto_id;
     }
 }

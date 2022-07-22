@@ -55,7 +55,7 @@
             <!-- <div class="card-header"><strong>Credit Card</strong> <small>Form</small></div> -->
             <div class="card-body">
 
-                
+
                 <form id="form-generar" action="{{ route('EaCargaIndividualExport.exporta') }}"method="get"
                     enctype="multipart/form-data" accept-charset="utf-8">
                     @csrf
@@ -89,7 +89,7 @@
 
                             <div class="form-group">
                                 <div class="input-group">
-                                    
+
                                     <div class="input-group-prepend">
                                         <span class="input-group-text form-control">
                                             <label class="c-switch c-switch-label c-switch-success mt-2">
@@ -113,17 +113,18 @@
 
                     <div class="row">
 
-                   
+
 
                         <div class="col-sm-4 col-md-4">
                             <div class="form-group">
-                                <div class="input-group">                                    
+                                <div class="input-group">
                                     <div class="input-group-prepend">
                                         <span class="input-group-text form-control">
                                             <label class="c-switch c-switch-label c-switch-success mt-2">
                                                 <input class="c-switch-input" type="checkbox" name="filtro_genera"
-                                                    id="filtro_genera" value="filtroGenera"><span class="c-switch-slider"
-                                                    data-checked="SI" data-unchecked="NO"></span>
+                                                    id="filtro_genera" value="filtroGenera"><span
+                                                    class="c-switch-slider" data-checked="SI"
+                                                    data-unchecked="NO"></span>
                                             </label>
                                             <strong class="ml-1"> {{ 'generar carga: ' }} </strong>
                                         </span>
@@ -139,11 +140,8 @@
                                     </button>
                                 </div>
 
-
-
                             </div>
                         </div>
-
 
                     </div>
                 </form>
@@ -156,8 +154,12 @@
     <br>
     <div class="col-sm-12 form-group" id="processCarga" style="display:none">
         <strong>{{ 'Procesando...' }}</strong>
-        <progress class="col-sm-12" max="100">100%</progress>
+        <div class="progress">
+            <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" role="progressbar"
+                aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%"></div>
+        </div>
     </div>
+
     @if (session('errorTecnico'))
         <div class="col-sm-12 col-md-12">
             <div class="alert alert-danger alert-dismissible fade show " role="alert">

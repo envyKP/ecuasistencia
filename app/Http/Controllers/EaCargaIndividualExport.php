@@ -24,6 +24,8 @@ use App\Exports\EaReporteCargaInicialExport;
 use Maatwebsite\Excel\Concerns\Exportable;
 use App\Models\EaCliente;
 use App\Exports\EaGenCamExport;
+use App\Exports\UsersExport;
+
 //use Illuminate\Http\Response;
 
 
@@ -61,11 +63,15 @@ class EaCargaIndividualExport extends Controller
     {
         $contenido = file_get_contents("../salsa.txt");
         $clave = Key::loadFromAsciiSafeString($contenido);
-        
+
         $varcontrolsecuencia = (isset($request->carga_resp) ? strval($request->carga_resp) : null);
         $detalle_subproducto = ((new EaSubproductoController)->getSubproductoDetalle($request->cliente, $request->producto));
         
-        $objEXPORT = new EaGenCamExport($request->cliente, $detalle_subproducto->desc_subproducto, $varcontrolsecuencia);
+        $objEXPORT = new EaGenCamExport($request->cliente, $detalle_subproducto->desc_subproducto, $varcontrolsecuencia,$request->producto);
+        echo ($request->cliente);
+        echo ($detalle_subproducto->desc_subproducto);
+        echo ($varcontrolsecuencia);
+        echo ($request->producto);
 
         $recorrido = $objEXPORT->collection();
         $ultima_carga = $objEXPORT->is_carga_older();
@@ -73,7 +79,7 @@ class EaCargaIndividualExport extends Controller
         $cont = 0;
         $condicion = false;;
 
-
+        // ARMA LAS RESPUESTA QUE SE INSERTAN EN EL DOCUMENTO TXT , Y ADICIONAL LLAMA AL METODO QUE LO INSTERTA EN LA BASE DE DATOS.
         switch ($request->cliente) {
             case "INTER":
                 if ($detalle_subproducto->tipo_subproducto == 'TC') {
@@ -97,7 +103,7 @@ class EaCargaIndividualExport extends Controller
                         if (isset($individual->tarjeta) and (strlen($individual->tarjeta) > 20)) {
                             $example = Crypto::decrypt($individual->tarjeta, $clave);
                         } else {
-                            $example = "1234560000000056";
+                            $example = "ERROR";
                         }
                         //$textoPlano .= "-1-";
                         $textoPlano .= $example;
@@ -164,7 +170,7 @@ class EaCargaIndividualExport extends Controller
 
 
                         if (!isset($request->carga_resp)) {
-                           dd($request);
+                            
                             $condicion = true;
                             $id_carga = (isset($individual->id_carga) ? $individual->id_carga : 1);
 
@@ -187,13 +193,13 @@ class EaCargaIndividualExport extends Controller
                             $row_insert_detalle['fecha_generacion'] =  date('mY');
                             $objEXPORT->view_reg_state($row_insert_detalle);
                             //EaParaInsert::dispatch($row_insert_detalle);
-                           // EaParaInsert::dispatch($objEXPORT,$row_insert_detalle);
+                            // EaParaInsert::dispatch($objEXPORT,$row_insert_detalle);
                         }
                     }
 
                     $tiempo_final = microtime(true);
-                    echo "tiempo " . ($tiempo_final - $tiempo_inicial);
-                    echo "   \n  ";
+                    //echo "tiempo " . ($tiempo_final - $tiempo_inicial);
+                    //echo "   \n  ";
                 }
                 if ($detalle_subproducto->tipo_subproducto == 'CTAS') {
                     echo "todavia no implementado la parte de CTAS";
@@ -201,6 +207,8 @@ class EaCargaIndividualExport extends Controller
                 }
 
 
+
+                
                 break;
             case "BBOLIVARIANO":
                 # code...
@@ -226,7 +234,7 @@ class EaCargaIndividualExport extends Controller
                     if (isset($individual->tarjeta) and (strlen($individual->tarjeta) > 20)) {
                         $example = Crypto::decrypt($individual->tarjeta, $clave);
                     } else {
-                        $example = "1234560000000056";
+                        $example = "1234560000000078";
                     }
                     //$textoPlano .= "-1-";
                     $textoPlano .= $example;
@@ -318,17 +326,15 @@ class EaCargaIndividualExport extends Controller
             $file_reg_carga['producto'] = $request->producto;
             $file_reg_carga['fecha_registro'] = date('d/m/Y H:i:s');
             $file_reg_carga['fec_carga'] = $fecha_generacion;
-            $file_reg_carga['usuario']= \Auth::user()->username;
+            $file_reg_carga['usuario'] = \Auth::user()->username;
             $objEXPORT->registro_cargas($file_reg_carga);
             $fileName = $request->cliente . date("Ym") . "-" . ($condicion == true ? (isset($ultima_carga->id_carga) ? $ultima_carga->id_carga + 1 : 1)  : $request->carga_resp) . ".txt";
-
-        }else{
+        } else {
 
             $fileName = $request->cliente . date("Ym") . "-" . ($request->carga_resp) . ".txt";
-
         }
 
-       
+
         $headers = [
             'Content-type' => 'text/plain',
             'Content-Disposition' => sprintf('attachment; filename="%s"', $fileName),
@@ -409,7 +415,15 @@ class EaCargaIndividualExport extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function generar(Request $request)
+    public function generarFactura(Request $request)
     {
+
+        $varcontrolsecuencia = (isset($request->carga_resp) ? strval($request->carga_resp) : null);
+        $detalle_subproducto = ((new EaSubproductoController)->getSubproductoDetalle($request->cliente, $request->producto));
+        
+        $objEXPORT = new EaGenCamExport($request->cliente, $detalle_subproducto->desc_subproducto, $varcontrolsecuencia,$request->producto);
+
+        return Excel::download($objEXPORT->fact_excel() , 'facturacion.xlsx' );
+
     }
 }
