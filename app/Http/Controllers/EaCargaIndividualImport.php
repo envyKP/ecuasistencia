@@ -134,10 +134,10 @@ class EaCargaIndividualImport extends Controller
             if ($request->hasfile('archivo')) {
                 $nombre_archivo = $request->file('archivo')->getClientOriginalName();
                 //$nombre_archivo = "BASE_COLOCACION_".$request->cliente.'_'.$fecha.'.xlsx';
-                $datosCab['archivo'] = $request->file('archivo')->storeAs('lecturaDebito/'." $request->cliente".'/' . $request->cliente, $nombre_archivo, 'public');
+                $datosCab['archivo'] = $request->file('archivo')->storeAs('lecturaDebito/' . " $request->cliente" . '/' . $request->cliente, $nombre_archivo, 'public');
             }
-            
-            $trx = EaCabeceraCargaCorpBitacora::where('desc_producto', (isset($datosCab['desc_producto']) ? $datosCab['desc_producto']: '')) ->update($datosCab);
+
+            $trx = EaCabeceraCargaCorpBitacora::where('desc_producto', (isset($datosCab['desc_producto']) ? $datosCab['desc_producto'] : ''))->update($datosCab);
             if ($trx) {
                 $rsp = (new EaCabCargaInicialBitacoraController)->create_bitacora($datosCab['cod_carga']);
                 $success = "Archivo: " . $nombre_archivo . ", del cliente: " . $request->cliente . " cargado en estado pendiente de procesar.";
@@ -157,11 +157,10 @@ class EaCargaIndividualImport extends Controller
         //$obj_cab_carga_ini = (new EaCabCargaInicialController);
 
         if (isset($request->producto)) {
-            
+
             $productoDetalle = (new EaProductoController)->getProductoDetalle($request->cliente, $request->producto);
             $datosCab['desc_producto'] = $productoDetalle->desc_producto;
-
-        }else {
+        } else {
 
             $datosCab['producto'] = '';
             $datosCab['desc_producto'] = '';
@@ -176,19 +175,21 @@ class EaCargaIndividualImport extends Controller
 
             if ($request->hasfile('archivo')) {
                 $nombre_archivo = $request->file('archivo')->getClientOriginalName();
-                $datosCab['archivo'] = $request->file('archivo')->storeAs('recepcion_provee_tmk/'.$request->cliente, $nombre_archivo, 'public');
+                $datosCab['archivo'] = $request->file('archivo')->storeAs('recepcion_provee_tmk/' . $request->cliente, $nombre_archivo, 'public');
             }
             //$existe_visible =  $obj_cab_carga_ini->valida_proceso_visible('recepcion_provee_tmk');
-           // !$existe_visible ? $datosCab['visible'] ='S' : '';
+            // !$existe_visible ? $datosCab['visible'] ='S' : '';
 
-           // $obj_cab_carga_ini->update_datos_cab_carga($request->cliente, $request->cod_carga,  $datosCab );
+            // $obj_cab_carga_ini->update_datos_cab_carga($request->cliente, $request->cod_carga,  $datosCab );
             $rsp = (new EaCabCargaInicialBitacoraController)->create_bitacora($request->cod_carga);
-            $success = "Archivo: ".$nombre_archivo.", del cliente: ".$request->cliente." cargado en estado pendiente de procesar." ;
-        }else {
+            $success = "Archivo: " . $nombre_archivo . ", del cliente: " . $request->cliente . " cargado en estado pendiente de procesar.";
+        } else {
             $error = "Archivos permitidos: xls ó xlsx";
         }
-        return redirect()->route('EaRecepArchiProveTmkController.index')->with(['success' => isset($success) ? $success : '',
-                                                                                'error' => isset($error) ? $error : '' ]);
+        return redirect()->route('EaRecepArchiProveTmkController.index')->with([
+            'success' => isset($success) ? $success : '',
+            'error' => isset($error) ? $error : ''
+        ]);
         /////////
 
     }

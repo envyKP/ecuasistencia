@@ -66,8 +66,8 @@ class EaCargaIndividualExport extends Controller
 
         $varcontrolsecuencia = (isset($request->carga_resp) ? strval($request->carga_resp) : null);
         $detalle_subproducto = ((new EaSubproductoController)->getSubproductoDetalle($request->cliente, $request->producto));
-        
-        $objEXPORT = new EaGenCamExport($request->cliente, $detalle_subproducto->desc_subproducto, $varcontrolsecuencia,$request->producto);
+
+        $objEXPORT = new EaGenCamExport($request->cliente, $detalle_subproducto->desc_subproducto, $varcontrolsecuencia, $request->producto);
         echo ($request->cliente);
         echo ($detalle_subproducto->desc_subproducto);
         echo ($varcontrolsecuencia);
@@ -170,7 +170,7 @@ class EaCargaIndividualExport extends Controller
 
 
                         if (!isset($request->carga_resp)) {
-                            
+
                             $condicion = true;
                             $id_carga = (isset($individual->id_carga) ? $individual->id_carga : 1);
 
@@ -208,7 +208,7 @@ class EaCargaIndividualExport extends Controller
 
 
 
-                
+
                 break;
             case "BBOLIVARIANO":
                 # code...
@@ -420,10 +420,9 @@ class EaCargaIndividualExport extends Controller
 
         $varcontrolsecuencia = (isset($request->carga_resp) ? strval($request->carga_resp) : null);
         $detalle_subproducto = ((new EaSubproductoController)->getSubproductoDetalle($request->cliente, $request->producto));
-        
-        $objEXPORT = new EaGenCamExport($request->cliente, $detalle_subproducto->desc_subproducto, $varcontrolsecuencia,$request->producto);
 
-        return Excel::download($objEXPORT->fact_excel() , 'facturacion.xlsx' );
-
+        $objEXPORT = new EaGenCamExport($request->cliente, $detalle_subproducto->desc_subproducto, $varcontrolsecuencia, $request->producto);
+        $recorrido = $objEXPORT->fact_excel();
+        return Excel::download($recorrido, 'facturacion.xlsx');
     }
 }

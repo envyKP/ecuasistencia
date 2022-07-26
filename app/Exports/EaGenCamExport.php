@@ -408,8 +408,8 @@ class EaGenCamExport implements FromCollection
     public function view_reg_state(array $rows)
     {
         //MODIFICAR EN EL FUTURO LA TABLA QUE SE DEBE INSERTAR O CREAR UN ALTER ESPÉCIFICO PARA PRODUBANCO DEBIDO A QUE ESTE NO CUENTA CON EL CAMPO SECUENCIA
-        
-        
+
+
 
         try {
 
@@ -460,7 +460,25 @@ class EaGenCamExport implements FromCollection
             ->first();
     }
 
-    public function fact_excel(){
+    public function fact_excel()
+    {
+
+        $obj_facturacion =  ([EaBaseActiva::join("ea_detalle_debito", "ea_detalle_debito.id_sec", "=", "ea_base_activa.id_sec")
+            ->select(
+                'ea_base_activa.cedula_id',
+                'ea_base_activa.nombre',
+
+                'ea_detalle_debito.valor_debitado'
+            )
+            ->where('ea_detalle_debito.producto', $this->producto)
+            ->where('ea_detalle_debito.id_carga', $this->cod_carga_corp)
+            ->where('ea_base_activa.cliente', $this->cliente)
+            ->orderby('ea_base_activa.cedula_id')
+            ->get()]);
+
+
+
+        /*
         return EaBaseActiva::join("ea_detalle_debito", "ea_detalle_debito.id_sec", "=", "ea_base_activa.id_sec")
         ->select(
             'ea_base_activa.cedula_id as \'ID  Cliente\'',
@@ -475,13 +493,14 @@ class EaGenCamExport implements FromCollection
         ->where('ea_detalle_debito.id_carga', $this->cod_carga_corp)
         ->where('ea_base_activa.cliente', $this->cliente)
         ->orderby('ea_base_activa.cedula_id')
-        ->get();
+        ->get();*/
 
+        return @json_decode(json_encode($obj_facturacion), true);
     }
 
-    public function __construct(string $cliente, string $producto, string $cod_carga_corp = null,string $sub_producto_id)
+    public function __construct(string $cliente, string $producto, string $cod_carga_corp = null, string $sub_producto_id)
     {
-        
+
         $this->cliente = $cliente;
         $this->cod_carga_corp = $cod_carga_corp;
         $this->producto = $producto;

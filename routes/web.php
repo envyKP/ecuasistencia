@@ -174,6 +174,7 @@ Route::middleware(['auth', 'prevent-back-history', 'isAdmin'])->group(function (
     Route::get('generacion/archivo/cargaIndividual/index/', [EaCargaIndividualExport::class, 'index'])->name('EaCargaIndividualExport.index');
     Route::post('generacion/archivo/cargaIndividual/destroy/', [EaCargaIndividualExport::class, 'destroy'])->name('EaCargaIndividualExport.destroy');
     Route::get('generacion/archivo/cargaIndividual/export/', [EaCargaIndividualExport::class, 'exporta'])->name('EaCargaIndividualExport.exporta');
+    Route::get('generacion/archivo/cargaIndividual/generarFactura/', [EaCargaIndividualExport::class, 'generarFactura'])->name('EaCargaIndividualExport.generarFactura');
     
 
     Route::get('recepcion/archivo/cargaIndividual/index/', [EaCargaIndividualImport::class, 'index'])->name('EaCargaIndividualImport.index');

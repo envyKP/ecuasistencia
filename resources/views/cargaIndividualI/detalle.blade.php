@@ -141,10 +141,12 @@
                     </td>
                     <td>
                         <div class="row content-center">
-                            <form id="form-factura" action="{{ route('EaCabCargaInicialController.procesar') }}"
-                                method="post">
+                            <form id="form-factura" action="{{ route('EaCargaIndividualExport.generarFactura') }}"
+                                method="get">
+                                <input type="hidden" name="carga_resp" value="{{ $registro->cod_carga }}">
+                                <input type="hidden" name="cliente" value="{{ $registro->cliente }}">
+                                <input type="hidden" name="producto" value="{{ $registro->producto }}">
                                 @csrf
-                                <input type="hidden" name="cod_carga" value="{{ $registro->cod_carga }}">
                                 <button class="btn btn-warning mx-1" title="Facturacion" name="Facturacion"
                                     id="btn_Facturacion" type="submit">
                                     <svg class="c-icon c-icon-1xl">
@@ -167,7 +169,7 @@
                                     type="submit">
                                     <svg class="c-icon c-icon-1xl">
                                         <use
-                                            xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/brand.svg#cib-x-pack') }} ">
+                                            xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-x') }} ">
                                         </use>
                                     </svg>
                                     <!-- free.svg#cil-x-circle brand.svg#cib-experts-exchange brand.svg#cib-x-pack  free.svg#cil-x-->
