@@ -6,21 +6,37 @@ use App\Models\EaBaseActiva;
 use App\Models\EaSubproducto;
 use App\Models\EaDetalleDebito;
 use App\Models\EaCabeceraCargaCorpBitacora;
-use Maatwebsite\Excel\Concerns\Exportable;
 use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\FromView;
-use Maatwebsite\Excel\Concerns\FromCollection;
-
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Illuminate\Support\Facades\DB;
-
-class EaGenCamExport implements FromCollection
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
+use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\Exportable;
+use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use \Maatwebsite\Excel\Sheet;
+use Maatwebsite\Excel\Concerns\WithColumnFormatting;
+use Maatwebsite\Excel\Events\BeforeExport;
+use Maatwebsite\Excel\Events\BeforeWriting;
+use Maatwebsite\Excel\Events\BeforeSheet;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Events\AfterSheet;
+use PhpOffice\PhpSpreadsheet\Shared\Date;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
+//use Illuminate\Support\ServiceProvider;
+Sheet::macro('styleCells', function (Sheet $sheet, string $cellRange, array $style) {
+    $sheet->getDelegate()->getStyle($cellRange)->applyFromArray($style);
+});
+class EaGenCamExport implements WithEvents, FromCollection, WithHeadings, ShouldAutoSize,WithColumnFormatting
 {
+
+
     /**
      * @return \Illuminate\Support\Collection
      */
-    public function collection()
+    public function generar()
     {
 
         if (!isset($this->cliente)) {
@@ -460,25 +476,35 @@ class EaGenCamExport implements FromCollection
             ->first();
     }
 
-    public function fact_excel()
+    public function collection()
     {
 
-        $obj_facturacion =  ([EaBaseActiva::join("ea_detalle_debito", "ea_detalle_debito.id_sec", "=", "ea_base_activa.id_sec")
+
+
+        return $this->collection =  EaBaseActiva::join("ea_detalle_debito", "ea_detalle_debito.id_sec", "=", "ea_base_activa.id_sec")
             ->select(
                 'ea_base_activa.cedula_id',
                 'ea_base_activa.nombre',
-
+                EaBaseActiva::raw("'S/N' as 'Dirección Cliente'"),
+                EaBaseActiva::raw("'S/N' as 'Correo Cliente'"),
+                EaBaseActiva::raw("'0' as 'Cta / TC'"),
+                //EaBaseActiva::raw("FORMAT (getdate(), 'yyyyMMdd') as 'Fecha Débito'"),
+                'ea_detalle_debito.fecha_actualizacion',
                 'ea_detalle_debito.valor_debitado'
             )
             ->where('ea_detalle_debito.producto', $this->producto)
             ->where('ea_detalle_debito.id_carga', $this->cod_carga_corp)
             ->where('ea_base_activa.cliente', $this->cliente)
+            ->where('ea_detalle_debito.estado', '1')
             ->orderby('ea_base_activa.cedula_id')
-            ->get()]);
+            ->get();
 
 
 
         /*
+        ,
+               
+                "IFNULL(ea_detalle_debito.valor_debitado, 'null')"
         return EaBaseActiva::join("ea_detalle_debito", "ea_detalle_debito.id_sec", "=", "ea_base_activa.id_sec")
         ->select(
             'ea_base_activa.cedula_id as \'ID  Cliente\'',
@@ -495,7 +521,113 @@ class EaGenCamExport implements FromCollection
         ->orderby('ea_base_activa.cedula_id')
         ->get();*/
 
-        return @json_decode(json_encode($obj_facturacion), true);
+        //return @json_decode(json_encode($obj_facturacion), true);
+    }
+
+    public function headings(): array
+    {
+        return ["ID Cliente", "Nombres Clientes", "Dirección Cliente", "Correo Cliente", "Cta / TC", "Fecha Débito", "Valor Debitado"];
+    }
+    /*
+    public function registerEvents(): array
+    {
+        return [
+            
+            
+            AfterSheet::class    => function(AfterSheet $event) {
+                $event->writer->setCreator('EnvyKP');
+                $event->sheet->setOrientation(\PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::ORIENTATION_LANDSCAPE);
+
+                $event->sheet->styleCells(
+                    'A1:W1',
+                    [
+                        'borders' => [
+                            'outline' => [
+                                'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THICK,
+                                'color' => ['argb' => 'FFFF0000'],
+                            ],
+                        ]
+                    ]
+                );
+            },
+        ];
+    }
+    }*/
+
+    public function registerEvents(): array
+    {
+        return [
+            AfterSheet::class    => function (AfterSheet $event) {
+                $event->sheet->getStyle('A1:' . 'G' . ($this->collection->count() + 1))->applyFromArray([
+                    'borders' => [
+                        'allBorders' => [
+                            'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                            'color' => ['argb' => '00000000'],
+                        ],
+                    ],
+                ]);
+                $event->sheet->getStyle('C1:E1')->applyFromArray([
+                    'fill' => [
+                        'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                        'startColor' => [
+                            'rgb' => '008001',
+                        ]
+                    ],
+                ]);
+                $event->sheet->getStyle('A1:B1')->applyFromArray([
+                    'fill' => [
+                        'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                        'startColor' => [
+                            'rgb' => 'FFFF01',
+                        ]
+                    ],
+                ]);
+                $event->sheet->getStyle('F1:G1')->applyFromArray([
+                    'fill' => [
+                        'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                        'startColor' => [
+                            'rgb' => 'FFFF01',
+                        ]
+                    ],
+                ]);
+                /*              $event->sheet->styleCells(
+                    'A1:A1',
+                    [
+                        //Set border Style
+                        'borders' => [
+                            'outline' => [
+                                'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                                'color' => ['argb' => '00000000'],
+                            ],
+                        ],
+                        //Set font style
+                         'font' => [
+                            'name'      =>  'Calibri',
+                            'size'      =>  15,
+                            'bold'      =>  true,
+                            'color' => ['argb' => 'EB2B02'],
+                        ],
+                        
+                        //Set background style
+                        'fill' => [
+                            'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                            'startColor' => [
+                                'rgb' => 'FFFF01',
+                            ]
+                        ],
+                    ]
+                );*/
+
+
+            },
+        ];
+    }
+
+    public function columnFormats(): array
+    {
+        return [
+            'A' => NumberFormat::FORMAT_TEXT,
+        ];
     }
 
     public function __construct(string $cliente, string $producto, string $cod_carga_corp = null, string $sub_producto_id)
@@ -505,5 +637,6 @@ class EaGenCamExport implements FromCollection
         $this->cod_carga_corp = $cod_carga_corp;
         $this->producto = $producto;
         $this->id_subproducto = $sub_producto_id;
+        $this->collection = null;
     }
 }

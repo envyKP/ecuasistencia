@@ -13,7 +13,7 @@ use Maatwebsite\Excel\Concerns\ToCollection;
 use App\Http\Controllers\EaBaseActivaController;
 use App\Http\Controllers\EaDetalleCargaCorpController;
 
-class EaGemCamIxport implements ToCollection, WithValidation, WithHeadingRow
+class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow
 {
     use Importable, SkipsErrors;
     /**

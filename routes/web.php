@@ -73,7 +73,7 @@ Route::middleware(['auth', 'prevent-back-history'])->group(function () {
 });
 
 
-Route::middleware(['auth', 'prevent-back-history', 'isAdmin' ])->group(function () {
+Route::middleware(['auth', 'prevent-back-history', 'isAdmin'])->group(function () {
     Route::view('/dashboard/admin', 'dashboards.dashboardAdmin');
     Route::view('menu/procesos/carga/', 'dashboards.dashboardProcesosCarga');
 });
@@ -102,7 +102,7 @@ Route::middleware(['auth', 'prevent-back-history', 'isAdmin'])->group(function (
     Route::post('cliente/destroy/', [EaClienteController::class, 'destroy'])->name('EaClienteController.destroy');
 });
 
-Route::middleware(['auth', 'prevent-back-history' , 'isAdmin'])->group(function () {
+Route::middleware(['auth', 'prevent-back-history', 'isAdmin'])->group(function () {
 
     Route::get('inicio/facturacionMasiva/segurviaje/', [EaFactMasSeguviajeController::Class, 'index'])->name('EaFactMasSeguviajeController.index');
     Route::get('getSubproductosSapHtml/', [EaFactMasSeguviajeController::Class, 'getSubproductoSap'])->name('EaFactMasSeguviajeController.getSubproductoSap');
@@ -175,13 +175,14 @@ Route::middleware(['auth', 'prevent-back-history', 'isAdmin'])->group(function (
     Route::post('generacion/archivo/cargaIndividual/destroy/', [EaCargaIndividualExport::class, 'destroy'])->name('EaCargaIndividualExport.destroy');
     Route::get('generacion/archivo/cargaIndividual/export/', [EaCargaIndividualExport::class, 'exporta'])->name('EaCargaIndividualExport.exporta');
     Route::get('generacion/archivo/cargaIndividual/generarFactura/', [EaCargaIndividualExport::class, 'generarFactura'])->name('EaCargaIndividualExport.generarFactura');
-    
+
 
     Route::get('recepcion/archivo/cargaIndividual/index/', [EaCargaIndividualImport::class, 'index'])->name('EaCargaIndividualImport.index');
     Route::post('recepcion/archivo/cargaIndividual/subirArchivo/', [EaCargaIndividualImport::class, 'uploadArchivos'])->name('EaCargaIndividualImport.uploadArchivos');
     Route::post('recepcion/archivo/cargaIndividual/destroy/', [EaCargaIndividualImport::class, 'destroy'])->name('EaCargaIndividualImport.destroy');
     Route::post('recepcion/archivo/cargaIndividual/procesar/', [EaCargaIndividualImport::class, 'update'])->name('EaCargaIndividualImport.update');
- 
+
+    
 });
 
 
@@ -219,14 +220,9 @@ Route::middleware(['auth', 'prevent-back-history'])->group(function () {
 
 
 //Routes de generacion de archivos
-Route::middleware(['auth', 'isAdmin' ])->group(function () {
+Route::middleware(['auth', 'isAdmin'])->group(function () {
     Route::get('generacion/archivo/proveeTMK/export/', [EaGenArchiProveTmkController::class, 'exportar_archivo'])->name('EaGenArchiProveTmkController.exportar_archivo');
     Route::get('generacion/archivo/financiero/export/', [EaGenArchiFinanController::class, 'exportar_archivo'])->name('EaGenArchiFinanController.exportar_archivo');
     Route::get('generacion/archivo/sinInformacionFinanciera/export/{cod_carga}', [EaRecepArchiFinanController::class, 'export_sin_infor_finan'])->name('EaGenArchiFinanController.export_sin_infor_finan');
     Route::post('reporte/cargaInicial/', [EaCabCargaInicialController::class, 'exportar_reporte'])->name('EaCabCargaInicialController.exportar_reporte');
-
 });
-
-
-
-

@@ -54,8 +54,6 @@
         <div class="card">
             <!-- <div class="card-header"><strong>Credit Card</strong> <small>Form</small></div> -->
             <div class="card-body">
-
-
                 <form id="form-generar" action="{{ route('EaCargaIndividualExport.exporta') }}"method="get"
                     enctype="multipart/form-data" accept-charset="utf-8">
                     @csrf
@@ -84,12 +82,9 @@
                                 </select>
                             </div>
                         </div>
-
                         <div class="col-sm-3 col-md-3">
-
                             <div class="form-group">
                                 <div class="input-group">
-
                                     <div class="input-group-prepend">
                                         <span class="input-group-text form-control">
                                             <label class="c-switch c-switch-label c-switch-success mt-2">
@@ -100,21 +95,14 @@
                                             <strong class="ml-1"> {{ 'Por Producto: ' }} </strong>
                                         </span>
                                     </div>
-
                                     <select class="form-control" name="producto" id="producto" style="display:none">
                                         <option value="" selected>{{ 'Seleccione Producto' }}</option>
                                     </select>
-
                                 </div>
                             </div>
-
                         </div>
                     </div>
-
                     <div class="row">
-
-
-
                         <div class="col-sm-4 col-md-4">
                             <div class="form-group">
                                 <div class="input-group">
@@ -129,7 +117,6 @@
                                             <strong class="ml-1"> {{ 'generar carga: ' }} </strong>
                                         </span>
                                     </div>
-
                                     <button class="btn btn-info" id="btn-genera" name="btn-genera"
                                         title="Generar Carga" type="submit" style="display:none" disabled>
                                         <svg class="c-icon c-icon-1xl">
@@ -139,15 +126,10 @@
                                         </svg> {{ 'Generar carga' }}
                                     </button>
                                 </div>
-
                             </div>
                         </div>
-
                     </div>
                 </form>
-
-
-
             </div>
         </div>
     </div>
@@ -159,7 +141,6 @@
                 aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%"></div>
         </div>
     </div>
-
     @if (session('errorTecnico'))
         <div class="col-sm-12 col-md-12">
             <div class="alert alert-danger alert-dismissible fade show " role="alert">

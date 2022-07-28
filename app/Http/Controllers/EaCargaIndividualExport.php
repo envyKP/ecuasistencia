@@ -48,12 +48,9 @@ class EaCargaIndividualExport extends Controller
         $clientes =  (new EaClienteController)->getAllCampanas();
         $RegistrosPendientes = EaCabeceraCargaCorp::where('estado', 'PENDIENTE')
             ->orderBy('cliente')->paginate(5);
-
         return view('cargaIndividual.home')->with(compact('clientes'))
             ->with(compact('RegistrosPendientes'));
     }
-
-
     /**
      * Remove the specified resource from storage.
      * @param  \Illuminate\Http\Request  $request
@@ -63,22 +60,14 @@ class EaCargaIndividualExport extends Controller
     {
         $contenido = file_get_contents("../salsa.txt");
         $clave = Key::loadFromAsciiSafeString($contenido);
-
         $varcontrolsecuencia = (isset($request->carga_resp) ? strval($request->carga_resp) : null);
         $detalle_subproducto = ((new EaSubproductoController)->getSubproductoDetalle($request->cliente, $request->producto));
-
         $objEXPORT = new EaGenCamExport($request->cliente, $detalle_subproducto->desc_subproducto, $varcontrolsecuencia, $request->producto);
-        echo ($request->cliente);
-        echo ($detalle_subproducto->desc_subproducto);
-        echo ($varcontrolsecuencia);
-        echo ($request->producto);
-
-        $recorrido = $objEXPORT->collection();
+        $recorrido = $objEXPORT->generar();
         $ultima_carga = $objEXPORT->is_carga_older();
         $textoPlano = "";
         $cont = 0;
-        $condicion = false;;
-
+        $condicion = false;
         // ARMA LAS RESPUESTA QUE SE INSERTAN EN EL DOCUMENTO TXT , Y ADICIONAL LLAMA AL METODO QUE LO INSTERTA EN LA BASE DE DATOS.
         switch ($request->cliente) {
             case "INTER":
@@ -118,7 +107,6 @@ class EaCargaIndividualExport extends Controller
                                 $establecimiento_print .= $individual->cod_establecimiento;
                             }
                         }
-
                         $textoPlano .= (isset($individual->cod_establecimiento)) ? $establecimiento_print : "00000000";
                         //$textoPlano .= "-3-";
                         $textoPlano .= (isset($individual->date)) ? $individual->date : "000000";
@@ -167,13 +155,9 @@ class EaCargaIndividualExport extends Controller
                         //$textoPlano .= "-17-";
                         $textoPlano .= $individual->constante9;
                         $textoPlano .= "\n";
-
-
                         if (!isset($request->carga_resp)) {
-
                             $condicion = true;
                             $id_carga = (isset($individual->id_carga) ? $individual->id_carga : 1);
-
                             $fecha_generacion = (isset($ultima_carga->fecha_generacion) ? $ultima_carga->fecha_generacion : 0);
                             if ($fecha_generacion != date('mY')) {
                                 $id_carga = (isset($ultima_carga->id_carga) ? $ultima_carga->id_carga : 0);
@@ -196,7 +180,6 @@ class EaCargaIndividualExport extends Controller
                             // EaParaInsert::dispatch($objEXPORT,$row_insert_detalle);
                         }
                     }
-
                     $tiempo_final = microtime(true);
                     //echo "tiempo " . ($tiempo_final - $tiempo_inicial);
                     //echo "   \n  ";
@@ -205,10 +188,6 @@ class EaCargaIndividualExport extends Controller
                     echo "todavia no implementado la parte de CTAS";
                     dd();
                 }
-
-
-
-
                 break;
             case "BBOLIVARIANO":
                 # code...
@@ -310,8 +289,6 @@ class EaCargaIndividualExport extends Controller
             case "SAMSUNG":
                 # code...
                 break;
-
-
             default:
                 # code...
                 break;
@@ -328,13 +305,10 @@ class EaCargaIndividualExport extends Controller
             $file_reg_carga['fec_carga'] = $fecha_generacion;
             $file_reg_carga['usuario'] = \Auth::user()->username;
             $objEXPORT->registro_cargas($file_reg_carga);
-            $fileName = $request->cliente . date("Ym") . "-" . ($condicion == true ? (isset($ultima_carga->id_carga) ? $ultima_carga->id_carga + 1 : 1)  : $request->carga_resp) . ".txt";
+            $fileName = $request->cliente . "-" . $detalle_subproducto->desc_subproducto . "-" . date("d-m-Y") . "-" . ($condicion == true ? (isset($ultima_carga->id_carga) ? $ultima_carga->id_carga + 1 : 1)  : $request->carga_resp) . ".txt";
         } else {
-
-            $fileName = $request->cliente . date("Ym") . "-" . ($request->carga_resp) . ".txt";
+            $fileName = $request->cliente . "-" . $detalle_subproducto->desc_subproducto . "-" . date("d-m-Y") . ".txt";
         }
-
-
         $headers = [
             'Content-type' => 'text/plain',
             'Content-Disposition' => sprintf('attachment; filename="%s"', $fileName),
@@ -356,9 +330,7 @@ class EaCargaIndividualExport extends Controller
     {
         $datosCliente = $request->except('_token', '_method');
         $datosCliente['estado'] = "A";
-
         $idCliente = EaCliente::All()->max('id_cliente');
-
         if (isset($idCliente) && $idCliente !== 1) {
             $idCliente++;
             $datosCliente['id_cliente'] = $idCliente;
@@ -366,7 +338,6 @@ class EaCargaIndividualExport extends Controller
             $datosCliente['id_cliente'] = 1;
         }
         if ($request->hasfile('logotipo')) {
-
             $nombre_archivo = $request->file('logotipo')->getClientOriginalName();
             $datosCliente['logotipo'] = $request->file('logotipo')->storeAs('LogosClientes', $nombre_archivo, 'public');
         }
@@ -417,12 +388,10 @@ class EaCargaIndividualExport extends Controller
      */
     public function generarFactura(Request $request)
     {
-
         $varcontrolsecuencia = (isset($request->carga_resp) ? strval($request->carga_resp) : null);
         $detalle_subproducto = ((new EaSubproductoController)->getSubproductoDetalle($request->cliente, $request->producto));
-
-        $objEXPORT = new EaGenCamExport($request->cliente, $detalle_subproducto->desc_subproducto, $varcontrolsecuencia, $request->producto);
-        $recorrido = $objEXPORT->fact_excel();
-        return Excel::download($recorrido, 'facturacion.xlsx');
+        // $objEXPORT = new EaGenCamExport($request->cliente, $detalle_subproducto->desc_subproducto, $varcontrolsecuencia, $request->producto);
+        $name_producto = str_replace("/", " ", $detalle_subproducto->desc_subproducto);
+        return Excel::download(new EaGenCamExport($request->cliente, $detalle_subproducto->desc_subproducto, $varcontrolsecuencia, $request->producto), $request->cliente . "-" . $name_producto . "-" . date("Y-m-d") . '.xlsx');
     }
 }
