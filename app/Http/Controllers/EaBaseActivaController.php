@@ -178,9 +178,9 @@ class EaBaseActivaController extends Controller
         $datos['ciudadet']  = EaCiudad::where('ciudad', $request->ciudad)->first()->detalle;
         $datos['detestado'] = EaCodigoEstadoCliente::where('codigo', $request->codestado)->first()->detalle;
         $datos['desc_producto'] = (new EaProductoController)->getProductoDetalle($request->cliente, $request->producto)->desc_producto;
-        
+
         EaBaseActiva::Insert($datos);
-        
+
         return redirect()->route('EaBaseActivaController.show', [$request])->with([
             'ok' => 'TrxOK', 'mensaje' => 'Cliente: ' . $request->nombre . ' ingresado!.',
             'fromCliente' => 'cliente'

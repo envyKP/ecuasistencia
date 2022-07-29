@@ -313,7 +313,6 @@ class EaCargaIndividualExport extends Controller
             'Content-type' => 'text/plain',
             'Content-Disposition' => sprintf('attachment; filename="%s"', $fileName),
         ];
-
         return Response::make($textoPlano, 200, $headers);
         //Response::make($textoPlano, 200, $headers);
         //return redirect()->route('EaCargaIndividualImport.index');

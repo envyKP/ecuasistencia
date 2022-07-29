@@ -55,19 +55,13 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow
 
                 $registros_archivos['cedula'] = $row['cedula'];
                 array_push($registros_duplicados,  $registros_archivos);
-
                 $existe =  $obj_base_activa->valida_resgistro_base_activa($this->cliente, $row['cedula'], $this->producto);
-
                 if (isset($existe)) {
-
                     $this->total_registros_disponibles_gestion++;
-
                     $reg_duplicado = $obj_det_carga_corp->existe_registro($this->cod_carga, $this->cliente, $row['vale']);
-
                     if (!$reg_duplicado) {
                         # code...
                         try {
-
                             EaDetalleCargaCorp::create([
                                 'id_carga' => isset($this->cod_carga)  ? $this->cod_carga : '',
                                 'cliente' => isset($this->cliente) ? trim($this->cliente) : '',
@@ -82,27 +76,19 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow
                                 'estado' => isset($row['fecha_autorizacion']) ? '1' : null
                             ]);
                         } catch (\Exception $e) {
-
                             $obj_det_carga_corp->truncate($this->cod_carga, $this->cliente);
                             $this->errorTecnico = $e->getMessage();
                         }
                     } else {
-
                         $this->total_registros_duplicados++;
                     }
                 } else {
-
                     $this->total_registros_gestionados_otras_campanas++;
                 }
             } else {
-
                 if (!empty($row['ordinal'])) {
-
                     $this->total_registros_sin_infor++;
-
                     $linea['nombre_completo'] =  isset($row['nombre_completo']) ? $row['nombre_completo'] : '';
-
-
                     array_push($this->registros_no_cumplen, $linea);
                     $linea = null;
                 }

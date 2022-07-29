@@ -19,9 +19,10 @@ class EaCamposBaController extends Controller
     }
 
 
-    public function get_data_estado_Cliente(){
+    public function get_data_estado_Cliente()
+    {
 
-        return ( EaCodigoEstadoCliente::all() );
+        return (EaCodigoEstadoCliente::all());
     }
 
     /**

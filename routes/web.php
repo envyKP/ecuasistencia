@@ -170,19 +170,20 @@ Route::middleware(['auth', 'prevent-back-history', 'isAdmin'])->group(function (
     Route::post('recepcion/archivo/financiero/subirArchivo/', [EaRecepArchiFinanController::class, 'uploadArchivos'])->name('EaRecepArchiFinanController.uploadArchivos');
     Route::post('recepcion/archivo/financiero/destroy/', [EaRecepArchiFinanController::class, 'destroy'])->name('EaRecepArchiFinanController.destroy');
     Route::post('recepcion/archivo/financiero/procesar/', [EaRecepArchiFinanController::class, 'procesar'])->name('EaRecepArchiFinanController.procesar');
-
-    Route::get('generacion/archivo/cargaIndividual/index/', [EaCargaIndividualExport::class, 'index'])->name('EaCargaIndividualExport.index');
-    Route::post('generacion/archivo/cargaIndividual/destroy/', [EaCargaIndividualExport::class, 'destroy'])->name('EaCargaIndividualExport.destroy');
+///////////////////////// cambio KPE Cargas
+    //Route::get('generacion/archivo/cargaIndividual/index/', [EaCargaIndividualExport::class, 'index'])->name('EaCargaIndividualExport.index');
+    //Route::post('generacion/archivo/cargaIndividual/destroy/', [EaCargaIndividualExport::class, 'destroy'])->name('EaCargaIndividualExport.destroy');
     Route::get('generacion/archivo/cargaIndividual/export/', [EaCargaIndividualExport::class, 'exporta'])->name('EaCargaIndividualExport.exporta');
     Route::get('generacion/archivo/cargaIndividual/generarFactura/', [EaCargaIndividualExport::class, 'generarFactura'])->name('EaCargaIndividualExport.generarFactura');
 
-
     Route::get('recepcion/archivo/cargaIndividual/index/', [EaCargaIndividualImport::class, 'index'])->name('EaCargaIndividualImport.index');
+    Route::get('recepcion/archivo/cargaIndividual/detalleCarga/', [EaCargaIndividualImport::class, 'detalleCarga'])->name('EaCargaIndividualImport.detalleCarga');
     Route::post('recepcion/archivo/cargaIndividual/subirArchivo/', [EaCargaIndividualImport::class, 'uploadArchivos'])->name('EaCargaIndividualImport.uploadArchivos');
+    //Route::post('recepcion/archivo/cargaIndividual/subirArchivo/', [EaCargaIndividualImport::class, 'uploadArchivos'])->name('EaCargaIndividualImport.uploadArchivos');
     Route::post('recepcion/archivo/cargaIndividual/destroy/', [EaCargaIndividualImport::class, 'destroy'])->name('EaCargaIndividualImport.destroy');
     Route::post('recepcion/archivo/cargaIndividual/procesar/', [EaCargaIndividualImport::class, 'update'])->name('EaCargaIndividualImport.update');
+//////////////////////////////////////////////////////
 
-    
 });
 
 
@@ -200,21 +201,17 @@ Route::middleware(['auth', 'prevent-back-history'])->group(function () {
 Route::middleware(['auth', 'prevent-back-history'])->group(function () {
 
     Route::post('change/password/', [UserController::class, 'change_pass'])->name('UserController.change_pass');
-
     Route::get('baseActiva/show/', [EaBaseActivaController::class, 'show'])->name('EaBaseActivaController.show');
     Route::post('baseActiva/buscar/seleccion/registro/', [EaBaseActivaController::class, 'buscarSeleccion'])->name('EaBaseActivaController.buscarSeleccion');
     Route::post('baseActiva/serch/', [EaBaseActivaController::class, 'serch'])->name('EaBaseActivaController.serch');
-
     Route::get('getProducto/', [EaProductoController::class, 'getProducto'])->name('EaProductoController.getProducto');
     Route::get('getProductoModel/', [EaProductoController::class, 'getProductoModel'])->name('EaProductoController.getProductoModel');
     Route::get('getSubproducto/', [EaSubproductoController::class, 'getSubproducto'])->name('EaSubproductoController.getSubproducto');
     Route::get('getSubproductoNoAMA/', [EaSubproductoController::class, 'getSubproductoNoAMA'])->name('EaSubproductoController.getSubproductoNoAMA');
     Route::get('getSubproducto/cliente', [EaSubproductoController::class, 'getSubproductoCli'])->name('EaSubproductoController.getSubproductoCli');
     Route::get('getSubproductoModel/', [EaSubproductoController::class, 'getSubproductoModel'])->name('EaSubproductoController.getSubproductoModel');
-
     Route::get('busqueda/baseActiva/index', [EaBaseActivaBusquedaController::class, 'index'])->name('EaBaseActivaBusquedaController.index');
     Route::get('busqueda/baseActiva/search', [EaBaseActivaBusquedaController::class, 'search'])->name('EaBaseActivaBusquedaController.search');
-
     Route::get('get/motivos/desactivacion/html/', [EaMotivoDesactivacionController::class, 'getMotivosHtml'])->name('EaMotivoDesactivacionController.getMotivosHtml');
 });
 

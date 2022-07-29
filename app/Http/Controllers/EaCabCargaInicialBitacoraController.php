@@ -72,9 +72,9 @@ class EaCabCargaInicialBitacoraController extends Controller
       */
 
         $trx2 = EaCabeceraCargaCorpBitacora::where('cliente', 'INTER')
-        ->where('cod_carga', '2')
-        ->where('producto', '14')
-        ->update(['archivo' => $datos_carga->archivo]);
+            ->where('cod_carga', '2')
+            ->where('producto', '14')
+            ->update(['archivo' => $datos_carga->archivo]);
         $trx = EaCabeceraCargaCorpBitacora::create([
 
             "cod_carga" => $datos_carga->cod_carga,

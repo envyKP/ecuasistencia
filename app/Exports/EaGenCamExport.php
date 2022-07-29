@@ -25,11 +25,13 @@ use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
+use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
 //use Illuminate\Support\ServiceProvider;
 Sheet::macro('styleCells', function (Sheet $sheet, string $cellRange, array $style) {
     $sheet->getDelegate()->getStyle($cellRange)->applyFromArray($style);
 });
-class EaGenCamExport implements WithEvents, FromCollection, WithHeadings, ShouldAutoSize,WithColumnFormatting
+
+class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder implements WithEvents, FromCollection, WithHeadings, ShouldAutoSize,WithColumnFormatting,WithCustomValueBinder
 {
 
 
@@ -627,6 +629,7 @@ class EaGenCamExport implements WithEvents, FromCollection, WithHeadings, Should
     {
         return [
             'A' => NumberFormat::FORMAT_TEXT,
+            'G' => NumberFormat::FORMAT_TEXT,
         ];
     }
 
