@@ -22,8 +22,9 @@ class EaDetalleDebito extends Model
         'cliente',
         'estado',
         'detalle',
-        'bin',
         'fecha_generacion',
+        'subproducto_id',
+        'valor_debitado'
        
     ];
 }

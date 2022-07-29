@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\EaSegurViaje;
 use App\Models\EaCabCargaSegurviajeCarg;
+use App\Models\EaCabeceraCargaCorp;
+use App\Imports\EaFactSegurViajeImport;
 use Illuminate\Http\Request;
 
 class EaFactMasSeguviajeController extends Controller

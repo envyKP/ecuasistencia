@@ -2,6 +2,7 @@
 @section('scripts')
 
 @section('scripts')
+    <!-- notas es cargaIndividualI   el final es una i mayuscula-->
     <script type="text/javascript">
         $(document).ready(function() {
             $("#cliente").change(function() {
@@ -24,16 +25,26 @@
                     }
                 });
             });
-
+/*
             $("#form-procesarCarga").submit(function() {
                 $.ajax({
                     beforeSend: function() {
                         $("#tabla-det-caraga-corp").find('div,button').prop("disabled", true);
                         $(".modal").remove();
                         $("#processCarga").css('display', 'block');
+                        var porcentaje = '0';
                     },
+                    uploadProgress: function(event,position,total,porcentajecompleto){
+                        var porcentaje = porcentajecompleto;
+                        $('.progress .progress-bar').css("width", porcentaje + '%',function(){return $(this).atrr("aria-valuenow",porcentaje)+ "%";
+                    })
+                    },
+                    complete: function(xhr){
+                        $("#tabla-det-caraga-processCarga").find('div,button').prop("disabled", false);
+                        $("#processCarga").css('hidden', 'block');
+                    }
                 });
-            });
+            });*/
 
             $("#btn-genera").change(function() {
 
@@ -89,6 +100,15 @@
                 } else {
                     $("#subproducto").css("display", "none");
                     $("#btn-genera").css("display", "none");
+                    $("#btn-genera").prop("disabled", true);
+                }
+            });
+
+
+            $("#bloqueo_subida").click(function() {
+                if ($("#bloqueo_subida").is(":checked")) {
+
+                } else {
                     $("#btn-genera").prop("disabled", true);
                 }
             });

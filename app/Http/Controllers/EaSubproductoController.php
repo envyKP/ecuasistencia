@@ -101,7 +101,7 @@ class EaSubproductoController extends Controller
 
         foreach ($subproductos as $subproducto) {
 
-            $html .= '<option value="' . $subproducto->desc_subproducto  . '">' . (substr($subproducto->desc_subproducto, -strlen($subproducto->tipo_subproducto)) == $subproducto->tipo_subproducto ? $subproducto->desc_subproducto : ($subproducto->desc_subproducto) . " " . ($subproducto->tipo_subproducto)) . '</option>';
+            $html .= '<option value="' . $subproducto->id_subproducto  . '">' . (substr($subproducto->desc_subproducto, -strlen($subproducto->tipo_subproducto)) == $subproducto->tipo_subproducto ? $subproducto->desc_subproducto : ($subproducto->desc_subproducto) . " " . ($subproducto->tipo_subproducto)) . '</option>';
         }
 
         return response()->json(['htmlProducto' => $html]);

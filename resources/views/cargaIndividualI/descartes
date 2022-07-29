@@ -1,0 +1,60 @@
+   @if (strcmp($registro->estado, 'PENDIENTE') == 0 || strcmp($registro->estado, 'REPROCESAR') == 0)
+   <button class="btn btn-success" id="btn-subirArchivo" title="Carga Archivo xls o txt" type="submit">
+       <svg class="c-icon c-icon-1xl">
+           <use xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-cloud-upload') }} ">
+           </use>
+       </svg>
+   </button>
+   @endif
+
+   <td class="text-center">
+       <div class="form-group">
+           @if (strcmp($registro->estado, 'PENDIENTE') == 0 || strcmp($registro->estado, 'REPROCESAR') == 0)
+           <input class="form-control pt-1" id="archivo" type="file" name="archivo" required>
+           <!-- <span class="help-block">{{ 'Archivo debe ser de extensión .xlsx' }}</span> -->
+           @else
+
+           <input class="form-control pt-1" type="file" disabled>
+
+
+           @endif
+
+       </div>
+   </td>
+
+
+
+   <td class="col-sm-1 col-md-1">
+       <div class="row content-center">
+           @if (stripos($registro->estado, 'POR PROCESAR') !== false)
+           <form id="form-procesarCarga" action="{{ route('EaCabCargaInicialController.procesar') }}" method="post">
+               @csrf
+               <input type="hidden" name="cod_carga" value="{{ $registro->cod_carga }}">
+               <button class="btn btn-warning mx-1" title="Procesar XLS" type="submit">
+                   <svg class="c-icon c-icon-1xl">
+                       <use xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-sync') }} ">
+                       </use>
+                   </svg>
+               </button>
+           </form>
+           @endif
+       </div>
+   </td>
+
+
+
+   <td class="col-sm-1 col-md-1">
+       @php
+       ${'data' . $registro->cod_carga} = $registro;
+       @endphp
+       <div class="row content-center">
+           @if (strcmp($registro->estado, 'PENDIENTE') == 0 || strcmp($registro->estado, 'REPROCESAR') == 0)
+           <button class="btn btn-success" id="btn-subirArchivo" title="Carga Archivo xls o txt" type="submit">
+               <svg class="c-icon c-icon-1xl">
+                   <use xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-cloud-upload') }} ">
+                   </use>
+               </svg>
+           </button>
+           @endif
+       </div>
+   </td>

@@ -32,11 +32,10 @@ class EaCabCargaInicialController extends Controller
 
         $clientes =  (new EaClienteController)->getAllCampanas();
         $resumen_cabecera = EaCabeceraCargaCorp::orderBy('cod_carga')
-                                                ->paginate(5);
+            ->paginate(5);
 
-        return view ('cargaInicial.home')->with(compact('clientes'))
-                                         ->with( isset($resumen_cabecera) ? compact('resumen_cabecera') : '' );
-
+        return view('cargaInicial.home')->with(compact('clientes'))
+            ->with(isset($resumen_cabecera) ? compact('resumen_cabecera') : '');
     }
 
 
@@ -52,11 +51,10 @@ class EaCabCargaInicialController extends Controller
 
         $clientes =  (new EaClienteController)->getAllCampanas();
         $RegistrosPendientes = EaCabeceraCargaCorp::where('estado', 'PENDIENTE')
-                                                  ->orderBy('cliente')->paginate(5);
+            ->orderBy('cliente')->paginate(5);
 
-        return view ('cargaInicial.home')->with(compact('clientes'))
-                                         ->with(compact('RegistrosPendientes'));
-
+        return view('cargaInicial.home')->with(compact('clientes'))
+            ->with(compact('RegistrosPendientes'));
     }
 
 
@@ -66,15 +64,15 @@ class EaCabCargaInicialController extends Controller
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
-    */
+     */
     public function get_cabecera_carga_inicial_recapt($proceso)
     {
 
-        $cabecera = EaCabeceraCargaCorp::where(function($query){
-                                            $query->where('proceso', 'recepcion_provee_tmk')
-                                                  ->orWhere('proceso', 'generacion_provee_tmk');
-                                        })->orderBy('cliente')
-                                          ->paginate(5);
+        $cabecera = EaCabeceraCargaCorp::where(function ($query) {
+            $query->where('proceso', 'recepcion_provee_tmk')
+                ->orWhere('proceso', 'generacion_provee_tmk');
+        })->orderBy('cliente')
+            ->paginate(5);
         return $cabecera;
     }
 
@@ -84,15 +82,15 @@ class EaCabCargaInicialController extends Controller
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
-    */
+     */
     public function get_cabecera_carga_inicial_recaif($proceso)
     {
 
-        $cabecera = EaCabeceraCargaCorp::where(function($query){
-                                                $query->where('proceso', 'recepcion_infor_finan')
-                                                      ->orWhere('proceso', 'generacion_infor_finan');
-                                        })->orderBy('cliente')
-                                          ->paginate(5);
+        $cabecera = EaCabeceraCargaCorp::where(function ($query) {
+            $query->where('proceso', 'recepcion_infor_finan')
+                ->orWhere('proceso', 'generacion_infor_finan');
+        })->orderBy('cliente')
+            ->paginate(5);
 
         return $cabecera;
     }
@@ -109,8 +107,8 @@ class EaCabCargaInicialController extends Controller
     {
 
         $cabecera = EaCabeceraCargaCorp::where('proceso', 'recepcion_provee_tmk')
-                                       ->orderBy('cliente')
-                                       ->paginate(5);
+            ->orderBy('cliente')
+            ->paginate(5);
         return $cabecera;
     }
 
@@ -126,7 +124,7 @@ class EaCabCargaInicialController extends Controller
     public function uploadArchivos(Request  $request)
     {
 
-        $datosCab = $request->except('_token', 'subproducto', 'filtro_cliente', 'filtro_producto', 'filtro_subproducto' );
+        $datosCab = $request->except('_token', 'subproducto', 'filtro_cliente', 'filtro_producto', 'filtro_subproducto');
         $fecha = Date('Ymd');
 
         $productoDetalle = (new EaProductoController)->getProductoDetalle($request->cliente, $request->producto);
@@ -142,12 +140,11 @@ class EaCabCargaInicialController extends Controller
             $datosCab['estado'] = 'PENDIENTE';
 
             $existe_visible = $this->valida_proceso_visible('carga_inicial');
-            !$existe_visible ? $datosCab['visible'] ='S' : '';
+            !$existe_visible ? $datosCab['visible'] = 'S' : '';
 
             if (isset($productoDetalle)) {
                 $datosCab['desc_producto'] = $productoDetalle->desc_producto;
-
-            }else {
+            } else {
 
                 $datosCab['producto'] = '';
                 $datosCab['desc_producto'] = '';
@@ -156,29 +153,25 @@ class EaCabCargaInicialController extends Controller
             if ($request->hasfile('archivo')) {
                 $nombre_archivo = $request->file('archivo')->getClientOriginalName();
                 //$nombre_archivo = "BASE_COLOCACION_".$request->cliente.'_'.$fecha.'.xlsx';
-                $datosCab['archivo'] = $request->file('archivo')->storeAs('cargas_inicial/'.$request->cliente, $nombre_archivo, 'public');
+                $datosCab['archivo'] = $request->file('archivo')->storeAs('cargas_inicial/' . $request->cliente, $nombre_archivo, 'public');
             }
 
             $trx = EaCabeceraCargaCorp::insert($datosCab);
 
             if ($trx) {
 
-                $rsp = (new EaCabCargaInicialBitacoraController)->create_bitacora( $datosCab['cod_carga'] );
-                $success = "Archivo: ".$nombre_archivo.", del cliente: ".$request->cliente." cargado en estado pendiente de procesar." ;
-
+                $rsp = (new EaCabCargaInicialBitacoraController)->create_bitacora($datosCab['cod_carga']);
+                $success = "Archivo: " . $nombre_archivo . ", del cliente: " . $request->cliente . " cargado en estado pendiente de procesar.";
             }
-
-
-
-
-        }else {
+        } else {
             $error = "Archivos permitidos: xls ó xlsx";
         }
 
 
-        return redirect()->route('EaCabCargaInicialController.index')->with(['success' => isset($success) ? $success : '',
-                                                                             'error' => isset($error) ? $error : '' ]);
-
+        return redirect()->route('EaCabCargaInicialController.index')->with([
+            'success' => isset($success) ? $success : '',
+            'error' => isset($error) ? $error : ''
+        ]);
     }
 
 
@@ -196,18 +189,17 @@ class EaCabCargaInicialController extends Controller
         $obj_base_activa = (new EaBaseActivaController);
         $cabecera = EaCabeceraCargaCorp::where('cod_carga', $request->cod_carga)->first();
         $registro = array();
-        $registro['filein_banco_info'] = explode('/', substr($cabecera->archivo, stripos($cabecera->archivo, $cabecera->cliente)))[1] ;
+        $registro['filein_banco_info'] = explode('/', substr($cabecera->archivo, stripos($cabecera->archivo, $cabecera->cliente)))[1];
         $registro['usuario_reg'] = \Auth::user()->username;
         $registro['fec_carga'] = $fecha;
         $registro['cod_carga_corp'] = $cabecera->cod_carga;
 
-        if ( !empty($cabecera->producto) ) {
+        if (!empty($cabecera->producto)) {
 
             $productoDet = (new EaProductoController)->getProductoDetalle($cabecera->cliente, $cabecera->producto);
             $registro['producto'] = $productoDet->contrato_ama;
             $registro['desc_producto'] = $productoDet->desc_producto;
             $registro['subproducto'] = $productoDet->subproducto;
-
         } else {
 
             $registro['producto'] = null;
@@ -217,12 +209,12 @@ class EaCabCargaInicialController extends Controller
 
 
         $data = EaDetalleCargaCorp::where('cod_carga', $request->cod_carga)
-                                  ->where('estado', 'PROCESADO')
-                                  ->where('disponible_gestion', 'S')
-                                  ->get();
+            ->where('estado', 'PROCESADO')
+            ->where('disponible_gestion', 'S')
+            ->get();
 
 
-        foreach( $data as $carga_inicial){
+        foreach ($data as $carga_inicial) {
 
             $registro['cliente'] = $carga_inicial->cliente;
             $registro['nombre'] = $carga_inicial->nombre_completo;
@@ -245,8 +237,7 @@ class EaCabCargaInicialController extends Controller
             if (!empty($carga_inicial->tipo_de_tarjeta) &&  strtolower(trim($carga_inicial->tipo_de_tarjeta)) === 'principal') {
                 $registro['tiptar'] = 'P';
                 $registro['dettiptar'] = strtoupper($carga_inicial->tipo_de_tarjeta);
-
-            }else if  (!empty($carga_inicial->tipo_de_tarjeta) &&  strtolower(trim($carga_inicial->tipo_de_tarjeta)) === 'adicional') {
+            } else if (!empty($carga_inicial->tipo_de_tarjeta) &&  strtolower(trim($carga_inicial->tipo_de_tarjeta)) === 'adicional') {
                 $registro['tiptar'] = 'A';
                 $registro['dettiptar'] =  strtoupper($carga_inicial->tipo_de_tarjeta);
             }
@@ -257,26 +248,24 @@ class EaCabCargaInicialController extends Controller
 
 
         $cambio_estado = EaDetalleCargaCorp::where('cod_carga', $request->cod_carga)
-                                           ->where('estado', 'PROCESADO')
-                                           ->where('disponible_gestion', 'S')
-                                           ->exists();
+            ->where('estado', 'PROCESADO')
+            ->where('disponible_gestion', 'S')
+            ->exists();
 
-        if ( $cambio_estado ) {
+        if ($cambio_estado) {
 
             EaDetalleCargaCorp::where('cod_carga', $request->cod_carga)
-                              ->where('estado', 'PROCESADO')
-                              ->where('disponible_gestion', 'S')
-                              ->update(['estado' => 'EN_BASE_ACTIVA', 'fec_carga' => $fecha ]);
+                ->where('estado', 'PROCESADO')
+                ->where('disponible_gestion', 'S')
+                ->update(['estado' => 'EN_BASE_ACTIVA', 'fec_carga' => $fecha]);
 
             EaCabeceraCargaCorp::where('proceso', 'carga_inicial')
-                               ->where('cod_carga', $request->cod_carga)
-                               ->update([ 'estado' => 'EN_BASE_ACTIVA', 'fec_carga' => $fecha ]);
-
+                ->where('cod_carga', $request->cod_carga)
+                ->update(['estado' => 'EN_BASE_ACTIVA', 'fec_carga' => $fecha]);
         }
 
 
         return redirect()->route('EaCabCargaInicialController.index')->with(['success' => 'Datos enviado a la base activa']);
-
     }
 
 
@@ -294,21 +283,19 @@ class EaCabCargaInicialController extends Controller
         $registroCarga = EaCabeceraCargaCorp::where('cod_carga', $request->cod_carga)->first();
         //Excel::import(new EaDetCargaCorpImport($cod_carga), $registroCarga->archivo, 'public');
 
-        $import = (new EaDetCargaCorpImport( $request->cod_carga, $registroCarga->cliente, $registroCarga->producto));
+        $import = (new EaDetCargaCorpImport($request->cod_carga, $registroCarga->cliente, $registroCarga->producto));
         $import->import($registroCarga->archivo, 'public');
 
-        if ( !empty($import->detalle_proceso['errorTecnico']) ){
+        if (!empty($import->detalle_proceso['errorTecnico'])) {
 
             $cabecera_update['estado'] = 'ERROR';
             $cabecera_update['visible'] = 'N';
             $errorTecnico = $import->detalle_proceso['errorTecnico'];
-            $trx = $this->update_datos_cab_carga($registroCarga->cliente, $request->cod_carga, $cabecera_update );
+            $trx = $this->update_datos_cab_carga($registroCarga->cliente, $request->cod_carga, $cabecera_update);
+        } else {
 
-
-        }else {
-
-            $cabecera_update['total_registros_archivo'] = isset($import->detalle_proceso['total_registros_archivo']) ? $import->detalle_proceso['total_registros_archivo'] : '' ;
-            $cabecera_update['total_registros_sin_infor'] = isset($import->detalle_proceso['total_registros_sin_infor']) ? $import->detalle_proceso['total_registros_sin_infor'] : '' ;
+            $cabecera_update['total_registros_archivo'] = isset($import->detalle_proceso['total_registros_archivo']) ? $import->detalle_proceso['total_registros_archivo'] : '';
+            $cabecera_update['total_registros_sin_infor'] = isset($import->detalle_proceso['total_registros_sin_infor']) ? $import->detalle_proceso['total_registros_sin_infor'] : '';
             $cabecera_update['total_registros_disponibles_gestion'] = isset($import->detalle_proceso['total_registros_disponibles_gestion']) ? $import->detalle_proceso['total_registros_disponibles_gestion'] : '';
             $cabecera_update['total_registros_duplicados'] = isset($import->detalle_proceso['total_registros_duplicados']) ? $import->detalle_proceso['total_registros_duplicados'] : '';
             $cabecera_update['total_registros_gestionados_otras_campanas'] = isset($import->detalle_proceso['total_registros_gestionados_otras_campanas']) ? $import->detalle_proceso['total_registros_gestionados_otras_campanas'] : '';
@@ -317,8 +304,7 @@ class EaCabCargaInicialController extends Controller
 
             try {
 
-                $update_cab_carga = $this->update_datos_cab_carga($registroCarga->cliente, $request->cod_carga, $cabecera_update );
-
+                $update_cab_carga = $this->update_datos_cab_carga($registroCarga->cliente, $request->cod_carga, $cabecera_update);
             } catch (\Exception $e) {
                 $errorTecnico = $e->getMessage();
             }
@@ -326,21 +312,20 @@ class EaCabCargaInicialController extends Controller
 
             if ($update_cab_carga) {
 
-                $this->update_cola_proceso_visible( 'PENDIENTE', 'carga_inicial');
-                $rsp = (new EaCabCargaInicialBitacoraController)->update_datos_cod_carga_bita( $request->cod_carga, $registroCarga->cliente, 'carga_inicial', $cabecera_update);
+                $this->update_cola_proceso_visible('PENDIENTE', 'carga_inicial');
+                $rsp = (new EaCabCargaInicialBitacoraController)->update_datos_cod_carga_bita($request->cod_carga, $registroCarga->cliente, 'carga_inicial', $cabecera_update);
 
-                $nombre_archivo = explode("/" , substr( $registroCarga->archivo, stripos($registroCarga->archivo, $registroCarga->cliente)))[1];
+                $nombre_archivo = explode("/", substr($registroCarga->archivo, stripos($registroCarga->archivo, $registroCarga->cliente)))[1];
                 $registros_no_cumplen = isset($import->detalle_proceso['registros_no_cumplen']) ? $import->detalle_proceso['registros_no_cumplen'] : '';
-                $success = "Carga realizada del archivo: ".$nombre_archivo.' ver detalles';
-
+                $success = "Carga realizada del archivo: " . $nombre_archivo . ' ver detalles';
             }
-
         }
 
-        return redirect()->route('EaCabCargaInicialController.index')->with(['success' => isset($success) ? $success : '',
-                                                                             'errorTecnico' => isset($errorTecnico) ?  $errorTecnico  : '',
-                                                                             'registros_no_cumplen' => isset($registros_no_cumplen) ? $registros_no_cumplen : '' ]);
-
+        return redirect()->route('EaCabCargaInicialController.index')->with([
+            'success' => isset($success) ? $success : '',
+            'errorTecnico' => isset($errorTecnico) ?  $errorTecnico  : '',
+            'registros_no_cumplen' => isset($registros_no_cumplen) ? $registros_no_cumplen : ''
+        ]);
     }
 
 
@@ -351,12 +336,12 @@ class EaCabCargaInicialController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Request $request )
+    public function destroy(Request $request)
     {
 
         $registroCarga = EaCabeceraCargaCorp::where('cod_carga', $request->cod_carga)->first();
         $pos_nombre_archivo = strpos($registroCarga->archivo, $registroCarga->cliente);
-        $nombre_archivo = explode("/", substr($registroCarga->archivo, $pos_nombre_archivo) )[1];
+        $nombre_archivo = explode("/", substr($registroCarga->archivo, $pos_nombre_archivo))[1];
 
         //Storage::disk('public')->delete($registroCarga->archivo);
         $trx = EaCabeceraCargaCorp::where('cod_carga', $request->cod_carga)->delete();
@@ -366,40 +351,40 @@ class EaCabCargaInicialController extends Controller
         }
 
         $cod_carga_b = EaCabeceraCargaCorp::where('estado', 'PENDIENTE')
-                                          ->where('proceso', 'carga_inicial')
-                                          ->min('cod_carga');
+            ->where('proceso', 'carga_inicial')
+            ->min('cod_carga');
 
         if ($cod_carga_b) {
             EaCabeceraCargaCorp::where('cod_carga', $cod_carga_b)->update(['visible' => 'S']);
         }
 
 
-        $error= 'Registros temporales del código de carga: '.$request->cod_carga.'  eliminado del cliente: '.$registroCarga->cliente;
+        $error = 'Registros temporales del código de carga: ' . $request->cod_carga . '  eliminado del cliente: ' . $registroCarga->cliente;
 
         return redirect()->route('EaCabCargaInicialController.index')->with(compact('error'));
-
     }
 
 
 
 
-     /**
+    /**
      * Remove the specified resource from storage.
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function get_archivos_html_genapt(Request  $request){
+    public function get_archivos_html_genapt(Request  $request)
+    {
 
 
-       $archivos = '<option value="">Seleccione un archivo</option>';
+        $archivos = '<option value="">Seleccione un archivo</option>';
 
-       $datos =EaCabeceraCargaCorp::where("cliente", $request->cliente)
-                                  ->where("estado", 'EN_BASE_ACTIVA')
-                                  ->where("proceso", 'carga_inicial')
-                                  ->get();
+        $datos = EaCabeceraCargaCorp::where("cliente", $request->cliente)
+            ->where("estado", 'EN_BASE_ACTIVA')
+            ->where("proceso", 'carga_inicial')
+            ->get();
 
         foreach ($datos as $value) {
-            $archivos .= '<option value="'.$value->cod_carga.'">Cód. carga: '.$value->cod_carga.' :: '.$value->archivo.'</option>';
+            $archivos .= '<option value="' . $value->cod_carga . '">Cód. carga: ' . $value->cod_carga . ' :: ' . $value->archivo . '</option>';
         }
 
         return response()->json(['archivo_html' => $archivos]);
@@ -412,22 +397,22 @@ class EaCabCargaInicialController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function get_procesos_carga_html(Request $request){
+    public function get_procesos_carga_html(Request $request)
+    {
 
 
         $procesos = '<option value="">Seleccione un archivo</option>';
 
-        $datos =EaCabeceraCargaCorp::where('cliente', $request->cliente)
-                                   ->where('proceso', $request->filtro_proce_carga)
-                                   ->get();
+        $datos = EaCabeceraCargaCorp::where('cliente', $request->cliente)
+            ->where('proceso', $request->filtro_proce_carga)
+            ->get();
 
-         foreach ($datos as $value) {
-             $procesos .= '<option value="'.$value->cod_carga.'">Cód. carga: '.$value->cod_carga.' :: '.$value->archivo.'</option>';
-         }
+        foreach ($datos as $value) {
+            $procesos .= '<option value="' . $value->cod_carga . '">Cód. carga: ' . $value->cod_carga . ' :: ' . $value->archivo . '</option>';
+        }
 
         return response()->json(['procesos_carga_html' => $procesos]);
-
-     }
+    }
 
 
 
@@ -442,18 +427,17 @@ class EaCabCargaInicialController extends Controller
 
         $archivos = '<option value="">Seleccione un archivo</option>';
 
-        $datos =EaCabeceraCargaCorp::where('cliente', $request->cliente)
-                                   ->where('estado', 'PROCESADO')
-                                   ->where('proceso', 'recepcion_provee_tmk')
-                                   ->get();
+        $datos = EaCabeceraCargaCorp::where('cliente', $request->cliente)
+            ->where('estado', 'PROCESADO')
+            ->where('proceso', 'recepcion_provee_tmk')
+            ->get();
 
-         foreach ($datos as $value) {
-             $archivos .=  '<option value="'.$value->cod_carga.'">Cód. carga: '.$value->cod_carga.' :: '.$value->archivo.'</option>';
-         }
+        foreach ($datos as $value) {
+            $archivos .=  '<option value="' . $value->cod_carga . '">Cód. carga: ' . $value->cod_carga . ' :: ' . $value->archivo . '</option>';
+        }
 
-         return response()->json(['archivo_html' => $archivos]);
-
-     }
+        return response()->json(['archivo_html' => $archivos]);
+    }
 
 
 
@@ -468,7 +452,6 @@ class EaCabCargaInicialController extends Controller
 
         $detalle_cab = EaCabeceraCargaCorp::where('cod_carga', $cod_carga)->first();
         return  $detalle_cab;
-
     }
 
 
@@ -478,15 +461,14 @@ class EaCabCargaInicialController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function ListGenArchivosProveetmk ()
+    public function ListGenArchivosProveetmk()
     {
 
         $resumen_cabecera = EaCabeceraCargaCorp::where('proceso', 'carga_inicial')
-                                               ->where('estado', 'EN_BASE_ACTIVA')
-                                               ->orderBy('cliente')
-                                               ->paginate(5);
+            ->where('estado', 'EN_BASE_ACTIVA')
+            ->orderBy('cliente')
+            ->paginate(5);
         return  $resumen_cabecera;
-
     }
 
 
@@ -496,15 +478,14 @@ class EaCabCargaInicialController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function update_proceso_cab_carga( $cliente, $cod_carga, $proceso, $proceso_update)
+    public function update_proceso_cab_carga($cliente, $cod_carga, $proceso, $proceso_update)
     {
 
-       $trx =  EaCabeceraCargaCorp::where('cliente', $cliente)
-                                  ->where('cod_carga', $cod_carga)
-                                  ->where('proceso', $proceso )
-                                  ->update([ 'proceso' => $proceso_update ]);
+        $trx =  EaCabeceraCargaCorp::where('cliente', $cliente)
+            ->where('cod_carga', $cod_carga)
+            ->where('proceso', $proceso)
+            ->update(['proceso' => $proceso_update]);
         return $trx;
-
     }
 
 
@@ -514,14 +495,13 @@ class EaCabCargaInicialController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function update_datos_cab_carga( $cliente, $cod_carga, array $datos)
+    public function update_datos_cab_carga($cliente, $cod_carga, array $datos)
     {
 
-       $trx =  EaCabeceraCargaCorp::where('cliente', $cliente)
-                                  ->where('cod_carga', $cod_carga)
-                                  ->update($datos);
-       return $trx;
-
+        $trx =  EaCabeceraCargaCorp::where('cliente', $cliente)
+            ->where('cod_carga', $cod_carga)
+            ->update($datos);
+        return $trx;
     }
 
 
@@ -537,19 +517,17 @@ class EaCabCargaInicialController extends Controller
 
         $datosCabecera = array();
 
-        if ( isset($producto) ) {
+        if (isset($producto)) {
 
             $productoDetalle = (new EaProductoController)->getProductoDetalle($cliente, $producto);
             $datosCabecera['producto'] =  $productoDetalle->contrato_ama;
             $datosCabecera['desc_producto'] =  $productoDetalle->desc_producto;
 
             $trx = EaCabeceraCargaCorp::where('cod_carga', $cod_carga)
-                                      ->update($datosCabecera);
-
+                ->update($datosCabecera);
         }
 
         return $trx;
-
     }
 
 
@@ -558,18 +536,17 @@ class EaCabCargaInicialController extends Controller
      * Remove the specified resource from storage.
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
-    */
-    public function update_cola_proceso_visible ( $estado, $proceso)
+     */
+    public function update_cola_proceso_visible($estado, $proceso)
     {
 
         $cod_carga_b = EaCabeceraCargaCorp::where('estado', $estado) //PENDIENTE
-                                          ->where('proceso', $proceso) //carga_inicial
-                                          ->min('cod_carga');
+            ->where('proceso', $proceso) //carga_inicial
+            ->min('cod_carga');
 
         if ($cod_carga_b) {
             EaCabeceraCargaCorp::where('cod_carga', $cod_carga_b)->update(['visible' => 'S']);
         }
-
     }
 
 
@@ -577,12 +554,13 @@ class EaCabCargaInicialController extends Controller
      * Remove the specified resource from storage.
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
-    */
-    public function valida_proceso_visible( $proceso ){
+     */
+    public function valida_proceso_visible($proceso)
+    {
 
-       $existe = EaCabeceraCargaCorp::where('visible', 'S')
-                                    ->where('proceso', $proceso) //carga_inicial
-                                    ->exists();
+        $existe = EaCabeceraCargaCorp::where('visible', 'S')
+            ->where('proceso', $proceso) //carga_inicial
+            ->exists();
         return $existe;
     }
 
@@ -593,18 +571,15 @@ class EaCabCargaInicialController extends Controller
      * Remove the specified resource from storage.
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
-    */
-    function exportar_reporte(Request $request){
+     */
+    function exportar_reporte(Request $request)
+    {
 
-        $archivo = 'Reporte_de_carga_inicial_cod_carga_'.$request->cod_carga.'.xlsx';
+        $archivo = 'Reporte_de_carga_inicial_cod_carga_' . $request->cod_carga . '.xlsx';
         $export = new EaReporteCargaInicialExport($request->cod_carga, $request->proceso);
 
         $descarga = $export->download($archivo);
 
         return $descarga;
-
-
     }
-
-
 }

@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\EaCliente;
 use App\Models\EaTipoId;
 use App\Models\EaCicloCorte;
-USE App\Models\EaTipoActivacion;
+use App\Models\EaTipoActivacion;
 use App\Models\EaCodigoEstadoGestion;
 use App\Models\EaCodigoEstadoCliente;
 use App\Models\EaCiudad;
@@ -28,8 +28,7 @@ class EaClienteController extends Controller
     public function index()
     {
         $clientes['dataClientes'] = $this->getAllCampanas();
-
-        return view ('configClientesImpuestos.home')->with($clientes);
+        return view('configClientesImpuestos.home')->with($clientes);
     }
 
     /**
@@ -53,30 +52,24 @@ class EaClienteController extends Controller
     public function store(Request $request)
     {
 
-       $datosCliente = $request->except('_token', '_method');
-       $datosCliente['estado'] = "A";
-
-       $idCliente = EaCliente::All()->max('id_cliente');
-
-       if ( isset($idCliente) && $idCliente !== 1 ) {
+        $datosCliente = $request->except('_token', '_method');
+        $datosCliente['estado'] = "A";
+        $idCliente = EaCliente::All()->max('id_cliente');
+        if (isset($idCliente) && $idCliente !== 1) {
             $idCliente++;
             $datosCliente['id_cliente'] = $idCliente;
-       }else {
+        } else {
             $datosCliente['id_cliente'] = 1;
-       }
-
-
-       if ($request->hasfile('logotipo')) {
-
+        }
+        if ($request->hasfile('logotipo')) {
             $nombre_archivo = $request->file('logotipo')->getClientOriginalName();
             $datosCliente['logotipo'] = $request->file('logotipo')->storeAs('LogosClientes', $nombre_archivo, 'public');
-       }
-
-       EaCliente::insert($datosCliente);
-
-       return redirect()->route('EaClienteController.index')->with([ 'cliente' => $request->cliente,
-                                                                     'trxcliente' => 'store' ]);
-
+        }
+        EaCliente::insert($datosCliente);
+        return redirect()->route('EaClienteController.index')->with([
+            'cliente' => $request->cliente,
+            'trxcliente' => 'store'
+        ]);
     }
 
 
@@ -85,13 +78,13 @@ class EaClienteController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function getClienteModel(Request  $request){
+    public function getClienteModel(Request  $request)
+    {
 
-        $modelo = EaCliente::where ('cliente', $request->cliente)
-                           ->get();
+        $modelo = EaCliente::where('cliente', $request->cliente)
+            ->get();
 
-        return response()->json( ['clienteModel' => $modelo ]);
-
+        return response()->json(['clienteModel' => $modelo]);
     }
 
 
@@ -117,8 +110,8 @@ class EaClienteController extends Controller
     public function getAllCampanas()
     {
         $campanas = EaCliente::where('estado', 'A')
-                             ->get()
-                             ->sortBy('desc_cliente');
+            ->get()
+            ->sortBy('desc_cliente');
         return $campanas;
     }
 
@@ -147,26 +140,25 @@ class EaClienteController extends Controller
         $productos = (new EaProductoController)->getProductosAll($request);
         $callTypesRetencion = EaCallTypeRetencion::All();
 
-        if ( strcmp ($campana->cliente, 'PRODUBANCO' )===0 ) {
-            unset( $tiposIdentificacion[2], $tiposIdentificacion[3], $tiposIdentificacion[4]);
+        if (strcmp($campana->cliente, 'PRODUBANCO') === 0) {
+            unset($tiposIdentificacion[2], $tiposIdentificacion[3], $tiposIdentificacion[4]);
         } else {
-            unset( $tiposIdentificacion[0], $tiposIdentificacion[1]);
+            unset($tiposIdentificacion[0], $tiposIdentificacion[1]);
         }
 
-        return view ('cliente.home')->with(compact('campana'))
-                                     ->with(compact('hora'))
-                                     ->with(compact('fecha'))
-                                     ->with(compact('tiposIdentificacion'))
-                                     ->with(compact('ciclosCortes'))
-                                     ->with(compact('estadosGestion'))
-                                     ->with(compact('tiposActivacion'))
-                                     ->with(compact('estadosCliente'))
-                                     ->with(compact('ciudades'))
-                                     ->with(compact('codigosRespuesta'))
-                                     ->with(compact('productos'))
-                                     ->with(compact('callTypesRetencion'))
-                                     ->with(['fromCliente' => 'cliente']);
-
+        return view('cliente.home')->with(compact('campana'))
+            ->with(compact('hora'))
+            ->with(compact('fecha'))
+            ->with(compact('tiposIdentificacion'))
+            ->with(compact('ciclosCortes'))
+            ->with(compact('estadosGestion'))
+            ->with(compact('tiposActivacion'))
+            ->with(compact('estadosCliente'))
+            ->with(compact('ciudades'))
+            ->with(compact('codigosRespuesta'))
+            ->with(compact('productos'))
+            ->with(compact('callTypesRetencion'))
+            ->with(['fromCliente' => 'cliente']);
     }
 
 
@@ -179,38 +171,28 @@ class EaClienteController extends Controller
     public function edit(Request  $request)
     {
         $datosCliente = $request->except('_token', '_method', 'clienteEditOld', 'desc_clienteEditOld');
-
         $datosCliente['cliente'] = $request->clienteEdit;
         $datosCliente['desc_cliente'] = $request->desc_clienteEdit;
-
         unset($datosCliente['clienteEdit'], $datosCliente['desc_clienteEdit'], $datosCliente['id_clienteEdit']);
-
-        if ( $request->hasfile('logotipo') ) {
-
+        if ($request->hasfile('logotipo')) {
             $cliente = EaCliente::where('id_cliente', $request->id_clienteEdit)->first();
-
             Storage::disk('public')->delete($cliente->logotipo);
-
             $nombre_archivo = $request->file('logotipo')->getClientOriginalName();
             $datosCliente['logotipo'] = $request->file('logotipo')->storeAs('LogosClientes', $nombre_archivo, 'public');
-
         }
-
         EaCliente::where('id_cliente', $request->id_clienteEdit)
-                 ->update($datosCliente);
-
+            ->update($datosCliente);
         //clienteEditOld actualiza cliente, con el nuevo cliente clienteEdit
         (new EaImpuestosController)->updateMaestroCliente($request);
         (new EaProductoController)->updateMaestroCliente($request);
         (new EaSubproductoController)->updateMaestroCliente($request);
-
-
-        return redirect()->route('EaClienteController.index')->with(['clienteEdit' => $request->clienteEdit,
-                                                                     'clienteEditOld' => $request->clienteEditOld,
-                                                                     'desc_clienteEdit' => $request->desc_clienteEdit,
-                                                                     'desc_clienteEditOld' => $request->desc_clienteEditOld,
-                                                                     'trxcliente' => 'update'
-                                                                    ]);
+        return redirect()->route('EaClienteController.index')->with([
+            'clienteEdit' => $request->clienteEdit,
+            'clienteEditOld' => $request->clienteEditOld,
+            'desc_clienteEdit' => $request->desc_clienteEdit,
+            'desc_clienteEditOld' => $request->desc_clienteEditOld,
+            'trxcliente' => 'update'
+        ]);
     }
 
 
@@ -238,8 +220,8 @@ class EaClienteController extends Controller
         $datosCliente = $request->except("_token", "_method");
 
         EaCliente::where('id_cliente', $request->id_cliente)
-                 ->update(['estado' => 'I']);
+            ->update(['estado' => 'I']);
 
-        return redirect()->route('EaClienteController.index')->with([ 'cliente' => $request->desc_clienteForm, 'trxcliente' => 'delete']);
+        return redirect()->route('EaClienteController.index')->with(['cliente' => $request->desc_clienteForm, 'trxcliente' => 'delete']);
     }
 }
