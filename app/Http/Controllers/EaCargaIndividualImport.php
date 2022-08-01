@@ -93,6 +93,7 @@ class EaCargaIndividualImport extends Controller
         // los datos que envia el request $request->cod_carga  $request->cliente  $request->producto  $request->desc_producto
         // fec_carga ---> utilizado para insertar la ultima fecha en la que se realizo la carga
         $datosCab = $request->except('_token', 'filtro_cliente', 'filtro_producto', 'filtro_genera', 'estado_cabecera', 'registros_no_cumplen', 'row');
+        //dd($request);
         $fecha = Date('Y-m-d');
         $productoDetalle = (new EaProductoController)->getProductoDetalle($request->cliente, $request->producto);
         $extension = $request->file('archivo')->extension();
@@ -102,7 +103,7 @@ class EaCargaIndividualImport extends Controller
             $datosCab['fec_carga'] = Date('Y-m-d H:i:s');
             if ($request->hasfile('archivo')) {
                 $nombre_archivo = $request->file('archivo')->getClientOriginalName();
-                $datosCab['archivo'] = $request->file('archivo')->storeAs('lecturaDebito/' . $request->cliente, $nombre_archivo, 'public');
+                $datosCab['archivo'] = $request->file('archivo')->storeAs('lecturaDebito/'. $request->cliente.'/' . $request->desc_producto.'/'. $request->cod_carga , $nombre_archivo, 'public');
             }
             $trx = EaCabeceraCargaCorpBitacora::where('desc_producto', (isset($datosCab['desc_producto']) ? $datosCab['desc_producto'] : ''))
                 ->where('producto', (isset($datosCab['producto']) ? $datosCab['producto'] : ''))
@@ -129,6 +130,7 @@ class EaCargaIndividualImport extends Controller
             $registros_no_cumplen = isset($request->registros_no_cumplen) ? $request->registros_no_cumplen : '';
             //return 'ok';
             return redirect()->route('EaCargaIndividualImport.index');
+
         /*return view('cargaIndividualI.detalleCarga')
         ->with(isset($cod_carga) ? compact('cod_carga') : '')
         ->with(isset($row) ? compact('row') : '')
@@ -154,6 +156,7 @@ class EaCargaIndividualImport extends Controller
             'success' => isset($success) ? $success : '',
             'error' => isset($error) ? $error : ''
         ]);*/
+
     }
 
 
@@ -214,7 +217,6 @@ class EaCargaIndividualImport extends Controller
         //Storage::disk('public')->delete($registroCarga->archivo);
         $trx = EaCabeceraCargaCorp::where('cod_carga', $request->cod_carga)->delete();
         if ($trx) {
-            # code...
             (new EaDetalleCargaCorpController)->truncate($request->cod_carga, $registroCarga->cliente);
         }
         $cod_carga_b = EaCabeceraCargaCorp::where('estado', 'PENDIENTE')

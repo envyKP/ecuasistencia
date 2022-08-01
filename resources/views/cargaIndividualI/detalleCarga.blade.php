@@ -45,8 +45,6 @@
             </div>
             <div class="modal-body">
                 <strong>{{ 'Detalle del archivo de debito asociado a ' . $cliente }}</strong>
-               
-
                 <table class="table table-responsive-sm table-hover table-outline">
                     <thead class="thead-light">
                         <tr>
@@ -58,7 +56,7 @@
                         @if (isset($data))
                             <tr>
                                 <td>depurar</td>
-                                <form action="{{ route('EaCargaIndividualImport.uploadArchivos') }}" method="post"
+                                <form id = "form-uploadArchivos" action="{{ route('EaCargaIndividualImport.uploadArchivos') }}" method="post"
                                     enctype="multipart/form-data" accept-charset="utf-8">
                                     @csrf
                                     <td class="col-sm-2 col-md-10"> <input class="form-control pt-1" id="archivo"
@@ -69,8 +67,8 @@
                                             <input type="hidden" name="desc_producto" value="{{ $desc_producto }}">
                                             <input type="hidden" name="estado_cabecera" value="{{ $estado_cabecera }}">
                                             <input type="hidden" name="registros_no_cumplen" value="{{ $registros_no_cumplen }}">
+                                            <input type="hidden" name="usuario_actualiza" value="{{ \Auth::user()->username }}">
                                             <input type="hidden" name="row" value="{{ $row }}">
-
                                     <td> <button class="btn btn-info mx-1" title="Subir archivo XLS/XLSX/txt"
                                             type="submit">
                                             <svg class="c-icon c-icon-1xl">
@@ -88,7 +86,6 @@
                                             </use>
                                         </svg>
                                     </button></td>
-
                             </tr>
                         @endif
                         <!--<tr>
@@ -128,8 +125,14 @@
                         <form action="{{ route('EaCabCargaInicialController.exportar_reporte') }}" method="post">
                             @csrf
                             @method('post')
-                            <input type="hidden" name="cod_carga" value="{{ $data->cod_carga }}">
                             <input type="hidden" name="proceso" value="{{ $data->proceso }}">
+                            <input type="hidden" name="cod_carga" value="{{ $carga_resp }}">
+                            <input type="hidden" name="cliente" value="{{ $cliente }}">
+                            <input type="hidden" name="producto" value="{{ $producto }}">
+                            <input type="hidden" name="desc_producto" value="{{ $desc_producto }}">
+                            <input type="hidden" name="estado_cabecera" value="{{ $estado_cabecera }}">
+                            <input type="hidden" name="registros_no_cumplen" value="{{ $registros_no_cumplen }}">
+                            <input type="hidden" name="usuario_actualiza" value="{{ \Auth::user()->username }}">
                             <button class="btn btn-success" id="btn-generar_reporte" title="Subir Archivo"
                                 type="submit">
                                 <svg class="c-icon c-icon-1xl">
