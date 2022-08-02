@@ -27,39 +27,27 @@ class EaDetCargaCorpImport implements ToCollection, WithHeadingRow, WithValidati
 
     public function collection(Collection $rows)
     {
-
         $obj_base_activa = (new EaBaseActivaController);
         $obj_det_carga_corp = (new EaDetalleCargaCorpController);
         $registros_duplicados = array();
         $registros_archivos = array();
-
             foreach ($rows as $row) {
-
                 !empty($row['nombre_completo']) ? $this->total_registros_archivo++ : '';
-
                 if ( !empty($row['nombre_completo']) && !empty($row['cedula']) && ( !empty($row['telf1']) || !empty($row['telf2']) || !empty($row['telf3']) || !empty($row['telf4']) || !empty($row['telf5']) || !empty($row['telf6']) || !empty($row['telf7']) ) )
                 {
-
-
                     $registros_archivos['cedula'] = $row['cedula'];
                     array_push($registros_duplicados,  $registros_archivos);
-
                     $existe =  $obj_base_activa->valida_resgistro_base_activa($this->cliente, $row['cedula'], $this->producto);
-
                     if ( isset($existe) )
                     {
                         $disponible_gestion = 'S';
                         $this->total_registros_disponibles_gestion++;
-
                         $reg_duplicado = $obj_det_carga_corp->existe_registro($this->cod_carga, $this->cliente, $row['cedula']);
-
                         if ( !$reg_duplicado)
                         {
                             # code...
                             try {
-
                                 EaDetalleCargaCorp::create([
-
                                     'cod_carga' => isset($this->cod_carga)  ? $this->cod_carga : '',
                                     'cliente' => isset($this->cliente) ? trim($this->cliente) : '',
                                     'ordinal' => isset($row['ordinal']) ? trim($row['ordinal']) : null ,
@@ -79,7 +67,6 @@ class EaDetCargaCorpImport implements ToCollection, WithHeadingRow, WithValidati
                                     'estado' => 'PROCESADO',
                                     'disponible_gestion' => isset($disponible_gestion) ? $disponible_gestion : 'N',
                                     'fec_carga' => Date('d/m/Y H:i:s'),
-
                                 ]);
 
                             } catch (\Exception $e) {
@@ -136,6 +123,8 @@ class EaDetCargaCorpImport implements ToCollection, WithHeadingRow, WithValidati
         $this->detalle_proceso['registros_no_cumplen'] = $this->registros_no_cumplen;
         $this->detalle_proceso['total_registros_duplicados'] = $this->total_registros_duplicados;
         $this->detalle_proceso['total_registros_sin_infor'] = $this->total_registros_sin_infor;
+            // correcciones para SGV , aumentar un campo que inserte los valores que retorna esta colleccion, o en su defecto donde llama validar
+            // que se este realizando el insert 
 
         return $this->detalle_proceso;
 

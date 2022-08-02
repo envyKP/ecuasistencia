@@ -6,6 +6,7 @@
             <th>{{ 'Producto' }}</th>
             <th>{{ 'Usuario genera' }}</th>
             <th>{{ 'Fecha generacion' }}</th>
+            <th>{{ 'Nombre Archivo' }}</th>
             <th class="text-center">{{ 'Estado' }}</th>
             <th class="text-center" colspan="4">{{ 'Acciones' }}</th>
         </tr>
@@ -79,20 +80,26 @@
                             </use>
                         </svg> {{ $registro->fec_registro }}
                     </td>
+                @php
+                    $condicio_name = isset($registro->archivo) ? $registro->archivo : '';
+                    $name_file = explode("/",$registro->archivo);
+                    $value_name = isset($registro->archivo) ? $name_file['5'] : '';
+                    
+                @endphp
+                    <td>
+                       {{$value_name}}
+                       </td>
                     <td class="text-center">
                         @switch($registro->estado)
                             @case('POR PROCESAR')
                                 <strong style='color:red;'>{{ $registro->estado }} </strong>
                             @break
-
                             @case('REPROCESAR')
                                 <strong style='color:green;'>{{ $registro->estado }} </strong>
                             @break
-
                             @default
                                 <strong>{{ $registro->estado }} </strong>
                         @endswitch
-
                     </td>
 
 

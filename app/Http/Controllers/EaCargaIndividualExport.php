@@ -66,6 +66,7 @@ class EaCargaIndividualExport extends Controller
         $recorrido = $objEXPORT->generar();
         $ultima_carga = $objEXPORT->is_carga_older();
         $textoPlano = "";
+        $detallevalidacion = array();
         $cont = 0;
         $condicion = false;
         // ARMA LAS RESPUESTA QUE SE INSERTAN EN EL DOCUMENTO TXT , Y ADICIONAL LLAMA AL METODO QUE LO INSTERTA EN LA BASE DE DATOS.
@@ -179,7 +180,10 @@ class EaCargaIndividualExport extends Controller
                             //EaParaInsert::dispatch($row_insert_detalle);
                             // EaParaInsert::dispatch($objEXPORT,$row_insert_detalle);
                         }
+                        //area de validaciones -- por el momemto quemada
+                        $detallevalidacion = array('validacion_campo_1' => 'Establecimiento', 'validacion_valor_2' => $individual->cod_establecimiento);
                     }
+
                     $tiempo_final = microtime(true);
                     //echo "tiempo " . ($tiempo_final - $tiempo_inicial);
                     //echo "   \n  ";
@@ -304,9 +308,11 @@ class EaCargaIndividualExport extends Controller
             $file_reg_carga['fecha_registro'] = date('d/m/Y H:i:s');
             $file_reg_carga['fec_carga'] = $fecha_generacion;
             $file_reg_carga['usuario'] = \Auth::user()->username;
-            $objEXPORT->registro_cargas($file_reg_carga);
+            $validoacion_par = json_encode($detallevalidacion);
+            $objEXPORT->registro_cargas($file_reg_carga, $validoacion_par);
             $fileName = $request->cliente . "-" . $detalle_subproducto->desc_subproducto . "-" . date("d-m-Y") . "-" . ($condicion == true ? (isset($ultima_carga->id_carga) ? $ultima_carga->id_carga + 1 : 1)  : $request->carga_resp) . ".txt";
         } else {
+
             $fileName = $request->cliente . "-" . $detalle_subproducto->desc_subproducto . "-" . date("d-m-Y") . ".txt";
         }
         $headers = [

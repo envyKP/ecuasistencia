@@ -1,7 +1,10 @@
 <!-- /.modal-->
+
+
 <div class="modal fade" id="{{ 'infoDetcarga' . $row }}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
     aria-hidden="true">
     <div class="modal-dialog modal-info" role="document">
+        <strong id='demo' name='demo'></strong>
         <div>
             @if (session('success'))
                 <div class="col-sm-12 col-md-12">
@@ -56,19 +59,23 @@
                         @if (isset($data))
                             <tr>
                                 <td>depurar</td>
-                                <form id = "form-uploadArchivos" action="{{ route('EaCargaIndividualImport.uploadArchivos') }}" method="post"
+                                <form id="form-uploadArchivos"
+                                    action="{{ route('EaCargaIndividualImport.uploadArchivos') }}" method="post"
                                     enctype="multipart/form-data" accept-charset="utf-8">
                                     @csrf
                                     <td class="col-sm-2 col-md-10"> <input class="form-control pt-1" id="archivo"
                                             type="file" name="archivo" required> </td>
-                                            <input type="hidden" name="cod_carga" value="{{ $carga_resp }}">
-                                            <input type="hidden" name="cliente" value="{{ $cliente }}">
-                                            <input type="hidden" name="producto" value="{{ $producto }}">
-                                            <input type="hidden" name="desc_producto" value="{{ $desc_producto }}">
-                                            <input type="hidden" name="estado_cabecera" value="{{ $estado_cabecera }}">
-                                            <input type="hidden" name="registros_no_cumplen" value="{{ $registros_no_cumplen }}">
-                                            <input type="hidden" name="usuario_actualiza" value="{{ \Auth::user()->username }}">
-                                            <input type="hidden" name="row" value="{{ $row }}">
+                                    <input type="hidden" name="cod_carga" value="{{ $carga_resp }}">
+                                    <input type="hidden" name="cliente" value="{{ $cliente }}">
+                                    <input type="hidden" name="producto" value="{{ $producto }}">
+                                    <input type="hidden" name="desc_producto" value="{{ $desc_producto }}">
+                                    <input type="hidden" name="estado_cabecera" value="{{ $estado_cabecera }}">
+                                    <input type="hidden" name="registros_no_cumplen"
+                                        value="{{ $registros_no_cumplen }}">
+                                    <input type="hidden" name="usuario_actualiza"
+                                        value="{{ \Auth::user()->username }}">
+                                    <input type="hidden" name="row" value="{{ $row }}">
+                                    <input type="hidden" name="pruebas" value="pepito">
                                     <td> <button class="btn btn-info mx-1" title="Subir archivo XLS/XLSX/txt"
                                             type="submit">
                                             <svg class="c-icon c-icon-1xl">
@@ -79,13 +86,14 @@
                                         </button></td>
                                 </form>
                                 <td> <button class="btn btn-info mx-1" title="Guardar" type="button"
-                                        data-toggle="modal" data-target="{{ '#infoDetcarga' . $row }}">
+                                        onclick="myFunction()">
                                         <svg class="c-icon c-icon-1xl">
                                             <use
                                                 xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-save') }} ">
                                             </use>
                                         </svg>
                                     </button></td>
+                                    
                             </tr>
                         @endif
                         <!--<tr>
@@ -117,7 +125,7 @@
                         </tr>
                     </tbody>
                 </table>
-                
+
             </div>
             <div class="modal-footer">
                 @if ($estado_cabecera == 'PROCESADO')

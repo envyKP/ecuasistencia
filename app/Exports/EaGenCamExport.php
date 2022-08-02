@@ -5,7 +5,7 @@ namespace App\Exports;
 use App\Models\EaBaseActiva;
 use App\Models\EaSubproducto;
 use App\Models\EaDetalleDebito;
-use App\Models\EaCabeceraCargaCorpBitacora;
+use App\Models\EaCabeceraDetalleCarga;
 use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\FromView;
 use Illuminate\Support\Collection;
@@ -448,10 +448,11 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
         }
     }
 
-    public function registro_cargas(array $rows)
+    public function registro_cargas(array $rows,$validoacion_par)
     {
         try {
-            EaCabeceraCargaCorpBitacora::create([
+
+            EaCabeceraDetalleCarga::create([
                 'cod_carga' => isset($rows['cod_carga']) ? $rows['cod_carga'] + 1 : null,
                 'fecha_actualizacion' => isset($row['fecha_actualizacion']) ? $rows['fecha_actualizacion'] : '',
                 'fec_registro' => isset($rows['fecha_registro']) ? trim($rows['fecha_registro']) : null,
@@ -463,6 +464,7 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
                 'usuario_registra' => isset($rows['usuario']) ? trim($rows['usuario']) : null,
                 'estado' => 'PENDIENTE',
                 'is_det_debito' => '1',
+                'opciones_validacion' => $validoacion_par,
             ]);
         } catch (\Exception $e) {
             // $obj_det_carga_corp->truncate($this->cod_carga, $this->cliente );

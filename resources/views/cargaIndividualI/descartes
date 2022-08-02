@@ -58,3 +58,66 @@
            @endif
        </div>
    </td>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   // onload , cuando carga
+        /*document.getElementById("myFrame").addEventListener("load", myFunction);
+         */
+        
+        //accion - click  
+        /*
+        $(function() {
+            $('#ajax_call').on('click', function() {
+                $.ajax({
+                    type: 'POST',
+                    url: '<?php echo url('recepcion/archivo/cargaIndividual/subirArchivo/'); ?>',
+                    dataType: 'json',
+                    data: '_token = <?php echo csrf_token(); ?>',
+                    success: function(data) {
+                        $("#msg").html(data.msg);
+                    },
+                    complete: function() {
+                        alert('complete');
+                    },
+                    error: function(result) {
+                        alert('error');
+                    }
+                });
+            });
+        });
+        */
+        /*
+
+             <div id='msg'>This message will be replaced using Ajax. Click the button to replace the message.</div>
+         <input type="button" id="ajax_call" value="Replace Message">
+            function myFunction() {
+                // document.getElementById("demo").innerHTML = "Hello World";
+                $.ajax({
+                    url: '',
+                    data: {
+                        jqbookID: book_id,
+                    },
+                    type: 'post',
+                    success: function() {
+                        $('.modal-box').text(result).fadeIn(700, function() {
+                            setTimeout(function() {
+                                $('.modal-box').fadeOut();
+                            }, 2000);
+                        });
+                    }
+                });
+            }*/

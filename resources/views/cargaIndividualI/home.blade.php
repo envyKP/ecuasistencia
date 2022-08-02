@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('scripts')
+
 
 @section('scripts')
     <!-- notas es cargaIndividualI   el final es una i mayuscula-->
@@ -45,13 +45,17 @@
                                 }
                             });
                         });*/
+
             $("#btn-genera").change(function() {
+
                 $.ajax({
                     success: function(data) {
                         alert("okay");
                     }
                 });
             });
+
+
             $("#form-EnviarBaseActiva").submit(function() {
                 $.ajax({
                     beforeSend: function() {
@@ -59,6 +63,7 @@
                     }
                 });
             });
+
             $("#filtro_cliente").click(function() {
                 if ($("#filtro_cliente").is(":checked")) {
                     $("#cliente").css('display', 'block');
@@ -69,20 +74,10 @@
                     $(this).prop("checked", false)
                     $("#filtro_producto").prop("checked", false);
                     $("#btn-genera").prop("disabled", true);
+
+
                 }
-                $("#form-uploadArchivos").submit(function() {
-                    $.ajax({
-                        alert("okay submit");
-                    });
-                });
             });
-            $("#form-uploadArchivos").click(function() {
-                $.ajax({
-                    alert("okay click");
-                });
-            });
-
-
 
             $("#filtro_producto").click(function() {
                 if ($("#filtro_producto").is(":checked")) {
@@ -108,6 +103,8 @@
                     $("#btn-genera").prop("disabled", true);
                 }
             });
+
+
             $("#bloqueo_subida").click(function() {
                 if ($("#bloqueo_subida").is(":checked")) {
 
@@ -116,13 +113,40 @@
                 }
             });
 
-
-
-
-
-
-
         });
+
+        function myFunction() {
+            //document.getElementById("demo").innerHTML = "Frame Pruebas function , intentemos ajax .";
+            var form = $("#form-uploadArchivos");
+            //var url = form.attr('action');
+            let url = '<?php echo url('/recepcion/archivo/cargaIndividual/procesar/'); ?>';
+           // $("div").text(form.serialize());
+            $.ajax({
+                type: "POST",
+                url: url,
+                dataType: 'json',
+                data: form.serialize(),
+               success: function(data) {
+                    alert("Form Submited Successfully");
+                },
+                error: function(data) {
+                    alert("some Error"+data.msg);
+                }
+            });
+            alert('hello');
+        }
+/*
+ $.ajax({
+            type: "POST",
+            url: url,
+            data: $("#idForm").serialize(),
+            success: function(resp)
+            {
+                alert(resp); // show response from the php script.
+            }
+        });
+*/
+
     </script>
 @endsection
 

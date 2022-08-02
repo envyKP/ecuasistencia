@@ -8,7 +8,7 @@ namespace App\Http\Controllers;
 use App\Exports\EaGenCamExport;
 use App\Models\EaSubproducto;
 use App\Models\EaDetalleDebito;
-use App\Models\EaCabeceraCargaCorpBitacora;
+use App\Models\EaCabeceraDetalleCarga;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\FromView;
@@ -46,10 +46,7 @@ class EaParaInsert
         }
        
        // $objEXPORT->view_reg_state( $rows);
-
-
     }
-
     public function asJob(EaGenCamExport $objEXPORT ,array $rows): void
     {
         $this->handle($objEXPORT,$rows, true);
