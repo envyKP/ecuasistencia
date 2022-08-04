@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\EaCabeceraDetalleCarga;
+use App\Models\EaDetalleDebito;
 use Illuminate\Http\Request;
 
 class EaDetalleDebitoController extends Controller
@@ -50,8 +51,7 @@ class EaDetalleDebitoController extends Controller
     {
         //
     }
-
-/**
+    /**
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
@@ -66,7 +66,14 @@ class EaDetalleDebitoController extends Controller
             ->where('producto', $producto)
             ->update($datos);
     }
-
+    public function valida_resgistro_detalle_debito($cod_carga, $cliente, $producto, $secuencia,$row)
+    {
+      return   EaDetalleDebito::where('id_carga', $cod_carga)
+            ->where('cliente' , $cliente)
+            ->where('subproducto_id', $producto)
+            ->where('secuencia', $secuencia)
+            ->update(['detalle' => $row['descripcion'], 'valor_debitado' => $row['total'], 'fecha_actualizacion' => $row['fecha_autorizacion'], 'estado' => $row['estado']]);
+    }
     /**
      * Remove the specified resource from storage.
      *

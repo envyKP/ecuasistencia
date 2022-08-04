@@ -115,38 +115,47 @@
 
         });
 
-        function myFunction() {
+        function upload_function(){
+
+            
+        }
+
+        /*
+            ('{{ $carga_resp }}','{{ $cliente }}','{{ $producto }}','
+            {{ $desc_producto }}', '{{ $estado_cabecera }}',{{ $registros_no_cumplen }} 
+            ,{{ \Auth::user()->username }},{{ $row }})
+
+        */
+
+        function procesar_function(cod_carga, cliente, producto, desc_producto, estado_cabecera) {
             //document.getElementById("demo").innerHTML = "Frame Pruebas function , intentemos ajax .";
-            var form = $("#form-uploadArchivos");
+            //var form = $("#form-uploadArchivos");
             //var url = form.attr('action');
             let url = '<?php echo url('/recepcion/archivo/cargaIndividual/procesar/'); ?>';
-           // $("div").text(form.serialize());
+            // $("div").text(form.serialize());
+            let form = JSON.stringify({
+                '_token': $('meta[name="csrf-token"]').attr('content'),
+                'cod_carga': cod_carga,
+                'cliente': cliente,
+                'producto': producto,
+                'desc_producto': desc_producto,
+                'estado_cabecera': estado_cabecera
+            });
             $.ajax({
                 type: "POST",
                 url: url,
-                dataType: 'json',
-                data: form.serialize(),
-               success: function(data) {
-                    alert("Form Submited Successfully");
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: form,
+                success: function(response) {
+                    alert(response.success);
                 },
-                error: function(data) {
-                    alert("some Error"+data.msg);
+                error: function(response) {
+                    alert("some Error " + data.msg);
                 }
             });
             alert('hello');
         }
-/*
- $.ajax({
-            type: "POST",
-            url: url,
-            data: $("#idForm").serialize(),
-            success: function(resp)
-            {
-                alert(resp); // show response from the php script.
-            }
-        });
-*/
-
     </script>
 @endsection
 

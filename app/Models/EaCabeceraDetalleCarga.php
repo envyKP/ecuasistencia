@@ -29,6 +29,7 @@ class EaCabeceraDetalleCarga extends Model
         'estado',
         'visible',
         'is_det_debito',
+        'subproducto_id',
         'usuario_actualiza',
         'opciones_validacion',
     ];

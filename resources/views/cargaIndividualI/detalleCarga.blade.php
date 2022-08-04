@@ -75,9 +75,11 @@
                                     <input type="hidden" name="usuario_actualiza"
                                         value="{{ \Auth::user()->username }}">
                                     <input type="hidden" name="row" value="{{ $row }}">
-                                    <input type="hidden" name="pruebas" value="pepito">
                                     <td> <button class="btn btn-info mx-1" title="Subir archivo XLS/XLSX/txt"
-                                            type="submit">
+                                            type="button"
+                                            onclick="upload_function('{{ $carga_resp }}','{{ $cliente }}','{{ $producto }}','
+                                            {{ $desc_producto }}', '{{ $estado_cabecera }}',{{ $registros_no_cumplen }} 
+                                            ,{{\Auth::user()->username}},{{$row}})">
                                             <svg class="c-icon c-icon-1xl">
                                                 <use
                                                     xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-data-transfer-up') }} ">
@@ -86,14 +88,14 @@
                                         </button></td>
                                 </form>
                                 <td> <button class="btn btn-info mx-1" title="Guardar" type="button"
-                                        onclick="myFunction()">
+                                        onclick="procesar_function('{{ $cod_carga }}','{{ $cliente }}','{{ $producto }}','{{ $desc_producto }}', '{{ $estado_cabecera }}')">
                                         <svg class="c-icon c-icon-1xl">
                                             <use
                                                 xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-save') }} ">
                                             </use>
                                         </svg>
                                     </button></td>
-                                    
+
                             </tr>
                         @endif
                         <!--<tr>

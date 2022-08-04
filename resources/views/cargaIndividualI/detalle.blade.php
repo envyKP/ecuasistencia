@@ -83,7 +83,7 @@
                 @php
                     $condicio_name = isset($registro->archivo) ? $registro->archivo : '';
                     $name_file = explode("/",$registro->archivo);
-                    $value_name = isset($registro->archivo) ? $name_file['5'] : '';
+                    $value_name = isset($registro->archivo) ? $name_file[count($name_file)-1] : '';
                     
                 @endphp
                     <td>

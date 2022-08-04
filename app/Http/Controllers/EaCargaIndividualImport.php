@@ -127,7 +127,9 @@ class EaCargaIndividualImport extends Controller
         $error = isset($error) ? $error : '';
         $registros_no_cumplen = isset($request->registros_no_cumplen) ? $request->registros_no_cumplen : '';
         //return 'ok';
-        return redirect()->route('EaCargaIndividualImport.index');
+        return response()->json(['success' => 'Contact form submitted successfully']);
+
+        //return redirect()->route('EaCargaIndividualImport.index');
 
         /*return view('cargaIndividualI.detalleCarga')
         ->with(isset($cod_carga) ? compact('cod_carga') : '')
@@ -164,6 +166,38 @@ class EaCargaIndividualImport extends Controller
      */
     public function procesar(Request $request)
     {
+        
+        $cabecera_update = array();
+        $registroCarga = EaCabeceraDetalleCarga::where('cod_carga', $request->cod_carga)
+            ->where('cliente', $request->cliente)
+            ->where('producto', $request->producto)->first();
+        $import = (new EaGemCamImport($request->cod_carga, $request->cliente, $request->producto));
+        $import->import($registroCarga->archivo, 'public');
+        //dd($import);
+        if (!empty($import->detalle_proceso['errorTecnico'])) {
+            $cabecera_update['estado'] = 'ERROR';
+            $errorTecnico = $import->detalle_proceso['errorTecnico'];
+           
+            $trx = $this->update_datos_cab_carga($registroCarga->cliente, $request->cod_carga, $request->producto, $cabecera_update);
+        } else {
+            try {
+                $cabecera_update['estado'] = 'PROCESADO';
+               $update_cab_carga =  $this->update_datos_cab_carga($registroCarga->cliente, $request->cod_carga, $request->producto, $cabecera_update);
+            } catch (\Exception $e) {
+              
+                $errorTecnico = $e->getMessage();
+            }
+        }
+        
+        return response()->json( $import);
+    }
+    /**
+     * Display the specified resource.
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function procesar_respaldo(Request $request)
+    {
         echo 'llegaste hasta aki extraño';
         dd($request);
         $cabecera_update = array();
@@ -173,7 +207,7 @@ class EaCargaIndividualImport extends Controller
 
         //$registroCarga = EaCabeceraCargaCorp::where('cod_carga', $request->cod_carga)->first();
         //Excel::import(new EaDetCargaCorpImport($cod_carga), $registroCarga->archivo, 'public');
-        $import = (new EaGemCamImport($request->cod_carga,$request->cliente, $request->producto));
+        $import = (new EaGemCamImport($request->cod_carga, $request->cliente, $request->producto));
         $import->import($registroCarga->archivo, 'public');
         if (!empty($import->detalle_proceso['errorTecnico'])) {
             $cabecera_update['estado'] = 'ERROR';
@@ -189,9 +223,9 @@ class EaCargaIndividualImport extends Controller
             }
             if ($update_cab_carga) {
                 //$this->update_cola_proceso_visible('PENDIENTE', 'carga_inicial');
-                $rsp = (new EaCabCargaInicialBitacoraController)->update_datos_cod_carga_bita($request->cod_carga,$request->cliente, 'carga_inicial', $cabecera_update);
-                
-                $nombre_archivo = explode("/", substr($registroCarga->archivo, stripos($registroCarga->archivo,$request->cliente)))[1];
+                $rsp = (new EaCabCargaInicialBitacoraController)->update_datos_cod_carga_bita($request->cod_carga, $request->cliente, 'carga_inicial', $cabecera_update);
+
+                $nombre_archivo = explode("/", substr($registroCarga->archivo, stripos($registroCarga->archivo, $request->cliente)))[1];
                 $registros_no_cumplen = isset($import->detalle_proceso['registros_no_cumplen']) ? $import->detalle_proceso['registros_no_cumplen'] : '';
                 $success = "Carga realizada del archivo: " . $nombre_archivo . ' ver detalles';
             }
@@ -208,7 +242,7 @@ class EaCargaIndividualImport extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function update_datos_cab_carga($cliente, $cod_carga,$producto, array $datos)
+    public function update_datos_cab_carga($cliente, $cod_carga, $producto, array $datos)
     {
 
         $trx =  EaCabeceraDetalleCarga::where('cliente', $cliente)
@@ -224,7 +258,7 @@ class EaCargaIndividualImport extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function existe_duplicado($cliente, $cod_carga,$producto, array $datos)
+    public function existe_duplicado($cliente, $cod_carga, $producto, array $datos)
     {
 
         $trx =  EaCabeceraDetalleCarga::where('cliente', $cliente)

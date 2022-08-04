@@ -181,7 +181,7 @@ class EaCargaIndividualExport extends Controller
                             // EaParaInsert::dispatch($objEXPORT,$row_insert_detalle);
                         }
                         //area de validaciones -- por el momemto quemada
-                        $detallevalidacion = array('validacion_campo_1' => 'Establecimiento', 'validacion_valor_2' => $individual->cod_establecimiento);
+                        $detallevalidacion = array('validacion_campo_1' => 'Establecimiento', 'validacion_valor_1' => $individual->cod_establecimiento);
                     }
 
                     $tiempo_final = microtime(true);
