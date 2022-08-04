@@ -88,6 +88,7 @@ class EaCargaIndividualImport extends Controller
      */
     public function uploadArchivos(Request  $request)
     {
+       
         // los datos que envia el request $request->cod_carga  $request->cliente  $request->producto  $request->desc_producto
         // fec_carga ---> utilizado para insertar la ultima fecha en la que se realizo la carga
         $datosCab = $request->except('_token', 'filtro_cliente', 'filtro_producto', 'filtro_genera', 'estado_cabecera', 'registros_no_cumplen', 'row');
@@ -110,24 +111,29 @@ class EaCargaIndividualImport extends Controller
                 ->update($datosCab);
             if ($trx) {
                 //$rsp = (new EaCabCargaInicialBitacoraController)->create_bitacora($datosCab['cod_carga']);
-                $success = "Archivo: " . $nombre_archivo . ", del cliente: " . $request->cliente . " cargado en estado pendiente de procesar.";
+                $success = "Archivo: " . $nombre_archivo . ", del cliente: " . $request->cliente . " cargado en estado pendiente de guardar/procesar.";
             }
         } else {
             $error = "Archivos permitidos: xls ó xlsx";
         }
-        $cod_carga = isset($request->cod_carga) ? $request->cod_carga : '';
-        $cliente = isset($request->cliente) ? $request->cliente : '';
-        $producto = isset($request->producto) ? $request->producto  : '';
-        $row = isset($request->cod_carga) ? $request->cod_carga : '';
-        $data = isset($request->cod_carga) ? $request->cod_carga : '';
-        $carga_resp = isset($request->cod_carga) ? $request->cod_carga : '';
-        $estado_cabecera = isset($request->estado) ? $request->estado : '';
-        $desc_producto = isset($request->desc_producto) ? $request->desc_producto : '';
-        $success = isset($success) ? $success : '';
-        $error = isset($error) ? $error : '';
-        $registros_no_cumplen = isset($request->registros_no_cumplen) ? $request->registros_no_cumplen : '';
+        //$cod_carga = isset($request->cod_carga) ? $request->cod_carga : '';
+        //$cliente = isset($request->cliente) ? $request->cliente : '';
+        //$producto = isset($request->producto) ? $request->producto  : '';
+        //$row = isset($request->cod_carga) ? $request->cod_carga : '';
+        //$data = isset($request->cod_carga) ? $request->cod_carga : '';
+        //$carga_resp = isset($request->cod_carga) ? $request->cod_carga : '';
+        $detalle_proceso['estado_cabecera'] = isset($request->estado) ? $request->estado : '';
+        $detalle_proceso['desc_producto'] = isset($request->desc_producto) ? $request->desc_producto : '';
+        $detalle_proceso['success'] = isset($success) ? $success : '';
+        $detalle_proceso['error'] = isset($error) ? $error : '';
+        $detalle_proceso['mensaje'] = isset($success) ? $success : $error;
+        $detalle_proceso['registros_no_cumplen'] = isset($request->registros_no_cumplen) ? $request->registros_no_cumplen : '';
         //return 'ok';
-        return response()->json(['success' => 'Contact form submitted successfully']);
+
+        
+        //return response()->json(['success' => 'Contact form submitted successfully']);
+        //dd(response()->json($detalle_proceso));
+        return response()->json($detalle_proceso);
 
         //return redirect()->route('EaCargaIndividualImport.index');
 
@@ -189,7 +195,7 @@ class EaCargaIndividualImport extends Controller
             }
         }
         
-        return response()->json( $import);
+        return response()->json(['success' => 'Procesado Existosamente']);
     }
     /**
      * Display the specified resource.
