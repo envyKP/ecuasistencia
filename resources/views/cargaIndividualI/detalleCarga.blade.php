@@ -58,10 +58,8 @@
                     <tbody>
                         @if (isset($data))
                             <tr>
-                                <td>depurar</td>
-                                <form id="form-uploadArchivos"
-                                    action="{{ route('EaCargaIndividualImport.uploadArchivos') }}" method="post"
-                                    enctype="multipart/form-data" accept-charset="utf-8">
+
+                                <form id="form-uploadArchivos" enctype="multipart/form-data" accept-charset="utf-8">
                                     @csrf
                                     <td class="col-sm-2 col-md-10"> <input class="form-control pt-1" id="archivo"
                                             type="file" name="archivo" required> </td>
@@ -76,10 +74,8 @@
                                         value="{{ \Auth::user()->username }}">
                                     <input type="hidden" name="row" value="{{ $row }}">
                                     <td> <button class="btn btn-info mx-1" title="Subir archivo XLS/XLSX/txt"
-                                            type="button"
-                                            onclick="upload_function('{{ $carga_resp }}','{{ $cliente }}','{{ $producto }}','
-                                            {{ $desc_producto }}', '{{ $estado_cabecera }}',{{ $registros_no_cumplen }} 
-                                            ,{{\Auth::user()->username}},{{$row}})">
+                                            type="button" onclick="upload_function(this.form, '{{$row.$cliente.$producto}}')"
+                                            enctype="multipart/form-data">
                                             <svg class="c-icon c-icon-1xl">
                                                 <use
                                                     xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-data-transfer-up') }} ">
@@ -88,7 +84,7 @@
                                         </button></td>
                                 </form>
                                 <td> <button class="btn btn-info mx-1" title="Guardar" type="button"
-                                        onclick="procesar_function('{{ $cod_carga }}','{{ $cliente }}','{{ $producto }}','{{ $desc_producto }}', '{{ $estado_cabecera }}')">
+                                        onclick="procesar_function('{{ $cod_carga }}','{{ $cliente }}','{{ $producto }}','{{ $desc_producto }}', '{{ $estado_cabecera }}', '{{$row.$cliente.$producto}}')">
                                         <svg class="c-icon c-icon-1xl">
                                             <use
                                                 xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-save') }} ">
@@ -98,12 +94,13 @@
 
                             </tr>
                         @endif
+
                         <!--<tr>
                     <td><p><small>{{ 'Por favor asegurese que el nombre del archivo no tenga espacios o caracteres especiales' }}</small></p></td>
                 </tr>-->
                     </tbody>
                 </table>
-                <table class="table table-responsive-sm table-hover table-outline">
+                <!--<table class="table table-responsive-sm table-hover table-outline">
                     <thead class="thead-light">
                         <tr>
                             <th class="text-center">{{ 'cliente' }}</th>
@@ -117,16 +114,16 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td><strong>{{ $cliente }}</strong></td>
-                            <td><strong>{{ $cod_carga }}</strong></td>
-                            <td><strong>{{ $cod_carga }}</strong></td>
-                            <td><strong>{{ $estado_cabecera }}</strong></td>
-                            <td><strong>{{ $producto }}</strong></td>
-                            <td><strong>{{ $registros_no_cumplen }}</strong></td>
-                            <td><strong>{{ $carga_resp }}</strong></td>
+                           
                         </tr>
                     </tbody>
-                </table>
+                </table>-->
+                <!--<div class="col-sm-12 form-group" id="processCarga" style="display:none"> -->
+                <div class="col-sm-12 form-group" id="processCargaDetalle{{$row.$cliente.$producto}}" style="display:none">
+                    <strong>{{ 'Procesando...' }}</strong>
+                    <progress class="col-sm-12" max="100">100%</progress>
+                </div>
+
 
             </div>
             <div class="modal-footer">

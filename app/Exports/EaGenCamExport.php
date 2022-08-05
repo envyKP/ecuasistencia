@@ -60,6 +60,7 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
                     } else {
                         $carga_secuencia = $detalles->id_carga;
                     }
+                    ///dd($carga_secuencia);
                     $this->cod_carga_corp = $detalles->id_carga;
                     return EaBaseActiva::join("ea_subproductos", "ea_subproductos.desc_subproducto", "=", "ea_base_activa.subproducto")
                         ->join("ea_detalle_debito", "ea_detalle_debito.id_sec", "=", "ea_base_activa.id_sec")

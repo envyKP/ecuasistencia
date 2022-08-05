@@ -367,3 +367,439 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow
 
 
 
+
+
+
+
+        /*
+
+            usuario_actualiza
+            registros_no_cumplen
+            estado_cabecera
+            desc_producto
+            producto
+            cliente
+            cliente
+            archivo
+            ('{{ $carga_resp }}','{{ $cliente }}','{{ $producto }}','
+                {{ $desc_producto }}', '{{ $estado_cabecera }}',{{ $registros_no_cumplen }} 
+                ,{{ \Auth::user()->username }},{{ $row }})
+
+            */
+
+            <button class="btn btn-info mx-1" title="Subir archivo XLS/XLSX/txt"
+                                            type="button"
+                                            onclick="upload_function('{{ $carga_resp }}','{{ $cliente }}','{{ $producto }}','
+                                            {{ $desc_producto }}', '{{ $estado_cabecera }}',{{ $registros_no_cumplen }} 
+                                            ,{{\Auth::user()->username}},{{$row}})">
+
+
+
+
+                                            <form id="form-uploadArchivos"
+                                    action="{{ route('EaCargaIndividualImport.uploadArchivos') }}" method="post"
+                                    enctype="multipart/form-data" accept-charset="utf-8">
+                                    @csrf
+                                    <td class="col-sm-2 col-md-10"> <input class="form-control pt-1" id="archivo"
+                                            type="file" name="archivo" required> </td>
+                                    <input type="hidden" name="cod_carga" value="{{ $carga_resp }}">
+                                    <input type="hidden" name="cliente" value="{{ $cliente }}">
+                                    <input type="hidden" name="producto" value="{{ $producto }}">
+                                    <input type="hidden" name="desc_producto" value="{{ $desc_producto }}">
+                                    <input type="hidden" name="estado_cabecera" value="{{ $estado_cabecera }}">
+                                    <input type="hidden" name="registros_no_cumplen"
+                                        value="{{ $registros_no_cumplen }}">
+                                    <input type="hidden" name="usuario_actualiza"
+                                        value="{{ \Auth::user()->username }}">
+                                    <input type="hidden" name="row" value="{{ $row }}">
+                                    <td> <button class="btn btn-info mx-1" title="Subir archivo XLS/XLSX/txt"
+                                            type="submit"
+                                            >
+                                            <svg class="c-icon c-icon-1xl">
+                                                <use
+                                                    xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-data-transfer-up') }} ">
+                                                </use>
+                                            </svg>
+                                        </button></td>
+                                </form>
+
+
+
+
+                                ////////////////////////////////////////////
+                                <!-- /.modal-->
+
+
+<div class="modal fade" id="{{ 'infoDetcarga' . $row }}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-info" role="document">
+        <strong id='demo' name='demo'></strong>
+        <div>
+            @if (session('success'))
+                <div class="col-sm-12 col-md-12">
+                    <div class="alert alert-primary alert-dismissible fade show " role="alert">
+                        <svg class="c-icon c-icon-2xl">
+                            <use
+                                xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-check-circle') }}">
+                            </use>
+                        </svg>
+                        <strong>{{ session('success') }}</strong>
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                </div>
+            @endif
+            @if (session('error'))
+                <div class="col-sm-12 col-md-12">
+                    <div class="alert alert-danger alert-dismissible fade show " role="alert">
+                        <svg class="c-icon c-icon-2xl">
+                            <use
+                                xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-trash') }}">
+                            </use>
+                        </svg>
+                        <strong>{{ session('error') }}</strong>
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                </div>
+            @endif
+        </div>
+
+
+
+        <div class="modal-content" style="width:1200px; right:350px">
+            <div class="modal-header">
+                <h4 class="modal-title">{{ 'Detalle de carga ' . $cod_carga }}</h4>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">×</span></button>
+            </div>
+            <div class="modal-body">
+                <strong>{{ 'Detalle del archivo de debito asociado a ' . $cliente }}</strong>
+                <table class="table table-responsive-sm table-hover table-outline">
+                    <thead class="thead-light">
+                        <tr>
+                            <th class="text-center">{{ '' }}</th>
+                            <th class="text-center" colspan="2">{{ 'Acciones' }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (isset($data))
+                            <tr>
+                                <td>depurar</td>
+                                <form id="form-uploadArchivos"
+                                    action="{{ route('EaCargaIndividualImport.uploadArchivos') }}" method="POST"
+                                    enctype="multipart/form-data" accept-charset="utf-8">
+                                    @csrf
+                                    <td class="col-sm-2 col-md-10"> <input class="form-control pt-1" id="archivo"
+                                            type="file" name="archivo" required> </td>
+                                    <input type="hidden" name="cod_carga" value="{{ $carga_resp }}">
+                                    <input type="hidden" name="cliente" value="{{ $cliente }}">
+                                    <input type="hidden" name="producto" value="{{ $producto }}">
+                                    <input type="hidden" name="desc_producto" value="{{ $desc_producto }}">
+                                    <input type="hidden" name="estado_cabecera" value="{{ $estado_cabecera }}">
+                                    <input type="hidden" name="registros_no_cumplen"
+                                        value="{{ $registros_no_cumplen }}">
+                                    <input type="hidden" name="usuario_actualiza"
+                                        value="{{ \Auth::user()->username }}">
+                                    <input type="hidden" name="row" value="{{ $row }}">
+                                    <td> <button class="btn btn-info mx-1" title="Subir archivo XLS/XLSX/txt"
+                                            type="button" onclick=""
+                                            >
+                                            <svg class="c-icon c-icon-1xl">
+                                                <use
+                                                    xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-data-transfer-up') }} ">
+                                                </use>
+                                            </svg>
+                                        </button></td>
+                                </form>
+                                <td> <button class="btn btn-info mx-1" title="Guardar" type="button"
+                                        onclick="procesar_function('{{ $cod_carga }}','{{ $cliente }}','{{ $producto }}','{{ $desc_producto }}', '{{ $estado_cabecera }}')">
+                                        <svg class="c-icon c-icon-1xl">
+                                            <use
+                                                xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-save') }} ">
+                                            </use>
+                                        </svg>
+                                    </button></td>
+
+                            </tr>
+                        @endif
+                        <!--<tr>
+                    <td><p><small>{{ 'Por favor asegurese que el nombre del archivo no tenga espacios o caracteres especiales' }}</small></p></td>
+                </tr>-->
+                    </tbody>
+                </table>
+                <table class="table table-responsive-sm table-hover table-outline">
+                    <thead class="thead-light">
+                        <tr>
+                            <th class="text-center">{{ 'cliente' }}</th>
+                            <th class="text-center">{{ 'cod_carga' }}</th>
+                            <th class="text-center">{{ 'data->cod_carga' }}</th>
+                            <th class="text-center">{{ 'estado_cabecera' }}</th>
+                            <th class="text-center">{{ 'producto' }}</th>
+                            <th class="text-center">{{ 'registros_no_cumplen' }}</th>
+                            <th class="text-center">{{ 'carga_resp' }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>{{ $cliente }}</strong></td>
+                            <td><strong>{{ $cod_carga }}</strong></td>
+                            <td><strong>{{ $cod_carga }}</strong></td>
+                            <td><strong>{{ $estado_cabecera }}</strong></td>
+                            <td><strong>{{ $producto }}</strong></td>
+                            <td><strong>{{ $registros_no_cumplen }}</strong></td>
+                            <td><strong>{{ $carga_resp }}</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+            </div>
+            <div class="modal-footer">
+                @if ($estado_cabecera == 'PROCESADO')
+                    <div class="col-sm-2 col-md-2">
+                        <form action="{{ route('EaCabCargaInicialController.exportar_reporte') }}" method="post">
+                            @csrf
+                            @method('post')
+                            <input type="hidden" name="proceso" value="{{ $data->proceso }}">
+                            <input type="hidden" name="cod_carga" value="{{ $carga_resp }}">
+                            <input type="hidden" name="cliente" value="{{ $cliente }}">
+                            <input type="hidden" name="producto" value="{{ $producto }}">
+                            <input type="hidden" name="desc_producto" value="{{ $desc_producto }}">
+                            <input type="hidden" name="estado_cabecera" value="{{ $estado_cabecera }}">
+                            <input type="hidden" name="registros_no_cumplen" value="{{ $registros_no_cumplen }}">
+                            <input type="hidden" name="usuario_actualiza" value="{{ \Auth::user()->username }}">
+                            <button class="btn btn-success" id="btn-generar_reporte" title="Subir Archivo"
+                                type="submit">
+                                <svg class="c-icon c-icon-1xl">
+                                    <use
+                                        xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-cloud-download') }} ">
+                                    </use>
+                                </svg> {{ 'Descargar reporte' }}
+                            </button>
+                        </form>
+                    </div>
+                @endif
+                <button class="btn btn-info" type="button" data-dismiss="modal">{{ 'Salir' }}</button>
+            </div>
+        </div>
+        <!-- /.modal-content-->
+    </div>
+    <!-- /.modal-dialog-->
+</div>
+
+
+
+
+
+
+
+
+
+
+
+///////////////////////////////////
+@extends('layouts.admin')
+
+
+@section('scripts')
+    <!-- notas es cargaIndividualI   el final es una i mayuscula-->
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $("#cliente").change(function() {
+                $.ajax({
+                    url: "{{ route('EaSubproductoController.getSubproductoNoAMA') }}?cliente=" +
+                        $(this).val(),
+                    method: "get",
+                    success: function(data) {
+                        $("#producto").html(data.htmlProducto);
+                    }
+                });
+            });
+            $("#producto").change(function() {
+                $.ajax({
+                    url: "{{ route('EaSubproductoController.getSubproducto') }}?cliente=" + $(
+                        "#cliente").val() + "&contrato_ama=" + $(this).val(),
+                    method: "get",
+                    success: function(data) {
+                        $("#subproducto").html(data.htmlSubproducto)
+                    }
+                });
+            });
+            /*
+                        $("#form-procesarCarga").submit(function() {
+                            $.ajax({
+                                beforeSend: function() {
+                                    $("#tabla-det-caraga-corp").find('div,button').prop("disabled", true);
+                                    $(".modal").remove();
+                                    $("#processCarga").css('display', 'block');
+                                    var porcentaje = '0';
+                                },
+                                uploadProgress: function(event,position,total,porcentajecompleto){
+                                    var porcentaje = porcentajecompleto;
+                                    $('.progress .progress-bar').css("width", porcentaje + '%',function(){return $(this).atrr("aria-valuenow",porcentaje)+ "%";
+                                })
+                                },
+                                complete: function(xhr){
+                                    $("#tabla-det-caraga-processCarga").find('div,button').prop("disabled", false);
+                                    $("#processCarga").css('hidden', 'block');
+                                }
+                            });
+                        });*/
+
+            $("#btn-genera").change(function() {
+
+                $.ajax({
+                    success: function(data) {
+                        alert("okay");
+                    }
+                });
+            });
+
+
+            $("#form-EnviarBaseActiva").submit(function() {
+                $.ajax({
+                    beforeSend: function() {
+                        $("#processCargarBaseActiva").css("display", "block");
+                    }
+                });
+            });
+
+            $("#filtro_cliente").click(function() {
+                if ($("#filtro_cliente").is(":checked")) {
+                    $("#cliente").css('display', 'block');
+                    $("#btn-genera").prop("disabled", false);
+                } else {
+                    $("#cliente").css('display', 'none');
+                    $("#producto").css('display', 'none');
+                    $(this).prop("checked", false)
+                    $("#filtro_producto").prop("checked", false);
+                    $("#btn-genera").prop("disabled", true);
+
+
+                }
+            });
+
+            $("#filtro_producto").click(function() {
+                if ($("#filtro_producto").is(":checked")) {
+                    $("#producto").css("display", "block");
+                    $("#btn-genera").prop("disabled", false);
+                } else {
+                    $("#producto").css("display", "none");
+                    $("#filtro_producto").prop("checked", false);
+                    $("#btn-genera").prop("disabled", true);
+
+                }
+            });
+
+
+
+            $("#filtro_genera").click(function() {
+                if ($("#filtro_genera").is(":checked")) {
+                    $("#btn-genera").css("display", "block");
+                    $("#btn-genera").prop("disabled", false);
+                } else {
+                    $("#subproducto").css("display", "none");
+                    $("#btn-genera").css("display", "none");
+                    $("#btn-genera").prop("disabled", true);
+                }
+            });
+
+
+            $("#bloqueo_subida").click(function() {
+                if ($("#bloqueo_subida").is(":checked")) {
+
+                } else {
+                    $("#btn-genera").prop("disabled", true);
+                }
+            });
+
+            /*    $("form#form-uploadArchivos").submit(function(e) {
+                    e.preventDefault();
+                    var formData = new FormData(this);
+                    let url = '<?php echo url('/recepcion/archivo/cargaIndividual/procesar/'); ?>';
+
+                    $.ajax({
+                        type: "POST",
+                        url: url,
+                        data: formData,
+                        success: function(response) {
+                            alert(response.success);
+                        },
+                        error: function(response) {
+                            alert("some Error " + data.msg);
+                        }
+                    });
+
+
+
+                });
+    */
+
+
+
+
+        });
+        /*
+        function upload_function(cod_carga, cliente, producto, desc_producto, estado_cabecera,registros_no_cumplen,username) {
+            
+        
+        */
+
+        function procesar_function(cod_carga, cliente, producto, desc_producto, estado_cabecera) {
+            //document.getElementById("demo").innerHTML = "Frame Pruebas function , intentemos ajax .";
+            //var form = $("#form-uploadArchivos");
+            //var url = form.attr('action');
+            let url = '<?php echo url('/recepcion/archivo/cargaIndividual/procesar/'); ?>';
+            // $("div").text(form.serialize());
+            let form = JSON.stringify({
+                '_token': $('meta[name="csrf-token"]').attr('content'),
+                'cod_carga': cod_carga,
+                'cliente': cliente,
+                'producto': producto,
+                'desc_producto': desc_producto,
+                'estado_cabecera': estado_cabecera
+            });
+            $.ajax({
+                type: "POST",
+                url: url,
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: form,
+                success: function(response) {
+                    alert(response.success);
+                },
+                error: function(response) {
+                    alert("some Error " + data.msg);
+                }
+            });
+            alert('hello');
+        }
+
+        function upload_function(form) {
+            let url = '<?php echo url('/recepcion/archivo/cargaIndividual/procesar/'); ?>';
+            let formulario = $('form');
+            $.ajax({
+                type: "POST",
+                url: url,
+                data: form,
+                success: function(response) {
+                    alert(response.success);
+                },
+                error: function(response) {
+                    alert("some Error " + data.msg);
+                }
+            });
+            alert('subido actualizado');
+        }
+
+
+    </script>
+@endsection
+
+
+@section('content')
+    @include('cargaIndividuali.cabecera')
+    @include('cargaIndividuali.detalle')
+@endsection

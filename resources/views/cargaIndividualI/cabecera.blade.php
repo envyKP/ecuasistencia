@@ -117,7 +117,7 @@
                                             <strong class="ml-1"> {{ 'generar carga: ' }} </strong>
                                         </span>
                                     </div>
-                                    <button class="btn btn-info" id="btn-genera" name="btn-genera"
+                                    <button class="btn btn-info" id="btn-genera" name="btn-genera" onclick="evgenera()"
                                         title="Generar Carga" type="submit" style="display:none" disabled>
                                         <svg class="c-icon c-icon-1xl">
                                             <use
@@ -134,12 +134,9 @@
         </div>
     </div>
     <br>
-    <div class="col-sm-12 form-group" id="processCarga" style="display:none">
+    <div class="col-sm-12 form-group" id="processCargaDetalle" style="display:none">
         <strong>{{ 'Procesando...' }}</strong>
-        <div class="progress">
-            <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" role="progressbar"
-                aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%"></div>
-        </div>
+        <progress class="col-sm-12" max="100">100%</progress>
     </div>
     @if (session('errorTecnico'))
         <div class="col-sm-12 col-md-12">

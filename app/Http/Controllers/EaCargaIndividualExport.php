@@ -58,6 +58,7 @@ class EaCargaIndividualExport extends Controller
      */
     public function exporta(Request $request)
     {
+        
         $contenido = file_get_contents("../salsa.txt");
         $clave = Key::loadFromAsciiSafeString($contenido);
         $varcontrolsecuencia = (isset($request->carga_resp) ? strval($request->carga_resp) : null);
@@ -176,9 +177,8 @@ class EaCargaIndividualExport extends Controller
                             $row_insert_detalle['detalle'] = null;
                             $row_insert_detalle['bin'] = $example;
                             $row_insert_detalle['fecha_generacion'] =  date('mY');
-                            $objEXPORT->view_reg_state($row_insert_detalle);
-                            //EaParaInsert::dispatch($row_insert_detalle);
-                            // EaParaInsert::dispatch($objEXPORT,$row_insert_detalle);
+                           // $objEXPORT->view_reg_state($row_insert_detalle);
+                            
                         }
                         //area de validaciones -- por el momemto quemada
                         $detallevalidacion = array('validacion_campo_1' => 'Establecimiento', 'validacion_valor_1' => $individual->cod_establecimiento);
@@ -309,17 +309,40 @@ class EaCargaIndividualExport extends Controller
             $file_reg_carga['fec_carga'] = $fecha_generacion;
             $file_reg_carga['usuario'] = \Auth::user()->username;
             $validoacion_par = json_encode($detallevalidacion);
-            $objEXPORT->registro_cargas($file_reg_carga, $validoacion_par);
-            $fileName = $request->cliente . "-" . $detalle_subproducto->desc_subproducto . "-" . date("d-m-Y") . "-" . ($condicion == true ? (isset($ultima_carga->id_carga) ? $ultima_carga->id_carga + 1 : 1)  : $request->carga_resp) . ".txt";
+            //$objEXPORT->registro_cargas($file_reg_carga, $validoacion_par);
+            $fileName = $request->cliente . "-" . $detalle_subproducto->desc_subproducto . "-" . date("d-m-Y") . "-" . (isset($ultima_carga->id_carga) ? $ultima_carga->id_carga : 1) . ".txt";
+            //$request->cliente, $request->producto
+            //$request->carga_resp
+            $success = 'se genero exitosamente , se procede a realizar la descarga ';
+            return redirect()->route('EaCargaIndividualImport.index')->with([
+                'success' => isset($success) ? $success : '',
+                'generacionVal' => isset($success) ? '200' : '',
+                'carga_resp' => ($id_carga+1),
+                'producto' => isset($request->producto) ? $request->producto : '',
+                'cliente' => isset($request->clinte) ? $request->clinte : '',
+                'errorTecnico' => isset($errorTecnico) ?  $errorTecnico  : '',
+                'registros_no_cumplen' => isset($registros_no_cumplen) ? $registros_no_cumplen : ''
+            ]);
         } else {
-
-            $fileName = $request->cliente . "-" . $detalle_subproducto->desc_subproducto . "-" . date("d-m-Y") . ".txt";
+            $fileName = $request->cliente . "-" . $detalle_subproducto->desc_subproducto . "-" . date("d-m-Y") . "-" .(isset($ultima_carga->id_carga) ? $ultima_carga->id_carga : 1).  ".txt";
+            $headers = [
+                'Content-type' => 'text/plain',
+                'Content-Disposition' => sprintf('attachment; filename="%s"', $fileName),
+            ];
+            return Response::make($textoPlano, 200, $headers);
         }
-        $headers = [
-            'Content-type' => 'text/plain',
-            'Content-Disposition' => sprintf('attachment; filename="%s"', $fileName),
-        ];
-        return Response::make($textoPlano, 200, $headers);
+
+        return redirect()->route('EaCargaIndividualImport.index')->with([
+            'success' => isset($success) ? $success : '',
+            'errorTecnico' => isset($errorTecnico) ?  $errorTecnico  : 'hubo un error disculpe los inconvenientes',
+            'registros_no_cumplen' => isset($registros_no_cumplen) ? $registros_no_cumplen : ''
+        ]);
+
+
+
+        //sleep(30);
+
+
         //Response::make($textoPlano, 200, $headers);
         //return redirect()->route('EaCargaIndividualImport.index');
     }

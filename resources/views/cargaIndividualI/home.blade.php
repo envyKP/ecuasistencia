@@ -3,6 +3,27 @@
 
 @section('scripts')
     <!-- notas es cargaIndividualI   el final es una i mayuscula-->
+    <style>
+        div.fileinputs {
+            position: relative;
+        }
+
+        div.fakefile {
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            z-index: 1;
+        }
+
+        input.file {
+            position: relative;
+            text-align: left;
+            -moz-opacity: 0;
+            filter: alpha(opacity: 0);
+            opacity: 0;
+            z-index: 2;
+        }
+    </style>
     <script type="text/javascript">
         $(document).ready(function() {
             $("#cliente").change(function() {
@@ -113,21 +134,24 @@
                 }
             });
 
+
+            $("#btn-genera").click(function() {
+                document.getElementById("processCargaDetalle").style.display = "block";
+
+            });
+
+
         });
-
-        function upload_function(){
-
+        /*
+        function upload_function(cod_carga, cliente, producto, desc_producto, estado_cabecera,registros_no_cumplen,username) {
             
+        
+        */
+        function evgenera() {
+            document.getElementById("processCargaDetalle").style.display = "block";
         }
 
-        /*
-            ('{{ $carga_resp }}','{{ $cliente }}','{{ $producto }}','
-            {{ $desc_producto }}', '{{ $estado_cabecera }}',{{ $registros_no_cumplen }} 
-            ,{{ \Auth::user()->username }},{{ $row }})
-
-        */
-
-        function procesar_function(cod_carga, cliente, producto, desc_producto, estado_cabecera) {
+        function procesar_function(cod_carga, cliente, producto, desc_producto, estado_cabecera, idbar) {
             //document.getElementById("demo").innerHTML = "Frame Pruebas function , intentemos ajax .";
             //var form = $("#form-uploadArchivos");
             //var url = form.attr('action');
@@ -141,6 +165,9 @@
                 'desc_producto': desc_producto,
                 'estado_cabecera': estado_cabecera
             });
+            var procesbarId = "processCargaDetalle" + idbar;
+            //document.getElementById("processCargaDetalle").style.display = "block";
+            document.getElementById(procesbarId).style.display = "block";
             $.ajax({
                 type: "POST",
                 url: url,
@@ -148,13 +175,69 @@
                 dataType: "json",
                 data: form,
                 success: function(response) {
-                    alert(response.success);
+                    document.getElementById(procesbarId).style.display = "none";
+                    alert('Procesado exitoso ');
+
                 },
                 error: function(response) {
                     alert("some Error " + data.msg);
+                    document.getElementById(procesbarId).style.display = "none";
                 }
             });
-            alert('hello');
+
+        }
+
+        function upload_function(form, idbar) {
+            let url = '<?php echo url('recepcion/archivo/cargaIndividual/subirArchivo'); ?>';
+            let formulario = new FormData($(form)[0]);
+            //let idbar = 1;
+            var procesbarId = "processCargaDetalle" + idbar;
+            //document.getElementById("processCargaDetalle1").style.display = "block";
+            document.getElementById(procesbarId).style.display = "block";
+            //var refButton = document.getElementById("processCargaDetalle");
+            //refButton.style.display = "none";
+
+            $.ajax({
+                type: "POST",
+                url: url,
+                data: formulario,
+                async: false,
+                processData: false,
+                contentType: false,
+                dataType: "json",
+
+                success: function(response) {
+
+                    var parsed_data = JSON.parse(JSON.stringify(response));
+                    let msg_response = parsed_data.mensaje;
+                    document.getElementById(procesbarId).style.display = "none";
+                    alert(msg_response);
+                    var percentVal = 'Wait, Saving';
+                    $('.progress .progress-bar').css("width", "0%");
+
+                },
+                error: function(response) {
+                    document.getElementById(procesbarId).style.display = "none";
+                    alert("Error " + response.error);
+                }
+            });
+
+        }
+
+
+        window.onload = function() {
+            var generacionVal = "{{ session('generacionVal') }}";
+            if (generacionVal == '200') {
+              
+            }
+
+        }
+
+
+
+
+        function validate(formData, jqForm, options) {
+            var form = jqForm[0];
         }
     </script>
 @endsection
