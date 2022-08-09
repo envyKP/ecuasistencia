@@ -58,21 +58,22 @@
 </div>
 <div class="row">
     <div class="col">
-        <div class="card">
-            <div class="card-header">
-                <svg class="c-icon c-icon-1xl mr-2">
-                    <use xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-filter') }} ">
-                    </use>
-                </svg>
-                <strong id="label-buscar" style="visibility:hidden">{{ 'Filtros de búsqueda' }}</strong>
-                <button class="btn btn-outline-success mx-2 my-2 my-sm-0" id="btn-buscar" style="visibility:hidden"
-                    type="submit">{{ 'Buscar' }}</button>
-            </div>
-            <!-- <div class="card-header"><strong>Credit Card</strong> <small>Form</small></div> -->
-            <div class="card-body">
-                <form id="form-generar" action="{{ route('EaCargaIndividualExport.exporta') }}"method="get"
-                    enctype="multipart/form-data" accept-charset="utf-8">
-                    @csrf
+        <form id="form-generar" action="{{ route('EaCargaIndividualExport.exporta') }}"method="get"
+            enctype="multipart/form-data" accept-charset="utf-8">
+            @csrf
+            <div class="card">
+                <div class="card-header">
+                    <svg class="c-icon c-icon-1xl mr-2">
+                        <use xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-filter') }} ">
+                        </use>
+                    </svg>
+                    <strong id="label-buscar" style="visibility:block">{{ 'Filtros de búsqueda' }}</strong>
+                    <button class="btn btn-outline-success mx-2 my-2 my-sm-0" id="btn-buscar" id="btn_genera"
+                        name="btn_genera" value="buscar" type="submit">{{ 'Buscar' }}</button>
+                </div>
+                <!-- <div class="card-header"><strong>Credit Card</strong> <small>Form</small></div> style="visibility:hidden" -->
+                <div class="card-body">
+
                     <div class="row">
                         <input type="hidden" name="usuario_registra" value="{{ Auth::user()->username }}">
                         <div class="form-group col-sm-4 col-md-4">
@@ -135,7 +136,7 @@
                                             <strong class="ml-1"> {{ 'generar carga: ' }} </strong>
                                         </span>
                                     </div>
-                                    <button class="btn btn-info" id="btn-genera" name="btn-genera"
+                                    <button class="btn btn-info" id="btn_genera" name="btn_genera" value="Generar"
                                         onclick="evgenera()" title="Generar Carga" type="submit"
                                         style="display:none" disabled>
                                         <svg class="c-icon c-icon-1xl">
@@ -148,9 +149,11 @@
                             </div>
                         </div>
                     </div>
-                </form>
+
+                </div>
             </div>
-        </div>
+        </form>
+
     </div>
     <br>
     <div class="col-sm-12 form-group" id="processCargaDetalle" style="display:none">

@@ -67,7 +67,7 @@
                             });
                         });*/
 
-            $("#btn-genera").change(function() {
+            $("#btn_genera").change(function() {
 
                 $.ajax({
                     success: function(data) {
@@ -88,13 +88,13 @@
             $("#filtro_cliente").click(function() {
                 if ($("#filtro_cliente").is(":checked")) {
                     $("#cliente").css('display', 'block');
-                    $("#btn-genera").prop("disabled", false);
+                    $("#btn_genera").prop("disabled", false);
                 } else {
                     $("#cliente").css('display', 'none');
                     $("#producto").css('display', 'none');
                     $(this).prop("checked", false)
                     $("#filtro_producto").prop("checked", false);
-                    $("#btn-genera").prop("disabled", true);
+                    $("#btn_genera").prop("disabled", true);
 
 
                 }
@@ -103,11 +103,11 @@
             $("#filtro_producto").click(function() {
                 if ($("#filtro_producto").is(":checked")) {
                     $("#producto").css("display", "block");
-                    $("#btn-genera").prop("disabled", false);
+                    $("#btn_genera").prop("disabled", false);
                 } else {
                     $("#producto").css("display", "none");
                     $("#filtro_producto").prop("checked", false);
-                    $("#btn-genera").prop("disabled", true);
+                    $("#btn_genera").prop("disabled", true);
 
                 }
             });
@@ -116,12 +116,12 @@
 
             $("#filtro_genera").click(function() {
                 if ($("#filtro_genera").is(":checked")) {
-                    $("#btn-genera").css("display", "block");
-                    $("#btn-genera").prop("disabled", false);
+                    $("#btn_genera").css("display", "block");
+                    $("#btn_genera").prop("disabled", false);
                 } else {
                     $("#subproducto").css("display", "none");
-                    $("#btn-genera").css("display", "none");
-                    $("#btn-genera").prop("disabled", true);
+                    $("#btn_genera").css("display", "none");
+                    $("#btn_genera").prop("disabled", true);
                 }
             });
 
@@ -130,12 +130,12 @@
                 if ($("#bloqueo_subida").is(":checked")) {
 
                 } else {
-                    $("#btn-genera").prop("disabled", true);
+                    $("#btn_genera").prop("disabled", true);
                 }
             });
 
 
-            $("#btn-genera").click(function() {
+            $("#btn_genera").click(function() {
                 document.getElementById("processCargaDetalle").style.display = "block";
                 $(':button').prop('disabled', false);
             });
