@@ -1,7 +1,7 @@
 <table class="table table-responsive-sm table-hover table-outline mb-0" id="tabla-det-caraga-corp">
     <thead class="thead-light">
         <tr>
-            <th class="text-center">{{ 'Código de generacion' }}</th>
+            <th class="text-center">{{ 'Código de carga' }}</th>
             <th>{{ 'Nombre del archivo' }}</th>
             <th>{{ 'Cliente' }}</th>
             <th>{{ 'Producto' }}</th>
@@ -21,7 +21,8 @@
                 @php $row++; @endphp
                 <tr>
                     <td class="text-center"><strong>{{ $registro->cod_carga }}</strong></td>
-
+                    <td>{{ explode('/', substr($registro->archivo, strpos($registro->archivo, $registro->cliente)))[1] }}
+                    </td>
                     <td>
                         <div>
                             <svg class="c-icon c-icon-1xl mr-1">
@@ -31,8 +32,7 @@
                             </svg> {{ $registro->cliente }}
                         </div>
                     </td>
-                    <td>{{ $registro->producto }}</td>
-
+                    <td>{{ $registro->desc_producto }}</td>
                     <td>
                         <svg class="c-icon c-icon-1xl">
                             <use
@@ -84,8 +84,9 @@
                                     'registros_no_cumplen' => session('registros_no_cumplen'),
                                 ])
                             @endif
-
-                            @if (strcmp($registro->estado, 'PENDIENTE') == 0 && $registro->visible == 'S')
+                            @if (strcmp($registro->estado, 'PENDIENTE') == 0 &&
+                                $registro->visible == 'S' &&
+                                strcmp($registro->proceso, 'carga_inicial') == 0)
                                 <form id="form-procesarCarga"
                                     action="{{ route('EaCabCargaInicialController.procesar') }}" method="post">
                                     @csrf

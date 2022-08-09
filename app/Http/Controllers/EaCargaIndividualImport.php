@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 
 use App\Models\EaCabeceraDetalleCarga;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use App\Http\Controllers\EaClienteController;
 use Illuminate\Support\Facades\Storage;

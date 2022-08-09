@@ -171,19 +171,32 @@
                         <div class="row content-center">
                             <form id="form-factura" action="{{ route('EaCargaIndividualExport.generarFactura') }}"
                                 method="get">
-                                <input type="hidden" name="carga_resp" value="{{ $registro->cod_carga }}">
-                                <input type="hidden" name="cliente" value="{{ $registro->cliente }}">
-                                <input type="hidden" name="producto" value="{{ $registro->producto }}">
-                                @csrf
-                                <button class="btn btn-warning mx-1" title="Facturacion" name="Facturacion"
-                                    id="btn_Facturacion" type="submit">
-                                    <svg class="c-icon c-icon-1xl">
-                                        <use
-                                            xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-description') }} ">
-                                        </use>
-                                    </svg>
-                                    <!-- free.svg#cil-description brand.svg#cib-libreoffice  free.svg#cil-task-->
-                                </button>
+                                @if (strcmp($registro->estado, 'PROCESADO') == 0)
+                                    <input type="hidden" name="carga_resp" value="{{ $registro->cod_carga }}">
+                                    <input type="hidden" name="cliente" value="{{ $registro->cliente }}">
+                                    <input type="hidden" name="producto" value="{{ $registro->producto }}">
+                                    @csrf
+                                    <button class="btn btn-warning mx-1" title="Facturacion" name="Facturacion"
+                                        id="btn_Facturacion" type="submit" >
+                                        <svg class="c-icon c-icon-1xl">
+                                            <use
+                                                xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-description') }} ">
+                                            </use>
+                                        </svg>
+                                        <!-- free.svg#cil-description brand.svg#cib-libreoffice  free.svg#cil-task-->
+                                    </button>
+                                @else
+                                    <button class="btn btn-warning mx-1" title="Facturacion" name="Facturacion"
+                                        id="btn_Facturacion" type="submit" disabled>
+                                        <svg class="c-icon c-icon-1xl">
+                                            <use
+                                                xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-description') }} ">
+                                            </use>
+                                        </svg>
+                                        <!-- free.svg#cil-description brand.svg#cib-libreoffice  free.svg#cil-task-->
+                                    </button>
+                                @endif
+
                             </form>
                         </div>
 
@@ -207,9 +220,10 @@
                                     <input type="hidden" name="carga_resp" value="{{ $registro->cod_carga }}">
                                     <input type="hidden" name="cliente" value="{{ $registro->cliente }}">
                                     <input type="hidden" name="producto" value="{{ $registro->producto }}">
-                                    <input type="hidden" name="desc_producto" value="{{ $registro->desc_producto }}">
-                                    <button class="btn btn-danger mx-1" title="borrar" name="borrar" id="btn_borrar"
-                                        type="submit">
+                                    <input type="hidden" name="desc_producto"
+                                        value="{{ $registro->desc_producto }}">
+                                    <button class="btn btn-danger mx-1" title="borrar" name="borrar"
+                                        id="btn_borrar" type="submit">
                                         <svg class="c-icon c-icon-1xl">
                                             <use
                                                 xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-x') }} ">
