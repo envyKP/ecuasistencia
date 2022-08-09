@@ -29,7 +29,9 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow
 
     public function collection(Collection $rows)
     {
-
+         \Log::info('inside colleccion IMPORT class EaGemCamImport');
+        // \Log::warning('Something could be going wrong.');
+        // \Log::error('Something is really going wrong.');
         $obj_detalle_debito = (new EaDetalleDebitoController);
         $obj_subproducto = (new EaSubproductoController);
         $obj_det_carga_corp = (new EaDetalleDebitoController);
@@ -92,7 +94,8 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow
                         //echo  '$this->cumple_validacion : ' . $this->cumple_validacion;
                         try {
 
-                            $existe =  $obj_detalle_debito->valida_resgistro_detalle_debito($this->cod_carga, $this->cliente, $this->producto, intval($row['vale']), $row);
+                            $existe =  $obj_detalle_debito->valida_resgistro_detalle_debito_INTER_TC($this->cod_carga, $this->cliente, $this->producto, intval($row['vale']), $row);
+                            
                         } catch (\Throwable $th) {
                             $this->err_insert++;
                             //$this->errorTecnico_1 = 'Error Insertando datos';
@@ -106,7 +109,7 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow
                 } else {
                     //echo 'no valida';
                     //no hay validaciones 
-                    $existe =  $obj_detalle_debito->valida_resgistro_detalle_debito($this->cod_carga, $this->cliente, $this->producto, intval($row['vale']), $row);
+                    $existe =  $obj_detalle_debito->valida_resgistro_detalle_debito_INTER_TC($this->cod_carga, $this->cliente, $this->producto, intval($row['vale']), $row);
                 }
             } else {
                 $this->condicion_2++;

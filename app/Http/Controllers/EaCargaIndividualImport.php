@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 
 use App\Models\EaCabeceraDetalleCarga;
-
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use App\Http\Controllers\EaClienteController;
 use Illuminate\Support\Facades\Storage;
@@ -16,6 +16,8 @@ use App\Http\Controllers\EaCabCargaInicialBitacoraController;
 use App\Http\Controllers\EaDetalleCargaCorpController;
 use App\Exports\EaReporteCargaInicialExport;
 use App\Models\EaCliente;
+use App\Exports\EaGenCamExport;
+use PhpOffice\PhpSpreadsheet\Calculation\TextData\Search;
 
 class EaCargaIndividualImport extends Controller
 {
@@ -40,6 +42,59 @@ class EaCargaIndividualImport extends Controller
         return view('cargaIndividualI.detalleCarga');
     }
 
+    public function search($request)
+    {
+        // $logFile = 'import.log';
+        //Log::useDailyFiles(storage_path().'/logs/'.$logFile);
+        //Log::info('This is some useful information.');
+        //Log::warning('Something could be going wrong.');
+        //Log::error('Something is really going wrong.');
+        if (is_null($request->cliente) && is_null($request->producto)) {
+            $msj = "Debe seleccionar al menos un filtro";
+            $error = "sinFiltro";
+        } else if (strcmp($request->filtro2, 'cliente') === 0  &&  strcmp($request->filtro3, 'producto') === 0 && strcmp($request->filtro4, 'subproducto') === 0) {
+            $subproducto = (new EaSubproductoController)->getSubproductoDetalle($request->cliente, $request->subproductoCMB);
+            $dataBusqueda = $this->getClientesHistCampaProdSub($request, $subproducto->desc_subproducto);
+            if (is_null($dataBusqueda)) {
+                $error = "notData";
+                $msj = "No existe informacion para el filtro: subproducto ";
+            } else {
+                $msj = "Cliente: " . $request->cliente . " Producto: " . $request->productoCMB . " Subproducto: " . $subproducto->desc_subproducto;
+            }
+        } else if (strcmp($request->filtro2, 'cliente') === 0 &&  strcmp($request->filtro3, 'producto') === 0) {
+            $dataBusqueda = $this->getClientesHistCampaProduc($request);
+            if (is_null($dataBusqueda)) {
+                $error = "notData";
+                $msj = "No existe informacion para el filtro: producto ";
+            } else {
+                $msj = "Cliente: " . $request->cliente . " Producto: " . $request->productoCMB;
+            }
+        } else if (strcmp($request->filtro2, 'cliente') === 0) {
+            $dataBusqueda = $this->getClienteHistcampana($request);
+            if (is_null($dataBusqueda)) {
+                $error = "notData";
+                $msj = "No existe informacion para el filtro de búsqueda: Cliente " . $request->cliente;
+            } else {
+                $msj = "Cliente: " . $request->cliente;
+            }
+        }
+        if (strcmp($request->filtro1, 'cedula_id') === 0  && is_null($request->cedula_id)) {
+            $msj = "Ingrese una identificación";
+            $error = "sinFiltro";
+        } else if (strcmp($request->filtro1, 'cedula_id') === 0) {
+            $msj = 'Identificación: ' . $request->cedula_id;
+            $dataBusqueda =  $this->getClienteHistced($request);
+            if (is_null($dataBusqueda)) {
+                $error = "notData";
+                $msj = 'No existe informacion para la identificación: ' . $request->cedula_id;
+            }
+        }
+        return redirect()->route('cargaIndividualI.home')->with([
+            'filtro' => isset($msj) ? $msj : '',
+            'data' => isset($dataBusqueda) ? $dataBusqueda : '',
+            'error' => isset($error) ? $error : ''
+        ]);
+    }
 
 
     /**
@@ -88,7 +143,7 @@ class EaCargaIndividualImport extends Controller
      */
     public function uploadArchivos(Request  $request)
     {
-       
+
         // los datos que envia el request $request->cod_carga  $request->cliente  $request->producto  $request->desc_producto
         // fec_carga ---> utilizado para insertar la ultima fecha en la que se realizo la carga
         $datosCab = $request->except('_token', 'filtro_cliente', 'filtro_producto', 'filtro_genera', 'estado_cabecera', 'registros_no_cumplen', 'row');
@@ -99,7 +154,7 @@ class EaCargaIndividualImport extends Controller
         //dd($datosCab);
         //modificacion     para adjuntar txt
         if (strtolower($extension) == 'xls' || strtolower($extension) == 'xlsx') {
-            $datosCab['fec_carga'] = Date('Y-m-d H:i:s');
+            $datosCab['fec_carga'] = Date('d/m/Y H:i:s');
             if ($request->hasfile('archivo')) {
                 $nombre_archivo = $request->file('archivo')->getClientOriginalName();
                 $datosCab['archivo'] = $request->file('archivo')->storeAs('lecturaDebito/' . $request->cliente . '/' . $request->desc_producto . '/' . $request->cod_carga, $nombre_archivo, 'public');
@@ -129,8 +184,6 @@ class EaCargaIndividualImport extends Controller
         $detalle_proceso['mensaje'] = isset($success) ? $success : $error;
         $detalle_proceso['registros_no_cumplen'] = isset($request->registros_no_cumplen) ? $request->registros_no_cumplen : '';
         //return 'ok';
-
-        
         //return response()->json(['success' => 'Contact form submitted successfully']);
         //dd(response()->json($detalle_proceso));
         return response()->json($detalle_proceso);
@@ -172,7 +225,7 @@ class EaCargaIndividualImport extends Controller
      */
     public function procesar(Request $request)
     {
-        
+
         $cabecera_update = array();
         $registroCarga = EaCabeceraDetalleCarga::where('cod_carga', $request->cod_carga)
             ->where('cliente', $request->cliente)
@@ -183,18 +236,18 @@ class EaCargaIndividualImport extends Controller
         if (!empty($import->detalle_proceso['errorTecnico'])) {
             $cabecera_update['estado'] = 'ERROR';
             $errorTecnico = $import->detalle_proceso['errorTecnico'];
-           
+
             $trx = $this->update_datos_cab_carga($registroCarga->cliente, $request->cod_carga, $request->producto, $cabecera_update);
         } else {
             try {
                 $cabecera_update['estado'] = 'PROCESADO';
-               $update_cab_carga =  $this->update_datos_cab_carga($registroCarga->cliente, $request->cod_carga, $request->producto, $cabecera_update);
+                $update_cab_carga =  $this->update_datos_cab_carga($registroCarga->cliente, $request->cod_carga, $request->producto, $cabecera_update);
             } catch (\Exception $e) {
-              
+
                 $errorTecnico = $e->getMessage();
             }
         }
-        
+
         return response()->json(['success' => 'Procesado Existosamente']);
     }
     /**
@@ -282,24 +335,37 @@ class EaCargaIndividualImport extends Controller
      * @return \Illuminate\Http\Response
      */
 
-    /*     public function destroy(Request $request)
+    public function destroy(Request $request)
     {
-        $registroCarga = EaCabeceraCargaCorp::where('cod_carga', $request->cod_carga)->first();
-        $pos_nombre_archivo = strpos($registroCarga->archivo, $registroCarga->cliente);
-        $nombre_archivo = explode("/", substr($registroCarga->archivo, $pos_nombre_archivo))[1];
-        //Storage::disk('public')->delete($registroCarga->archivo);
-        $trx = EaCabeceraCargaCorp::where('cod_carga', $request->cod_carga)->delete();
-        if ($trx) {
-            (new EaDetalleCargaCorpController)->truncate($request->cod_carga, $registroCarga->cliente);
+        \Log::info('FUNCION DESTROY: ');
+        \Log::warning('usuario que realiza la orden DESTROY: ' . \Auth::user()->username);
+        // \Log::warning('Something could be going wrong.');
+        // \Log::error('Something is really going wrong.');
+        $varcontrolsecuencia = (isset($request->carga_resp) ? strval($request->carga_resp) : null);
+        $detalle_subproducto = ((new EaSubproductoController)->getSubproductoDetalle($request->cliente, $request->producto));
+        $objEXPORT = new EaGenCamExport($request->cliente, $detalle_subproducto->desc_subproducto, $varcontrolsecuencia, $request->producto);
+        \Log::info('Request : ');
+        \Log::info('    $request->cliente : ' . $request->cliente);
+        \Log::info('    $request->producto : ' . $request->producto);
+        \Log::info('    varcontrolsecuencia : ' . $varcontrolsecuencia);
+        $row_insert_detalle['id_carga'] = $request->carga_resp;
+        $row_insert_detalle['producto'] = $request->producto;
+        $row_insert_detalle['subproducto'] = $request->producto;
+        $row_insert_detalle['cliente'] = $request->cliente;
+        $row_insert_detalle['estado'] = "0";
+        //dd($objEXPORT->is_carga_older());
+        if($varcontrolsecuencia == ($objEXPORT->is_carga_older()->id_carga)){
+            \Log::warning('se destruyo la carga :'.$row_insert_detalle['id_carga']);
+            $objEXPORT->destroy_cab_detalle($varcontrolsecuencia,$request->cliente,$request->producto);
+            $success = 'Borrado registros de : Id_carga'. $row_insert_detalle['id_carga'].' cliente-'. $row_insert_detalle['cliente'].' producto : '.$detalle_subproducto->desc_subproducto;
+        }else{
+            \Log::info('No pudo destruirse la carga');
+            $errorTecnico= 'disculpe el inconveniente no pudo eliminarse el reguistro por favor compruebe que no existe una carga superior al registro que desea eliminar';
         }
-        $cod_carga_b = EaCabeceraCargaCorp::where('estado', 'PENDIENTE')
-            ->where('proceso', 'carga_inicial')
-            ->min('cod_carga');
-        if ($cod_carga_b) {
-            EaCabeceraCargaCorp::where('cod_carga', $cod_carga_b)->update(['visible' => 'S']);
-        }
-        $error = 'Registros temporales del código de carga: ' . $request->cod_carga . '  eliminado del cliente: ' . $registroCarga->cliente;
-        return redirect()->route('cargaIndividualI.home.index')->with(compact('error'));
+        
+        return redirect()->route('EaCargaIndividualImport.index')->with([
+            'success' => isset($success) ? $success : '',
+            'errorTecnico' => isset($errorTecnico) ?  $errorTecnico  : ''
+        ]);
     }
-*/
 }

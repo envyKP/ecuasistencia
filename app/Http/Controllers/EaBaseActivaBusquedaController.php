@@ -19,12 +19,9 @@ class EaBaseActivaBusquedaController extends Controller
      */
     public function index()
     {
-
         $campanasAll = (new EaClienteController)->getAllCampanas();
-
         return view('busqueda.home')->with(compact('campanasAll'));
     }
-
     /**
      * Show the form for creating a new resource.
      *

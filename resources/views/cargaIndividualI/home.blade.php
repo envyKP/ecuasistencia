@@ -137,7 +137,7 @@
 
             $("#btn-genera").click(function() {
                 document.getElementById("processCargaDetalle").style.display = "block";
-
+                $(':button').prop('disabled', false);
             });
 
 
@@ -228,13 +228,10 @@
         window.onload = function() {
             var generacionVal = "{{ session('generacionVal') }}";
             if (generacionVal == '200') {
-              
+                document.getElementById("onloadForm").submit();
+                //$("#testForm").submit();
             }
-
         }
-
-
-
 
         function validate(formData, jqForm, options) {
             var form = jqForm[0];

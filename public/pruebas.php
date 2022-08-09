@@ -3,5 +3,7 @@
 require __DIR__.'/../vendor/autoload.php';
 
 
-$start = microtime(true);
-
+$input = 'sdsdsdsds';
+$date = strtotime($input);
+echo date('Y-m-d', $date);
+?>

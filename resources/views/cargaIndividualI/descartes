@@ -803,3 +803,50 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow
     @include('cargaIndividuali.cabecera')
     @include('cargaIndividuali.detalle')
 @endsection
+
+
+generacion/archivo/cargaIndividual/export/
+https: //localhost/ecuasistencia/public/generacion/archivo/cargaIndividual/
+    export ? _token = OmX6baIaYty8q0g3nIKy9XBZU5V9QlJV9DOLcuSf &
+    usuario_registra = sgavela & filtro_cliente = cliente &
+    cliente = INTER & filtro_producto = producto &
+    producto = 14 & filtro_genera = filtroGenera & btn - genera =
+    var dataString = "flag=fetchmediaaudio&id=" + id;
+        ?carga_resp=3&cliente=INTER&producto=14
+
+$.ajax({
+    type: "POST",
+    url: "ajax.php",
+    data: dataString,
+    success: function(html) {
+        alert(html);
+    }
+});
+https: //localhost/ecuasistencia/public/generacion/archivo/cargaIndividual/
+    export ? carga_resp = 3 & cliente = INTER & producto = 14
+    let form = JSON.stringify({
+            '_token': $('meta[name="csrf-token"]').attr('content'),
+            'carga_resp': carga_resp,
+            'cliente': cliente,
+            'producto': producto
+        });
+
+        /// funcional get 
+        window.onload = function() {
+            var generacionVal = "{{ session('generacionVal') }}";
+            if (generacionVal == '200') {
+                let url = '<?php echo url('generacion/archivo/cargaIndividual/export/'); ?>';
+                let cliente = "{{ session('cliente') }}";
+                let producto = "{{ session('producto') }}";
+                let carga_resp = "{{ session('carga_resp') }}";
+                var dataString = "_token="+$('meta[name="csrf-token"]').attr('content')
+                +"&cliente="+ cliente
+                +"&producto="+ producto
+                +"&carga_resp="+ carga_resp;
+                $.ajax({
+                    type: "GET",
+                    url: url,
+                    data: dataString,
+                });
+            }
+        }

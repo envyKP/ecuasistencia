@@ -140,14 +140,7 @@
                             <input type="hidden" name="estado_cabecera" value="{{ $estado_cabecera }}">
                             <input type="hidden" name="registros_no_cumplen" value="{{ $registros_no_cumplen }}">
                             <input type="hidden" name="usuario_actualiza" value="{{ \Auth::user()->username }}">
-                            <button class="btn btn-success" id="btn-generar_reporte" title="Subir Archivo"
-                                type="submit">
-                                <svg class="c-icon c-icon-1xl">
-                                    <use
-                                        xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-cloud-download') }} ">
-                                    </use>
-                                </svg> {{ 'Descargar reporte' }}
-                            </button>
+                           
                         </form>
                     </div>
                 @endif

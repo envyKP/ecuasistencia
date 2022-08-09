@@ -58,12 +58,19 @@ class EaCargaIndividualExport extends Controller
      */
     public function exporta(Request $request)
     {
-        
+        \Log::info('funcion exporta clase EaCargaIndividualExport');
+        \Log::warning('usuario que realiza la orden: ' . \Auth::user()->username);
+        // \Log::warning('Something could be going wrong.');
+        // \Log::error('Something is really going wrong.');
         $contenido = file_get_contents("../salsa.txt");
         $clave = Key::loadFromAsciiSafeString($contenido);
         $varcontrolsecuencia = (isset($request->carga_resp) ? strval($request->carga_resp) : null);
         $detalle_subproducto = ((new EaSubproductoController)->getSubproductoDetalle($request->cliente, $request->producto));
         $objEXPORT = new EaGenCamExport($request->cliente, $detalle_subproducto->desc_subproducto, $varcontrolsecuencia, $request->producto);
+        \Log::info('Request : ');
+        \Log::info('    $request->cliente : ' . $request->cliente);
+        \Log::info('    $request->producto : ' . $request->producto);
+        \Log::info('    varcontrolsecuencia : ' . $varcontrolsecuencia);
         $recorrido = $objEXPORT->generar();
         $ultima_carga = $objEXPORT->is_carga_older();
         $textoPlano = "";
@@ -177,8 +184,7 @@ class EaCargaIndividualExport extends Controller
                             $row_insert_detalle['detalle'] = null;
                             $row_insert_detalle['bin'] = $example;
                             $row_insert_detalle['fecha_generacion'] =  date('mY');
-                           // $objEXPORT->view_reg_state($row_insert_detalle);
-                            
+                            $objEXPORT->view_reg_state($row_insert_detalle);
                         }
                         //area de validaciones -- por el momemto quemada
                         $detallevalidacion = array('validacion_campo_1' => 'Establecimiento', 'validacion_valor_1' => $individual->cod_establecimiento);
@@ -309,7 +315,7 @@ class EaCargaIndividualExport extends Controller
             $file_reg_carga['fec_carga'] = $fecha_generacion;
             $file_reg_carga['usuario'] = \Auth::user()->username;
             $validoacion_par = json_encode($detallevalidacion);
-            //$objEXPORT->registro_cargas($file_reg_carga, $validoacion_par);
+            $objEXPORT->registro_cargas($file_reg_carga, $validoacion_par);
             $fileName = $request->cliente . "-" . $detalle_subproducto->desc_subproducto . "-" . date("d-m-Y") . "-" . (isset($ultima_carga->id_carga) ? $ultima_carga->id_carga : 1) . ".txt";
             //$request->cliente, $request->producto
             //$request->carga_resp
@@ -317,14 +323,14 @@ class EaCargaIndividualExport extends Controller
             return redirect()->route('EaCargaIndividualImport.index')->with([
                 'success' => isset($success) ? $success : '',
                 'generacionVal' => isset($success) ? '200' : '',
-                'carga_resp' => ($id_carga+1),
+                'carga_resp' => ($id_carga + 1),
                 'producto' => isset($request->producto) ? $request->producto : '',
-                'cliente' => isset($request->clinte) ? $request->clinte : '',
+                'cliente' => isset($request->cliente) ? $request->cliente : '',
                 'errorTecnico' => isset($errorTecnico) ?  $errorTecnico  : '',
                 'registros_no_cumplen' => isset($registros_no_cumplen) ? $registros_no_cumplen : ''
             ]);
         } else {
-            $fileName = $request->cliente . "-" . $detalle_subproducto->desc_subproducto . "-" . date("d-m-Y") . "-" .(isset($ultima_carga->id_carga) ? $ultima_carga->id_carga : 1).  ".txt";
+            $fileName = $request->cliente . "-" . $detalle_subproducto->desc_subproducto . "-" . date("d-m-Y") . "-" . (isset($ultima_carga->id_carga) ? $ultima_carga->id_carga : 1) .  ".txt";
             $headers = [
                 'Content-type' => 'text/plain',
                 'Content-Disposition' => sprintf('attachment; filename="%s"', $fileName),
@@ -416,6 +422,7 @@ class EaCargaIndividualExport extends Controller
      */
     public function generarFactura(Request $request)
     {
+        \Log::info('funcion generarFactura clase EaCargaIndividualExport');
         $varcontrolsecuencia = (isset($request->carga_resp) ? strval($request->carga_resp) : null);
         $detalle_subproducto = ((new EaSubproductoController)->getSubproductoDetalle($request->cliente, $request->producto));
         // $objEXPORT = new EaGenCamExport($request->cliente, $detalle_subproducto->desc_subproducto, $varcontrolsecuencia, $request->producto);

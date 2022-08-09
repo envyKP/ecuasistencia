@@ -170,7 +170,7 @@ Route::middleware(['auth', 'prevent-back-history', 'isAdmin'])->group(function (
     Route::post('recepcion/archivo/financiero/subirArchivo/', [EaRecepArchiFinanController::class, 'uploadArchivos'])->name('EaRecepArchiFinanController.uploadArchivos');
     Route::post('recepcion/archivo/financiero/destroy/', [EaRecepArchiFinanController::class, 'destroy'])->name('EaRecepArchiFinanController.destroy');
     Route::post('recepcion/archivo/financiero/procesar/', [EaRecepArchiFinanController::class, 'procesar'])->name('EaRecepArchiFinanController.procesar');
-///////////////////////// cambio KPE Cargas
+    ///////////////////////// cambio KPE Cargas
     //Route::get('generacion/archivo/cargaIndividual/index/', [EaCargaIndividualExport::class, 'index'])->name('EaCargaIndividualExport.index');
     //Route::post('generacion/archivo/cargaIndividual/destroy/', [EaCargaIndividualExport::class, 'destroy'])->name('EaCargaIndividualExport.destroy');
     Route::get('generacion/archivo/cargaIndividual/export/', [EaCargaIndividualExport::class, 'exporta'])->name('EaCargaIndividualExport.exporta');
@@ -178,11 +178,13 @@ Route::middleware(['auth', 'prevent-back-history', 'isAdmin'])->group(function (
 
     Route::get('recepcion/archivo/cargaIndividual/index/', [EaCargaIndividualImport::class, 'index'])->name('EaCargaIndividualImport.index');
     Route::get('recepcion/archivo/cargaIndividual/detalleCarga/', [EaCargaIndividualImport::class, 'detalleCarga'])->name('EaCargaIndividualImport.detalleCarga');
+    Route::post('recepcion/archivo/cargaIndividual/destroy/', [EaCargaIndividualImport::class, 'destroy'])->name('EaCargaIndividualImport.destroy');
     Route::post('recepcion/archivo/cargaIndividual/subirArchivo/', [EaCargaIndividualImport::class, 'uploadArchivos'])->name('EaCargaIndividualImport.uploadArchivos');
     //Route::post('recepcion/archivo/cargaIndividual/subirArchivo/', [EaCargaIndividualImport::class, 'uploadArchivos'])->name('EaCargaIndividualImport.uploadArchivos');
     Route::post('recepcion/archivo/cargaIndividual/destroy/', [EaCargaIndividualImport::class, 'destroy'])->name('EaCargaIndividualImport.destroy');
     Route::post('recepcion/archivo/cargaIndividual/procesar/', [EaCargaIndividualImport::class, 'procesar'])->name('EaCargaIndividualImport.procesar');
-//////////////////////////////////////////////////////
+
+    //////////////////////////////////////////////////////
 
 });
 

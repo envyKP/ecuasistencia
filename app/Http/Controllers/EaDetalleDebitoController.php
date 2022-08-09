@@ -66,7 +66,9 @@ class EaDetalleDebitoController extends Controller
             ->where('producto', $producto)
             ->update($datos);
     }
-    public function valida_resgistro_detalle_debito($cod_carga, $cliente, $producto, $secuencia,$row)
+
+    //modificacion por INTER TC
+    public function valida_resgistro_detalle_debito_INTER_TC($cod_carga, $cliente, $producto, $secuencia,$row)
     {
       return   EaDetalleDebito::where('id_carga', $cod_carga)
             ->where('cliente' , $cliente)

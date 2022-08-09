@@ -556,7 +556,7 @@
   ),
   'logging' => 
   array (
-    'default' => 'stack',
+    'default' => 'daily',
     'channels' => 
     array (
       'stack' => 
@@ -564,9 +564,8 @@
         'driver' => 'stack',
         'channels' => 
         array (
-          0 => 'single',
+          0 => 'daily',
         ),
-        'ignore_exceptions' => false,
       ),
       'single' => 
       array (
@@ -579,7 +578,7 @@
         'driver' => 'daily',
         'path' => 'C:\\wamp\\www\\ecuasistencia\\storage\\logs/laravel.log',
         'level' => 'debug',
-        'days' => 14,
+        'days' => 7,
       ),
       'slack' => 
       array (
