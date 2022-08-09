@@ -5,7 +5,7 @@ namespace App\Exports;
 use App\Models\EaBaseActiva;
 use App\Models\EaSubproducto;
 use App\Models\EaDetalleDebito;
-use App\Models\EaCabeceraCargaCorpBitacora;
+use App\Models\EaCabeceraDetalleCarga;
 use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\FromView;
 use Illuminate\Support\Collection;
@@ -31,7 +31,7 @@ Sheet::macro('styleCells', function (Sheet $sheet, string $cellRange, array $sty
     $sheet->getDelegate()->getStyle($cellRange)->applyFromArray($style);
 });
 
-class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder implements WithEvents, FromCollection, WithHeadings, ShouldAutoSize,WithColumnFormatting,WithCustomValueBinder
+class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder implements WithEvents, FromCollection, WithHeadings, ShouldAutoSize, WithColumnFormatting, WithCustomValueBinder
 {
 
 
@@ -60,7 +60,10 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
                     } else {
                         $carga_secuencia = $detalles->id_carga;
                     }
+                    ///dd($carga_secuencia);
                     $this->cod_carga_corp = $detalles->id_carga;
+                    \Log::info('$carga_secuencia : ' . $carga_secuencia);
+                    \Log::info('condicion - secuencia - mes - Cliente : INTER TC');
                     return EaBaseActiva::join("ea_subproductos", "ea_subproductos.desc_subproducto", "=", "ea_base_activa.subproducto")
                         ->join("ea_detalle_debito", "ea_detalle_debito.id_sec", "=", "ea_base_activa.id_sec")
                         ->select(
@@ -104,6 +107,7 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
 
                     //->where('ea_detalle_debito.producto', $this->producto)
                 } else {
+                    \Log::info('condicion - Inicio - mes - Cliente : INTER TC');
                     return  EaBaseActiva::join("ea_subproductos", "ea_subproductos.contrato_ama", "=", "ea_base_activa.producto")
                         ->select(
                             'ea_base_activa.id_sec',
@@ -426,11 +430,8 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
     public function view_reg_state(array $rows)
     {
         //MODIFICAR EN EL FUTURO LA TABLA QUE SE DEBE INSERTAR O CREAR UN ALTER ESPÉCIFICO PARA PRODUBANCO DEBIDO A QUE ESTE NO CUENTA CON EL CAMPO SECUENCIA
-
-
-
+        
         try {
-
             EaDetalleDebito::create([
                 'id_carga' => isset($rows['id_carga']) ? $rows['id_carga'] + 1 : null,
                 'id_sec' => isset($rows['id_sec']) ? trim($rows['id_sec']) : null,
@@ -443,15 +444,46 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
                 'subproducto_id' => isset($this->id_subproducto) ? trim($this->id_subproducto) : '',
             ]);
         } catch (\Exception $e) {
+            \Log::warning('error view_reg_state:  ' . $e);
             // $obj_det_carga_corp->truncate($this->cod_carga, $this->cliente );
             $this->errorTecnico = $e->getMessage();
         }
     }
 
-    public function registro_cargas(array $rows)
+    public function destroy_cab_detalle($cod_carga, $cliente, $producto)
+    {
+        \Log::warning('funcion destroy_cab_detalle class EaGenCamExport by user ' . \Auth::user()->username);
+        try {
+            \Log::warning('EaDetalleDebito::where(id_carga,' . $cod_carga . ')->where(cliente, ' . $cliente . ')
+            ->where(subproducto_id, ' . $producto . ')
+            ->delete();');
+
+            EaDetalleDebito::where('id_carga', $cod_carga)
+                ->where('cliente', $cliente)
+                ->where('subproducto_id', $producto)
+                ->delete();
+
+            \Log::warning('EaDetalleDebito::where(id_carga,' . $cod_carga . ')->where(cliente, ' . $cliente . ')
+            ->where(subproducto_id, ' . $producto . ')
+            ->delete();');
+            
+            EaCabeceraDetalleCarga::where('cod_carga', $cod_carga)
+                ->where('cliente', $cliente)
+                ->where('producto', $producto)
+                ->delete();
+
+        } catch (\Exception $e) {
+            \Log::warning('error view_reg_state:  ' . $e);
+            // $obj_det_carga_corp->truncate($this->cod_carga, $this->cliente );
+            $this->errorTecnico = $e->getMessage();
+        }
+    }
+
+    public function registro_cargas(array $rows, $validoacion_par)
     {
         try {
-            EaCabeceraCargaCorpBitacora::create([
+
+            EaCabeceraDetalleCarga::create([
                 'cod_carga' => isset($rows['cod_carga']) ? $rows['cod_carga'] + 1 : null,
                 'fecha_actualizacion' => isset($row['fecha_actualizacion']) ? $rows['fecha_actualizacion'] : '',
                 'fec_registro' => isset($rows['fecha_registro']) ? trim($rows['fecha_registro']) : null,
@@ -463,6 +495,7 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
                 'usuario_registra' => isset($rows['usuario']) ? trim($rows['usuario']) : null,
                 'estado' => 'PENDIENTE',
                 'is_det_debito' => '1',
+                'opciones_validacion' => $validoacion_par,
             ]);
         } catch (\Exception $e) {
             // $obj_det_carga_corp->truncate($this->cod_carga, $this->cliente );
@@ -483,14 +516,13 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
 
 
 
-        return $this->collection =  EaBaseActiva::join("ea_detalle_debito", "ea_detalle_debito.id_sec", "=", "ea_base_activa.id_sec")
+        $this->collection =  EaBaseActiva::join("ea_detalle_debito", "ea_detalle_debito.id_sec", "=", "ea_base_activa.id_sec")
             ->select(
                 'ea_base_activa.cedula_id',
                 'ea_base_activa.nombre',
                 EaBaseActiva::raw("'S/N' as 'Dirección Cliente'"),
                 EaBaseActiva::raw("'S/N' as 'Correo Cliente'"),
                 EaBaseActiva::raw("'0' as 'Cta / TC'"),
-                //EaBaseActiva::raw("FORMAT (getdate(), 'yyyyMMdd') as 'Fecha Débito'"),
                 'ea_detalle_debito.fecha_actualizacion',
                 'ea_detalle_debito.valor_debitado'
             )
@@ -501,9 +533,24 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
             ->orderby('ea_base_activa.cedula_id')
             ->get();
 
+        //$completo = $this->collection;
+
+        foreach ($this->collection as $individual) {
+
+            $input =  $individual->fecha_actualizacion;
+            $date = strtotime($input);
+            $individual->fecha_actualizacion = date('Y-m-d', $date);
+            //en caso de error al parsear la fecha
+            if ($individual->fecha_actualizacion == '1970-01-01') {
+                $individual->fecha_actualizacion = 'Date Parse Error , fecha registrada = ' . $input;
+            }
+        }
 
 
-        /*
+        return $this->collection;
+    }
+
+    /*
         ,
                
                 "IFNULL(ea_detalle_debito.valor_debitado, 'null')"
@@ -523,8 +570,8 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
         ->orderby('ea_base_activa.cedula_id')
         ->get();*/
 
-        //return @json_decode(json_encode($obj_facturacion), true);
-    }
+    //return @json_decode(json_encode($obj_facturacion), true);
+
 
     public function headings(): array
     {
@@ -619,8 +666,6 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
                         ],
                     ]
                 );*/
-
-
             },
         ];
     }

@@ -23,6 +23,13 @@
                         </button>
                     </div>
                 </div>
+                <form id="onloadForm" action="{{ route('EaCargaIndividualExport.exporta') }}"method="get"
+                    enctype="multipart/form-data" accept-charset="utf-8">
+                    @csrf
+                    <input type="hidden" name="carga_resp" value="{{ session('carga_resp') }}">
+                    <input type="hidden" name="cliente" value="{{ session('cliente') }}">
+                    <input type="hidden" name="producto" value="{{ session('producto') }}">
+                </form>
             @endif
             @if (session('error'))
                 <div class="col-sm-12 col-md-12">
@@ -52,6 +59,15 @@
 <div class="row">
     <div class="col">
         <div class="card">
+            <div class="card-header">
+                <svg class="c-icon c-icon-1xl mr-2">
+                    <use xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-filter') }} ">
+                    </use>
+                </svg>
+                <strong id="label-buscar" style="visibility:hidden">{{ 'Filtros de búsqueda' }}</strong>
+                <button class="btn btn-outline-success mx-2 my-2 my-sm-0" id="btn-buscar" style="visibility:hidden"
+                    type="submit">{{ 'Buscar' }}</button>
+            </div>
             <!-- <div class="card-header"><strong>Credit Card</strong> <small>Form</small></div> -->
             <div class="card-body">
                 <form id="form-generar" action="{{ route('EaCargaIndividualExport.exporta') }}"method="get"
@@ -89,13 +105,15 @@
                                         <span class="input-group-text form-control">
                                             <label class="c-switch c-switch-label c-switch-success mt-2">
                                                 <input class="c-switch-input" type="checkbox" name="filtro_producto"
-                                                    id="filtro_producto" value="producto"><span class="c-switch-slider"
-                                                    data-checked="On" data-unchecked="Off"></span>
+                                                    id="filtro_producto" value="producto"><span
+                                                    class="c-switch-slider" data-checked="On"
+                                                    data-unchecked="Off"></span>
                                             </label>
                                             <strong class="ml-1"> {{ 'Por Producto: ' }} </strong>
                                         </span>
                                     </div>
-                                    <select class="form-control" name="producto" id="producto" style="display:none">
+                                    <select class="form-control" name="producto" id="producto"
+                                        style="display:none">
                                         <option value="" selected>{{ 'Seleccione Producto' }}</option>
                                     </select>
                                 </div>
@@ -118,7 +136,8 @@
                                         </span>
                                     </div>
                                     <button class="btn btn-info" id="btn-genera" name="btn-genera"
-                                        title="Generar Carga" type="submit" style="display:none" disabled>
+                                        onclick="evgenera()" title="Generar Carga" type="submit"
+                                        style="display:none" disabled>
                                         <svg class="c-icon c-icon-1xl">
                                             <use
                                                 xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-cloud-download') }} ">
@@ -134,12 +153,9 @@
         </div>
     </div>
     <br>
-    <div class="col-sm-12 form-group" id="processCarga" style="display:none">
+    <div class="col-sm-12 form-group" id="processCargaDetalle" style="display:none">
         <strong>{{ 'Procesando...' }}</strong>
-        <div class="progress">
-            <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" role="progressbar"
-                aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%"></div>
-        </div>
+        <progress class="col-sm-12" max="100">100%</progress>
     </div>
     @if (session('errorTecnico'))
         <div class="col-sm-12 col-md-12">

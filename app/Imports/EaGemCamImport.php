@@ -3,6 +3,7 @@
 namespace App\Imports;
 
 use App\Models\EaDetalleCargaCorp;
+use App\Models\EaOpcionesCargaCliente;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\SkipsErrors;
@@ -11,7 +12,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use App\Http\Controllers\EaBaseActivaController;
-use App\Http\Controllers\EaDetalleCargaCorpController;
+use App\Http\Controllers\EaSubproductoController;
+use App\Http\Controllers\EaDetalleDebitoController;
+use App\Models\EaDetalleDebito;
 
 class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow
 {
@@ -20,89 +23,104 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow
      * @param array $row
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Database\Eloquent\Model|null
+     *  custom code -- field name (extract to subproduct, if case  )
+     * //0 no existe 1 toma el string , 2 toma la posicion(celda excel experimental) , 2 toma la posicion(caracteres que se tiene que saltar) 
      */
 
     public function collection(Collection $rows)
     {
-
-        $obj_base_activa = (new EaBaseActivaController);
-        $obj_det_carga_corp = (new EaDetalleCargaCorpController);
+         \Log::info('inside colleccion IMPORT class EaGemCamImport');
+        // \Log::warning('Something could be going wrong.');
+        // \Log::error('Something is really going wrong.');
+        $obj_detalle_debito = (new EaDetalleDebitoController);
+        $obj_subproducto = (new EaSubproductoController);
+        $obj_det_carga_corp = (new EaDetalleDebitoController);
         $registros_duplicados = array();
         $registros_archivos = array();
-
+        $datos_subproductos = $obj_subproducto->getSubproductoDetalle($this->cliente, $this->producto);
+        $op_client = EaOpcionesCargaCliente::where('cliente', $this->cliente)->where('subproducto', $this->producto)->first();
+        $opciones_validacion = json_decode($op_client->opciones_validacion, true);
+        //$datos_validacion = EaOpcionesCargaCliente::where();{"validacion_campo_1":"Establecimiento","validacion_valor_1":"873134"}
         foreach ($rows as $row) {
+            if (is_null($row['vale']) != 1) {
+                //bloque condiciones
+                //echo $opciones_validacion["validacion_campo_1"];
+                //dd([strtolower($opciones_validacion['validacion_valor_' . (0 + 1)])]);
 
-            if ($row['Fecha_autorizacion']) {
-                // debito exitoso
-                $row['Establecimiento'];
-                $row['vale'];
-                $row['tarjeta']; //idea bin 
-                $row['recap'];
-                $row['tipo consumo'];
-                //debito no exitos
-                $row['cod Error'];
-                $row['descripcion'];
-                $row['Establecimiento']; //idea bin 
-                $row['recap'];
-                $row['vale'];
-                $row['tarjeta'];
-            }
+                //bloque validaciones
+                if (is_null($opciones_validacion) != 1 || $opciones_validacion != '') {
+                    $this->condicion_3 = 0;
+                    // echo ($row[strtolower($opciones_validacion['validacion_campo_' . (1)])]);
+                    //dd(strtolower($opciones_validacion['validacion_valor_' . (1)]));
+                    for ($i = 0; $i < (count($opciones_validacion) / 2); $i++) {
+                        if ($row[strtolower($opciones_validacion['validacion_campo_' . ($i + 1)])]  == strtolower($opciones_validacion['validacion_valor_' . ($i + 1)])) {
 
-            !empty($row['vale']) ? $this->total_registros_archivo++ : '';
+                            $this->condicion_3++;
+                            //dd($this->condicion_3);
+                        }
+                    }
+                    $this->condicio_1++;
+                    //echo 'condicion 3 :'.$this->condicion_3;
+                    //echo '--------- ';
+                    //echo '(count($opciones_validacion) / 2) : '.(count($opciones_validacion) / 2);
+                    if ($this->condicion_3 == (count($opciones_validacion) / 2)) {
+                        // echo 'usuario o row : ' . $this->condicio_1;
+                        // echo 'cumple expectativa de condicion ';
+                        $this->cumple_validacion = 1;
+                    } else {
+                        $this->cumple_validacion = 0;
+                        $this->condicion_4++;
+                    }
+                    ////////
+                    //bloque INTER TC -- solo para internacional credito
+                    //dd($datos_subproductos);
+                    if ($datos_subproductos->cliente == 'INTER' && $datos_subproductos->tipo_subproducto == 'TC') {
+                        if (is_null($row['fecha_autorizacion']) == 1) {
+                            $row['total'] = null;
+                            $row['estado'] = 0;
+                        } else {
+                            //dd($row['descripcion']);
+                            if ($row['descripcion'] == "PROCESO OK") {
+                                $row['estado'] = 1;
+                            } else {
+                                $row['estado'] = 0;
+                            }
+                        }
+                    }
+                    //echo  'estado : ' . $row['estado'];
 
-            if (!empty($row['nombre_completo']) && !empty($row['cedula']) && (!empty($row['telf1']) || !empty($row['telf2']) || !empty($row['telf3']) || !empty($row['telf4']) || !empty($row['telf5']) || !empty($row['telf6']) || !empty($row['telf7']))) {
-
-
-                $registros_archivos['cedula'] = $row['cedula'];
-                array_push($registros_duplicados,  $registros_archivos);
-                $existe =  $obj_base_activa->valida_resgistro_base_activa($this->cliente, $row['cedula'], $this->producto);
-                if (isset($existe)) {
-                    $this->total_registros_disponibles_gestion++;
-                    $reg_duplicado = $obj_det_carga_corp->existe_registro($this->cod_carga, $this->cliente, $row['vale']);
-                    if (!$reg_duplicado) {
-                        # code...
+                    //
+                    if ($this->cumple_validacion == 1) {
+                        //echo  '$this->cumple_validacion : ' . $this->cumple_validacion;
                         try {
-                            EaDetalleCargaCorp::create([
-                                'id_carga' => isset($this->cod_carga)  ? $this->cod_carga : '',
-                                'cliente' => isset($this->cliente) ? trim($this->cliente) : '',
-                                'producto' => isset($this->producto)  ? $this->producto : '',
-                                'cliente' => isset($this->cliente)  ? $this->cliente : '',
-                                'secuencia' => isset($row['vale']) ? trim($row['vale']) : null,
-                                'detalle' => isset($row['Descripción']) ? (isset($row['Cod Error']) ? $row['Cod Error'] : "") . "-" . $row['Descripción'] : '',
-                                'Establecimiento' => isset($row['Establecimiento']) ? trim($row['Establecimiento']) : null,
-                                'bin' => isset($row['Tarjeta']) ? substr($row['Tarjeta'], 0, 6) : null,
-                                'fecha_registro' => Date('d/m/Y H:i:s'),
-                                'fecha_actualizacion' => Date('d/m/Y H:i:s'),
-                                'estado' => isset($row['fecha_autorizacion']) ? '1' : null
-                            ]);
-                        } catch (\Exception $e) {
-                            $obj_det_carga_corp->truncate($this->cod_carga, $this->cliente);
-                            $this->errorTecnico = $e->getMessage();
+
+                            $existe =  $obj_detalle_debito->valida_resgistro_detalle_debito_INTER_TC($this->cod_carga, $this->cliente, $this->producto, intval($row['vale']), $row);
+                            
+                        } catch (\Throwable $th) {
+                            $this->err_insert++;
+                            //$this->errorTecnico_1 = 'Error Insertando datos';
+                            $this->errorTecnico_1 = 'ERROR';
                         }
                     } else {
-                        $this->total_registros_duplicados++;
+                        $this->err_validacion++;
+                        $this->errorTecnico_1 = 'ERROR';
+                        //$this->errorTecnico_1 = 'Error en las validaciones';
                     }
                 } else {
-                    $this->total_registros_gestionados_otras_campanas++;
+                    //echo 'no valida';
+                    //no hay validaciones 
+                    $existe =  $obj_detalle_debito->valida_resgistro_detalle_debito_INTER_TC($this->cod_carga, $this->cliente, $this->producto, intval($row['vale']), $row);
                 }
             } else {
-                if (!empty($row['ordinal'])) {
-                    $this->total_registros_sin_infor++;
-                    $linea['nombre_completo'] =  isset($row['nombre_completo']) ? $row['nombre_completo'] : '';
-                    array_push($this->registros_no_cumplen, $linea);
-                    $linea = null;
-                }
+                $this->condicion_2++;
             }
         }
-
-        $this->detalle_proceso['errorTecnico'] = $this->errorTecnico;
-        $this->detalle_proceso['total_registros_archivo'] = $this->total_registros_archivo;
-        $this->detalle_proceso['total_registros_disponibles_gestion'] = $this->total_registros_disponibles_gestion;
-        $this->detalle_proceso['total_registros_gestionados_otras_campanas'] = $this->total_registros_gestionados_otras_campanas;
-        $this->detalle_proceso['registros_no_cumplen'] = $this->registros_no_cumplen;
-        $this->detalle_proceso['total_registros_duplicados'] = $this->total_registros_duplicados;
-        $this->detalle_proceso['total_registros_sin_infor'] = $this->total_registros_sin_infor;
-
+        $this->detalle_proceso['valido'] = $this->condicio_1;
+        $this->detalle_proceso['vacio'] = $this->condicion_2;
+        $this->detalle_proceso['error_insertar'] = $this->err_insert;
+        $this->detalle_proceso['error_validacion'] =  $this->err_validacion;
+        $this->detalle_proceso['error_msg'] = $this->errorTecnico_1;
+        $this->detalle_proceso['condicion_validacion'] = $this->condicion_3;
         return $this->detalle_proceso;
     }
 
@@ -115,18 +133,24 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow
     }
 
 
+
+    // producto = Es el ID de subproducto
     public function __construct(int $cod_carga, string $cliente, string $producto)
     {
         $this->cliente = $cliente;
         $this->cod_carga = $cod_carga;
         $this->producto = $producto;
-        $this->total_registros_archivo = 0;
-        $this->total_registros_gestionados_otras_campanas = 0;
-        $this->total_registros_disponibles_gestion = 0;
-        $this->total_registros_sin_infor = 0;
-        $this->total_registros_duplicados = 0;
-        $this->errorTecnico = '';
+        $this->condicio_1 = 0;
+        $this->condicion_2 = 0;
+        $this->condicion_3 = 0;
+        $this->condicion_4 = 0;
+        $this->err_insert = 0;
+        $this->err_validacion = 0;
+        $this->cumple_validacion = 0;
+        $this->errorTecnico_1 = '';
         $this->detalle_proceso = array();
-        $this->registros_no_cumplen = array();
     }
 }
+/*
+
+

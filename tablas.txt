@@ -1,0 +1,122 @@
+-- desa_ecuasisec_db.dbo.ea_cabecera_detalle_carga definition
+
+-- Drop table
+
+-- DROP TABLE desa_ecuasisec_db.dbo.ea_cabecera_detalle_carga;
+
+CREATE TABLE desa_ecuasisec_db.dbo.ea_cabecera_detalle_carga (
+	cod_carga bigint NOT NULL,
+	proceso varchar(50) COLLATE Modern_Spanish_CI_AS NULL,
+	cliente varchar(20) COLLATE Modern_Spanish_CI_AS NOT NULL,
+	producto varchar(15) COLLATE Modern_Spanish_CI_AS NULL,
+	desc_producto varchar(100) COLLATE Modern_Spanish_CI_AS NULL,
+	fec_carga varchar(19) COLLATE Modern_Spanish_CI_AS NULL,
+	archivo varchar(100) COLLATE Modern_Spanish_CI_AS NULL,
+	usuario_registra varchar(25) COLLATE Modern_Spanish_CI_AS NOT NULL,
+	fec_registro varchar(19) COLLATE Modern_Spanish_CI_AS NULL,
+	estado varchar(20) COLLATE Modern_Spanish_CI_AS NOT NULL,
+	is_det_debito int NULL,
+	usuario_actualiza varchar(25) COLLATE Modern_Spanish_CI_AS NULL,
+	custom_code varchar(100) COLLATE Modern_Spanish_CI_AS NULL,
+	n_custom_code varchar(100) COLLATE Modern_Spanish_CI_AS NULL,
+	opciones_validacion varchar(150) COLLATE Modern_Spanish_CI_AS NULL
+);
+
+
+-- desa_ecuasisec_db.dbo.ea_detalle_debito definition
+
+-- Drop table
+
+-- DROP TABLE desa_ecuasisec_db.dbo.ea_detalle_debito;
+
+CREATE TABLE desa_ecuasisec_db.dbo.ea_detalle_debito (
+	id_sec bigint NOT NULL,
+	id_carga int NULL,
+	secuencia int NULL,
+	fecha_actualizacion varchar(25) COLLATE Modern_Spanish_CI_AS NULL,
+	fecha_registro varchar(25) COLLATE Modern_Spanish_CI_AS NULL,
+	producto varchar(50) COLLATE Modern_Spanish_CI_AS NULL,
+	cliente varchar(20) COLLATE Modern_Spanish_CI_AS NULL,
+	estado varchar(10) COLLATE Modern_Spanish_CI_AS NULL,
+	detalle varchar(100) COLLATE Modern_Spanish_CI_AS NULL,
+	fecha_generacion varchar(10) COLLATE Modern_Spanish_CI_AS NULL,
+	subproducto_id varchar(100) COLLATE Modern_Spanish_CI_AS NULL,
+	valor_debitado varchar(10) COLLATE Modern_Spanish_CI_AS NULL
+);
+
+
+-- desa_ecuasisec_db.dbo.ea_detalle_debito foreign keys
+
+ALTER TABLE desa_ecuasisec_db.dbo.ea_detalle_debito ADD CONSTRAINT FK__ea_detall__artis__43C1049E FOREIGN KEY (id_sec) REFERENCES desa_ecuasisec_db.dbo.ea_base_activa(id_sec);
+
+
+-- desa_ecuasisec_db.dbo.ea_opciones_carga_cliente definition
+
+-- Drop table
+
+-- DROP TABLE desa_ecuasisec_db.dbo.ea_opciones_carga_cliente;
+
+CREATE TABLE desa_ecuasisec_db.dbo.ea_opciones_carga_cliente (
+	codigo_id varchar(4) COLLATE Modern_Spanish_CI_AS NOT NULL,
+	cliente varchar(15) COLLATE Modern_Spanish_CI_AS NULL,
+	tipo_subproducto varchar(20) COLLATE Modern_Spanish_CI_AS NULL,
+	subproducto varchar(100) COLLATE Modern_Spanish_CI_AS NULL,
+	nc_fecha_debito varchar(50) COLLATE Modern_Spanish_CI_AS NULL,
+	pc_fecha_debito varchar(50) COLLATE Modern_Spanish_CI_AS NULL,
+	fecha_debito_enable varchar(10) COLLATE Modern_Spanish_CI_AS NULL,
+	descripcion_debito_enable varchar(10) COLLATE Modern_Spanish_CI_AS NULL,
+	nc_descripcion varchar(50) COLLATE Modern_Spanish_CI_AS NULL,
+	pc_descripcion varchar(50) COLLATE Modern_Spanish_CI_AS NULL,
+	archivo_nombre varchar(50) COLLATE Modern_Spanish_CI_AS NULL,
+	opciones_validacion varchar(150) COLLATE Modern_Spanish_CI_AS NULL,
+	CONSTRAINT PK_ea_opciones_carga_cliente PRIMARY KEY (codigo_id)
+);
+
+INSERT INTO desa_ecuasisec_db.dbo.ea_opciones_carga_cliente
+(codigo_id, cliente, tipo_subproducto, subproducto, nc_fecha_debito, pc_fecha_debito, fecha_debito_enable, descripcion_debito_enable, nc_descripcion, pc_descripcion, archivo_nombre, opciones_validacion)
+VALUES(N'1', N'INTER', N'CTAS', N'13', N'Fecha Autorización', NULL, N'1', N'1', N'Descripción', NULL, NULL, NULL);
+INSERT INTO desa_ecuasisec_db.dbo.ea_opciones_carga_cliente
+(codigo_id, cliente, tipo_subproducto, subproducto, nc_fecha_debito, pc_fecha_debito, fecha_debito_enable, descripcion_debito_enable, nc_descripcion, pc_descripcion, archivo_nombre, opciones_validacion)
+VALUES(N'10', N'INTER', N'TC', N'22', N'Fecha Autorización', N'11', N'1', N'1', N'Descripción', N'1', NULL, N'{"validacion_campo_1":"Establecimiento","validacion_valor_1":"876406"}');
+INSERT INTO desa_ecuasisec_db.dbo.ea_opciones_carga_cliente
+(codigo_id, cliente, tipo_subproducto, subproducto, nc_fecha_debito, pc_fecha_debito, fecha_debito_enable, descripcion_debito_enable, nc_descripcion, pc_descripcion, archivo_nombre, opciones_validacion)
+VALUES(N'11', N'INTER', N'CTAS', N'23', N'Fecha Autorización', NULL, N'1', N'1', N'Descripción', NULL, NULL, NULL);
+INSERT INTO desa_ecuasisec_db.dbo.ea_opciones_carga_cliente
+(codigo_id, cliente, tipo_subproducto, subproducto, nc_fecha_debito, pc_fecha_debito, fecha_debito_enable, descripcion_debito_enable, nc_descripcion, pc_descripcion, archivo_nombre, opciones_validacion)
+VALUES(N'12', N'INTER', N'TC', N'24', N'Fecha Autorización', N'11', N'1', N'1', N'Descripción', N'1', NULL, N'{"validacion_campo_1":"Establecimiento","validacion_valor_1":"888671"}');
+INSERT INTO desa_ecuasisec_db.dbo.ea_opciones_carga_cliente
+(codigo_id, cliente, tipo_subproducto, subproducto, nc_fecha_debito, pc_fecha_debito, fecha_debito_enable, descripcion_debito_enable, nc_descripcion, pc_descripcion, archivo_nombre, opciones_validacion)
+VALUES(N'13', N'INTER', N'CTAS', N'25', N'Fecha Autorización', NULL, N'1', N'1', N'Descripción', NULL, NULL, NULL);
+INSERT INTO desa_ecuasisec_db.dbo.ea_opciones_carga_cliente
+(codigo_id, cliente, tipo_subproducto, subproducto, nc_fecha_debito, pc_fecha_debito, fecha_debito_enable, descripcion_debito_enable, nc_descripcion, pc_descripcion, archivo_nombre, opciones_validacion)
+VALUES(N'14', N'INTER', N'TC', N'26', N'Fecha Autorización', N'11', N'1', N'1', N'Descripción', N'1', NULL, N'{"validacion_campo_1":"Establecimiento","validacion_valor_1":"888669"}');
+INSERT INTO desa_ecuasisec_db.dbo.ea_opciones_carga_cliente
+(codigo_id, cliente, tipo_subproducto, subproducto, nc_fecha_debito, pc_fecha_debito, fecha_debito_enable, descripcion_debito_enable, nc_descripcion, pc_descripcion, archivo_nombre, opciones_validacion)
+VALUES(N'15', N'INTER', N'CTAS', N'27', N'Fecha Autorización', NULL, N'1', N'1', N'Descripción', NULL, NULL, NULL);
+INSERT INTO desa_ecuasisec_db.dbo.ea_opciones_carga_cliente
+(codigo_id, cliente, tipo_subproducto, subproducto, nc_fecha_debito, pc_fecha_debito, fecha_debito_enable, descripcion_debito_enable, nc_descripcion, pc_descripcion, archivo_nombre, opciones_validacion)
+VALUES(N'16', N'INTER', N'TC', N'28', N'Fecha Autorización', N'11', N'1', N'1', N'Descripción', N'1', NULL, N'{"validacion_campo_1":"Establecimiento","validacion_valor_1":"888670"}');
+INSERT INTO desa_ecuasisec_db.dbo.ea_opciones_carga_cliente
+(codigo_id, cliente, tipo_subproducto, subproducto, nc_fecha_debito, pc_fecha_debito, fecha_debito_enable, descripcion_debito_enable, nc_descripcion, pc_descripcion, archivo_nombre, opciones_validacion)
+VALUES(N'2', N'INTER', N'TC', N'14', N'Fecha Autorización', N'11', N'1', N'1', N'Descripción', N'1', N'Recurrente_FAMILIA', N'{"validacion_campo_1":"Establecimiento","validacion_valor_1":"873134"}');
+INSERT INTO desa_ecuasisec_db.dbo.ea_opciones_carga_cliente
+(codigo_id, cliente, tipo_subproducto, subproducto, nc_fecha_debito, pc_fecha_debito, fecha_debito_enable, descripcion_debito_enable, nc_descripcion, pc_descripcion, archivo_nombre, opciones_validacion)
+VALUES(N'3', N'INTER', N'CTAS', N'15', N'Fecha Autorización', NULL, N'1', N'1', N'Descripción', NULL, NULL, NULL);
+INSERT INTO desa_ecuasisec_db.dbo.ea_opciones_carga_cliente
+(codigo_id, cliente, tipo_subproducto, subproducto, nc_fecha_debito, pc_fecha_debito, fecha_debito_enable, descripcion_debito_enable, nc_descripcion, pc_descripcion, archivo_nombre, opciones_validacion)
+VALUES(N'4', N'INTER', N'TC', N'16', N'Fecha Autorización', N'11', N'1', N'1', N'Descripción', N'1', NULL, N'{"validacion_campo_1":"Establecimiento","validacion_valor_1":"872876"}');
+INSERT INTO desa_ecuasisec_db.dbo.ea_opciones_carga_cliente
+(codigo_id, cliente, tipo_subproducto, subproducto, nc_fecha_debito, pc_fecha_debito, fecha_debito_enable, descripcion_debito_enable, nc_descripcion, pc_descripcion, archivo_nombre, opciones_validacion)
+VALUES(N'5', N'INTER', N'CTAS', N'17', N'Fecha Autorización', NULL, N'1', N'1', N'Descripción', NULL, NULL, NULL);
+INSERT INTO desa_ecuasisec_db.dbo.ea_opciones_carga_cliente
+(codigo_id, cliente, tipo_subproducto, subproducto, nc_fecha_debito, pc_fecha_debito, fecha_debito_enable, descripcion_debito_enable, nc_descripcion, pc_descripcion, archivo_nombre, opciones_validacion)
+VALUES(N'6', N'INTER', N'TC', N'18', N'Fecha Autorización', N'11', N'1', N'1', N'Descripción', N'1', NULL, N'{"validacion_campo_1":"Establecimiento","validacion_valor_1":"873130"}');
+INSERT INTO desa_ecuasisec_db.dbo.ea_opciones_carga_cliente
+(codigo_id, cliente, tipo_subproducto, subproducto, nc_fecha_debito, pc_fecha_debito, fecha_debito_enable, descripcion_debito_enable, nc_descripcion, pc_descripcion, archivo_nombre, opciones_validacion)
+VALUES(N'7', N'INTER', N'CTAS', N'19', N'Fecha Autorización', NULL, N'1', N'1', N'Descripción', NULL, NULL, NULL);
+INSERT INTO desa_ecuasisec_db.dbo.ea_opciones_carga_cliente
+(codigo_id, cliente, tipo_subproducto, subproducto, nc_fecha_debito, pc_fecha_debito, fecha_debito_enable, descripcion_debito_enable, nc_descripcion, pc_descripcion, archivo_nombre, opciones_validacion)
+VALUES(N'8', N'INTER', N'TC', N'20', N'Fecha Autorización', N'11', N'1', N'1', N'Descripción', N'1', NULL, N'{"validacion_campo_1":"Establecimiento","validacion_valor_1":"873134"}');
+INSERT INTO desa_ecuasisec_db.dbo.ea_opciones_carga_cliente
+(codigo_id, cliente, tipo_subproducto, subproducto, nc_fecha_debito, pc_fecha_debito, fecha_debito_enable, descripcion_debito_enable, nc_descripcion, pc_descripcion, archivo_nombre, opciones_validacion)
+VALUES(N'9', N'INTER', N'CTAS', N'21', N'Fecha Autorización', NULL, N'1', N'1', N'Descripción', NULL, NULL, NULL);
