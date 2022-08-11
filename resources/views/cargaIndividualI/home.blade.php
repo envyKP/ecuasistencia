@@ -124,7 +124,14 @@
                     $("#btn_genera").prop("disabled", true);
                 }
             });
+            $("#filtro_estado").click(function() {
+                if ($("#filtro_estado").is(":checked")) {
+                    $("#state").css("display", "block");
+                } else {
+                    $("#state").css("display", "none");
 
+                }
+            });
 
             $("#bloqueo_subida").click(function() {
                 if ($("#bloqueo_subida").is(":checked")) {

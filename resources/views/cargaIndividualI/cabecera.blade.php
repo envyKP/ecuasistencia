@@ -148,6 +148,28 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="col-sm-4 col-md-4">
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text form-control">
+                                            <label class="c-switch c-switch-label c-switch-success mt-2">
+                                                <input class="c-switch-input" type="checkbox" name="filtro_estado"
+                                                    id="filtro_estado" value="filtro_estado"><span
+                                                    class="c-switch-slider" data-checked="SI"
+                                                    data-unchecked="NO"></span>
+                                            </label>
+                                            <strong class="ml-1"> {{ 'Estado: ' }} </strong>
+                                        </span>
+                                    </div>
+                                    <select class="form-control" name="state" id="state" style="display:none">
+
+                                        <option value="PENDIENTE" selected>{{ 'PENDIENTE' }}</option>
+                                        <option value="PROCESADO">{{ 'PROCESADO' }}</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                 </div>

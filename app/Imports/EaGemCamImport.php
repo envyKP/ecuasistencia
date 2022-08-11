@@ -23,9 +23,7 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow
      * @param array $row
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Database\Eloquent\Model|null
-     *  custom code -- field name (extract to subproduct, if case  )
-     * //0 no existe 1 toma el string , 2 toma la posicion(celda excel experimental) , 2 toma la posicion(caracteres que se tiene que saltar) 
-     */
+    */
 
     public function collection(Collection $rows)
     {
@@ -87,9 +85,7 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow
                             }
                         }
                     }
-                    //echo  'estado : ' . $row['estado'];
 
-                    //
                     if ($this->cumple_validacion == 1) {
                         //echo  '$this->cumple_validacion : ' . $this->cumple_validacion;
                         try {

@@ -16,12 +16,6 @@ class EaOpcionesCargaCliente extends Model
         'cliente',
         'tipo_subproducto',
         'subproducto',
-        'nc_fecha_debito',
-        'pc_fecha_debito',
-        'fecha_debito_enable',
-        'descripcion_debito_enable',
-        'nc_descripcion',
-        'pc_descripcion',
         'opciones_validacion',
     ];
 }

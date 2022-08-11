@@ -245,7 +245,7 @@ class EaCargaIndividualImport extends Controller
         // \Log::error('Something is really going wrong.');
         $varcontrolsecuencia = (isset($request->carga_resp) ? strval($request->carga_resp) : null);
         $detalle_subproducto = ((new EaSubproductoController)->getSubproductoDetalle($request->cliente, $request->producto));
-        $objEXPORT = new EaGenCamExport($request->cliente, $detalle_subproducto->desc_subproducto, $varcontrolsecuencia, $request->producto);
+        $objEXPORT = new EaGenCamExport($request->cliente, $detalle_subproducto->desc_subproducto, $varcontrolsecuencia, $request->producto, $detalle_subproducto->tipo_subproducto);
         \Log::info('Request : ');
         \Log::info('    $request->cliente : ' . $request->cliente);
         \Log::info('    $request->producto : ' . $request->producto);
