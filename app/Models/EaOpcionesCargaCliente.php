@@ -17,5 +17,11 @@ class EaOpcionesCargaCliente extends Model
         'tipo_subproducto',
         'subproducto',
         'opciones_validacion',
+        'opciones_fijas',
+        'campos_export',
+        'num_elem_export',
+        'campos_import',
+        'campoc',
+        'campo0',
     ];
 }

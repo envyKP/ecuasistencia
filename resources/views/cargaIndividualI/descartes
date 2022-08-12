@@ -850,3 +850,88 @@ https: //localhost/ecuasistencia/public/generacion/archivo/cargaIndividual/
                 });
             }
         }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                            /*
+                    total 27 1-27
+                    13{"campoF_1":"CO","campoF_2":"632575","campoF_6":"USD","campoF_8":"CTA","campoF_9":"32","campoB_15":"","campoB_16":"","campoB_17":"","campoB_18":"","campoB_19":"FAMILIA","campoB_20":"","campoB_21":"NA","campoB_22":"NA","campoB_25":"NA","campoB_26":"NA","campoB_27":"NA"}
+                    {"campoC_3":"contador_secuencia","campoC_4":"Ymd"} // campos funcionales
+                    {"campo0_1":"8","campo0_2":"8"}//complemento ceros, cantidad de caracteres
+                    {"campoB_5":"cedula_id","campoB_7":"valortotal","campoB_10":"tipcta","campoB_11":"cuenta","campoB_12":"tipide","campoB_13":"cedula_id","campoB_14":"nombre","campoB_23":"subtotal","campoB_24":"deduccion_impuesto"}
+                        EaGenCamExport(){
+                        generar
+                    }
+                    //isset($mydata['user_id'])? $mydata['user_id'] : 'no hay' // el isset funciona si no viene contenido 
+                    EaCargaIndividualExport(){
+                        generar()-> 
+                        json("producto":"2") // json(nombre de campo , espacion rango o posicion para la importacion)  // el campo es de base de datos
+                        {"cedula_id":"3","subtotal":"7","tipcta":"8","deduccion_impuesto":"10"}
+                        // respetar el orden de los id
+                        // hacer posible un merge ? 
+                        o usar un array que lea en asignando el espacion por numero.
+                        json("CO" : "1") // json(valor quemado , posicion ) //
+                        {"CO":"1","632575":"2"}
+
+
+                        global(){
+                        $campos = json->campos;
+                        $fijos = json->fijos;
+                        for( i= 0;   campoBase; i++){
+                            // bloque toma prioridad asi el dato es extraido de la base 
+                            if(isset(campoF_.$i)){
+                                $desisivo= campoF_.$i ;//quemado
+                                //{"cedula_id":"3","subtotal":"7","tipcta":"8","deduccion_impuesto":"10"}
+                            } 
+                            
+                            if(isset(campoB_.$i)){
+                                $desisivo= $individual[campoB_.$i] ;
+                            }
+                            $texto .=$desivo
+                            if(espacion==si){
+                                $texto .= "\t"
+                            }
+                        }
+                        $texto .= "\n"
+                    }
+
+
+                        if(condicion valor $opcion) // $opcion  =  
+                        {"validacion_campo_1":"Establecimiento","validacion_valor_1":"873130"}
+                        first_line () -- // crear un json en caso que se nesesite algun valor en la primera linea
+                        // por el momento puedo usar un  case 
+                        // el txt empieza desde campo 0 , validar si existen espacios entre los campos o no 
+                        // empezara sin espacios por enden si se quiere una tabulacion desde el comienzo eso contaria como un tab
+                        // o por defecto como inserta el string , no se si puede insertar directamente el comando desde la base a 
+                        // la creacion del txt.
+
+
+                        //existe campo quemado de validacion 
+                        // hacer los mismo , solo con el nombre del campo , para extraer dato.
+                    EaCargaIndividualImpor(){
+                        {"validacion_campo_1":"Establecimiento","validacion_valor_1":"873130"}
+                        campo_nombre : version en Detalle_debito , para insert // nombre , campos Importacion
+
+                    }
+                    
+                    cancelacion masiva () -> nuevo metodo , incluir 
+                    */

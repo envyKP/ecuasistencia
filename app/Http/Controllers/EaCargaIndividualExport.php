@@ -20,7 +20,7 @@ use App\Http\Controllers\EaSubproductoController;
 use App\Http\Controllers\EaParaInsert;
 use App\Http\Controllers\EaCabCargaInicialBitacoraController;
 use App\Http\Controllers\EaDetalleCargaCorpController;
-use App\Exports\EaReporteCargaInicialExport;
+use App\Models\EaOpcionesCargaCliente;
 use Maatwebsite\Excel\Concerns\Exportable;
 use App\Models\EaCliente;
 use App\Exports\EaGenCamExport;
@@ -58,9 +58,10 @@ class EaCargaIndividualExport extends Controller
      */
     public function exporta(Request $request)
     {
+
         if ($request->btn_genera == 'buscar') {
 
-            //dd($request);
+
             // $logFile = 'import.log';
             //Log::useDailyFiles(storage_path().'/logs/'.$logFile);
             //Log::info('This is some useful information.');
@@ -137,12 +138,21 @@ class EaCargaIndividualExport extends Controller
             $detallevalidacion = array();
             $cont = 0;
             $condicion = false;
+            $op_client = EaOpcionesCargaCliente::where('cliente', $request->cliente)->where('subproducto', $request->producto)->first();
+
+            $opciones_fijas = json_decode($op_client->opciones_fijas, true);
+            $campos_export = json_decode($op_client->campos_export, true);
+            $campoC = json_decode($op_client->campoC, true);
+            $campo0 = json_decode($op_client->campo0, true);
+            dd($op_client);
             // ARMA LAS RESPUESTA QUE SE INSERTAN EN EL DOCUMENTO TXT , Y ADICIONAL LLAMA AL METODO QUE LO INSTERTA EN LA BASE DE DATOS.
             switch ($request->cliente) {
                 case "INTER":
                     if ($detalle_subproducto->tipo_subproducto == 'TC') {
                         $tiempo_inicial = microtime(true);
+                        \Log::info('tiempo que inicia : ' . $tiempo_inicial);
                         foreach ($recorrido as $individual) {
+                            //dd($individual['tarjeta']);
                             $subtotal = $individual->subtotal;
                             $numberCeros = 17 - strlen((string)(floatval($subtotal) * 100));
                             $cerossub = "";
@@ -175,99 +185,6 @@ class EaCargaIndividualExport extends Controller
                                     }
                                     $establecimiento_print .= $individual->cod_establecimiento;
                                 }
-                                /*
-                                ok genero un json oinseerto o hago el llamado de la base desde las opciones validacion
-                                luego lluego que tengo que realizar ?
-                                que podria ser lo llamo lo leo , puedo insertar los espacios personalizados, pero eso esta quemado enm base me ahorro la incertidumbre del tipo de producto , y 
-                                en todo caso solo existiria la consulta personalizada , de echo si los otros bancos o cuentas comparten valores, puedo realizar una consulta general.
-                                usar otro json que me permita armar o llamar segun el nombre del campo y no tengo que realizar el case para el restos el case por defecto 
-                                seria el que estoy realizando y en caso de excepciones como la que realiza segun la secuencia , puedo usar uno o otro 
-                                ya que el resto puede utilizar lo que es el cedula_ID o pasaporte para generar el txt entonces , para la importacion es mas sensillo ya que
-                                 el campo que estoy armando es nescesario e iterativo , con esta respuesta, de echo puedo crear una tercera opcion de validacion , 
-                                 o para mas o menos un prefijo que me permita generar o ser mas sensillo validar que condicion especial tengo que usar , 
-                                 las nuevas que vengan unicamente si sigue el formato raro no se podran pero el resto que cuente con la busqueda estandar podra.
-                                 actualmente existe 2 maneras de validar los datos por secuencia y por cedula asumo que solo existiran esas 2 manera 
-
-                                entonces 
-                                
-                                                                EaGenCamExport(){
-                                    generar
-
-                                }
-
-                                EaCargaIndividualExport(){
-                                    generar()-> 
-                                    json("producto":"2") // json(nombre de campo , espacion rango o posicion para la importacion)  // el campo es de base de datos
-                                    {"cedula_id":"3","subtotal":"7","tipcta":"8","deduccion_impuesto":"10"}
-                                   
-                                    // respetar el orden de los id
-                                    // hacer posible un merge ? 
-                                    o usar un array que lea en asignando el espacion por numero.
-
-                                    json("CO" : "1") // json(valor quemado , posicion ) //
-                                    {"CO":"1","632575":"2"}
-                                    
-                                    //no puede usarse de esta forma // si uso campoF_ y campoB_
-
-                                    podria recorrer e insetar todo en un array , tendria que realizar un orden 
-                                    o modificar el array que se autordene 
-
-                                    
-                                    actividad , nescesito armar un txt diferenciado , usando el orden de los array , diferenciando si es dato quemado.
-                                    o no , 
-
-                                    pruebas seudocodigo: 
-                                    //llama los json:
-                                    
-                                    global(){
-                                    $campos = json->campos;
-                                    $fijos = json->fijos;
-                                    for( i= 0;   campoBase; i++){
-                                        
-                                        if(isset(campoF_.$i)){
-                                            $desisivo= campoF_.$i ;//quemado
-                                            //{"cedula_id":"3","subtotal":"7","tipcta":"8","deduccion_impuesto":"10"}
-                                        } 
-                                        
-
-                                        if(isset(campoB_.$i)){
-                                            
-                                            
-                                            $desisivo= $individual->campoB_.$i ;
-
-                                        }
-                                        $texto .=$desivo
-                                        if(espacion==si){
-                                            $texto .= "\t"
-                                        }
-                                    }
-                                    $texto .= "\n"
-                                }
-
-
-                                    if(condicion valor $opcion) // $opcion  =  
-                                    {"validacion_campo_1":"Establecimiento","validacion_valor_1":"873130"}
-                                    first_line () -- // crear un json en caso que se nesesite algun valor en la primera linea
-                                    // por el momento puedo usar un  case 
-                                    // el txt empieza desde campo 0 , validar si existen espacios entre los campos o no 
-                                    // empezara sin espacios por enden si se quiere una tabulacion desde el comienzo eso contaria como un tab
-                                    // o por defecto como inserta el string , no se si puede insertar directamente el comando desde la base a 
-                                    // la creacion del txt.
-
-
-                                    //existe campo quemado de validacion 
-                                    // hacer los mismo , solo con el nombre del campo , para extraer dato.
-                                EaCargaIndividualImpor(){
-                                    {"validacion_campo_1":"Establecimiento","validacion_valor_1":"873130"}
-                                    campo_nombre : version en Detalle_debito , para insert // nombre , campos Importacion
-
-                                }
-                                
-                                
-
-
-                                cancelacion masiva () -> nuevo metodo , incluir 
-                                */
                             }
                             $textoPlano .= (isset($individual->cod_establecimiento)) ? $establecimiento_print : "00000000";
                             //$textoPlano .= "-3-";
@@ -344,9 +261,15 @@ class EaCargaIndividualExport extends Controller
                             $detallevalidacion = array('validacion_campo_1' => 'Establecimiento', 'validacion_valor_1' => $individual->cod_establecimiento);
                         }
                         $tiempo_final = microtime(true);
+                        \Log::info('tiempo que termina : ' . $tiempo_final);
                     }
                     if ($detalle_subproducto->tipo_subproducto == 'CTAS') {
+                        $tiempo_inicial = microtime(true);
+                        \Log::info('tiempo que inicia : ' . $tiempo_inicial);
                         foreach ($recorrido as $individual) {
+
+                            // inicio de bloque de codigo , usando metodo normal
+                            /*
                             $example = "CO";
                             $cont++;
                             $cont_ceros2 = "";
@@ -431,8 +354,100 @@ class EaCargaIndividualExport extends Controller
                                 $row_insert_detalle['fecha_generacion'] =  date('mY');
                                 $objEXPORT->view_reg_state($row_insert_detalle);
                             }
-                        }
+                            */
+                            //Inicio de bloques con validaciiones JSON
+                            // contador_secuencia  : variable que sigue una secuencia asosiado con $cont
+                            //
+
+
+                            /*
+                    total 27 1-27 -- cantidad de item o campos que se usa 
+                    13{"campoF_1":"CO","campoF_2":"632575","campoF_6":"USD","campoF_8":"CTA","campoF_9":"32","campoB_15":"","campoB_16":"","campoB_17":"","campoB_18":"","campoB_19":"FAMILIA","campoB_20":"","campoB_21":"NA","campoB_22":"NA","campoB_25":"NA","campoB_26":"NA","campoB_27":"NA"}
+                    {"campoC_3":"contador_secuencia","campoC_4":"Ymd"} // campos funcionales
+                    {"campo0_1":"8","campo0_2":"8"}//complemento ceros, cantidad de caracteres
+                    {"campoB_5":"cedula_id","campoB_7":"valortotal","campoB_10":"tipcta","campoB_11":"cuenta","campoB_12":"tipide","campoB_13":"cedula_id","campoB_14":"nombre","campoB_23":"subtotal","campoB_24":"deduccion_impuesto"}
+                        EaGenCamExport(){
+                        generar
                     }
+                    */
+
+                            if (isset($op_client->num_elem_export)) {
+                                //inicia flujo elemento 
+                                $cont_ceros2 = "";
+
+                                for ($i = 1; $i <= $op_client->num_elem_export; $i++) {
+                                    $text_temp = ""; // variable temporal que tendra el texto
+                                    //$cont
+                                    if (isset($campos_export['campoB_' . $i]) || isset($opciones_fijas['campoF_' . $i])) {
+                                        $value_field =  isset($campos_export['campoB_' . $i]) ? $individual[$campos_export['campoB_' . $i]] : $opciones_fijas['campoF_' . $i];
+
+                                        if (isset($campo0['campo0_' . $i])) { //iria al final o al comienzo ?    
+                                            //if (isset($value_field)) {
+                                            $cerosCod = (int)$campo0['campo0_' . $i] - strlen($text_temp);
+                                            $establecimiento_print = "";
+                                            if ($cerosCod > 0) {
+                                                for ($i = 0; $i < $cerosCod; $i++) {
+                                                    $establecimiento_print .= "0";
+                                                }
+                                                $establecimiento_print .= $text_temp;
+                                                $textoPlano .= $establecimiento_print;
+                                            }
+                                            //}
+                                        } else {
+                                            $textoPlano .= $text_temp;
+                                        }
+                                        //$text_temp = $cont_ceros2 . $text_temp;
+                                    } elseif (isset($campoC)) {
+                                        if ($op_client['campoC' . $i] == 'contador_secuencia') {
+                                        } else {
+                                        }
+                                    }
+
+
+                                    if (isset($op_client->espacios)) { // pendiente crear en base
+                                        $textoPlano .= "\t";
+                                    }
+                                }
+                                // siempre tiene que existir campos fijos , el que use como secuencia o indicador (cedula_ID o secuencia)
+                                // el siguiente campo lo extraigo directamente de la consulta 
+                                // FECHA_REGISTRO => SE AUTOGENERA SE PUEDE INSERTAR SIN PROBLEMAS
+
+                                /*
+                                 $row_insert_detalle = array();
+                                $row_insert_detalle['id_sec'] =$individual->id_sec; //NO CAMBIOS 
+                                $row_insert_detalle['id_carga'] = $id_carga; //NO CAMBIOS
+                                $row_insert_detalle['secuencia'] = $individual->cedula_id; //INSERTAR OPCION PARA DISTINGUIR SI ES NESCESARIO SECUENCIA O CEDULA U OTRO CAMPO PUEDO USAR UNA CONDICION EN CASO QUE EXISTA LA CEDULA? se puede
+                                $row_insert_detalle['fecha_actualizacion'] = null;// LA PUEDO BORRA // VERIFICAR
+                                $row_insert_detalle['fecha_registro'] = date('d/m/Y H:i:s');// NO CAMBIOS
+                                $row_insert_detalle['producto'] = $request->producto;// NO CAMBIOS // SE PUEDE USAR LA DEL METODO EN EL COMIEZO 
+                                $row_insert_detalle['subproducto'] = $request->producto; // NO CAMBIOS // SE PUEDE USAR LA DEL METODO EN EL COMIEZO 
+                                $row_insert_detalle['cliente'] = $request->cliente; // NO CAMBIOS// SE PUEDE USAR LA DEL METODO EN EL COMIEZO 
+                                $row_insert_detalle['estado'] = "0"; // NO CAMBIOS
+                                $row_insert_detalle['detalle'] = null; // NO CAMBIOS SE PUEDE BORRAR 
+                                //$row_insert_detalle['bin'] = $example; // NO CAMBIOS SE PUEDE BORRAR
+                                $row_insert_detalle['fecha_generacion'] =  date('mY');
+                                */
+                            } else {
+                                dd("Falta una configuracion , porfavor acceda a Ea_opciones_carga_cliente");
+                            }
+
+
+                            $textoPlano .= "\n";
+                        }
+
+                        $tiempo_final = microtime(true);
+                        \Log::info('tiempo que termina : ' . $tiempo_final);
+                    }
+
+
+                    //INICIO DE METODO GLOBAL
+
+                    //$op_client = EaOpcionesCargaCliente::where('cliente', $request->cliente)->where('subproducto', $request->producto)->first();
+                    dd($op_client);
+
+
+
+
                     break;
                 case "BBOLIVARIANO":
                     # code...

@@ -53,10 +53,6 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
 
                 if (($fecha_generacion) == date('mY')) {
 
-
-
-
-
                     // echo ($detalles->fecha_generacion) . ($detalles->id_sec) . " se encuentra dentro del mes";
                     $carga_secuencia = "";
                     if (isset($this->cod_carga_corp)) {
