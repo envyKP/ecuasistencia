@@ -935,3 +935,24 @@ https: //localhost/ecuasistencia/public/generacion/archivo/cargaIndividual/
                     
                     cancelacion masiva () -> nuevo metodo , incluir 
                     */
+
+
+
+
+
+
+
+
+                    */
+                    //Inicio de bloques con validaciiones JSON
+                    // contador_secuencia  : variable que sigue una secuencia asosiado con $cont
+                    //
+                    /*
+            total 27 1-27 -- cantidad de item o campos que se usa 
+            13{"campoF_1":"CO","campoF_2":"632575","campoF_6":"USD","campoF_8":"CTA","campoF_9":"32","campoB_15":"","campoB_16":"","campoB_17":"","campoB_18":"","campoB_19":"FAMILIA","campoB_20":"","campoB_21":"NA","campoB_22":"NA","campoB_25":"NA","campoB_26":"NA","campoB_27":"NA"}
+            {"campoC_3":"contador_secuencia","campoC_4":"Ymd"} // campos funcionales
+            {"campo0_1":"8","campo0_2":"8"}//complemento ceros, cantidad de caracteres
+            {"campoB_5":"cedula_id","campoB_7":"valortotal","campoB_10":"tipcta","campoB_11":"cuenta","campoB_12":"tipide","campoB_13":"cedula_id","campoB_14":"nombre","campoB_23":"subtotal","campoB_24":"deduccion_impuesto"}
+                EaGenCamExport(){
+                generar
+            }

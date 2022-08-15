@@ -144,7 +144,7 @@ class EaCargaIndividualExport extends Controller
             $campos_export = json_decode($op_client->campos_export, true);
             $campoC = json_decode($op_client->campoC, true);
             $campo0 = json_decode($op_client->campo0, true);
-            dd($op_client);
+            //dd($op_client);
             // ARMA LAS RESPUESTA QUE SE INSERTAN EN EL DOCUMENTO TXT , Y ADICIONAL LLAMA AL METODO QUE LO INSTERTA EN LA BASE DE DATOS.
             switch ($request->cliente) {
                 case "INTER":
@@ -267,8 +267,8 @@ class EaCargaIndividualExport extends Controller
                         $tiempo_inicial = microtime(true);
                         \Log::info('tiempo que inicia : ' . $tiempo_inicial);
                         foreach ($recorrido as $individual) {
-
                             // inicio de bloque de codigo , usando metodo normal
+
                             /*
                             $example = "CO";
                             $cont++;
@@ -355,46 +355,50 @@ class EaCargaIndividualExport extends Controller
                                 $objEXPORT->view_reg_state($row_insert_detalle);
                             }
                             */
-                            //Inicio de bloques con validaciiones JSON
-                            // contador_secuencia  : variable que sigue una secuencia asosiado con $cont
-                            //
 
-
-                            /*
-                    total 27 1-27 -- cantidad de item o campos que se usa 
-                    13{"campoF_1":"CO","campoF_2":"632575","campoF_6":"USD","campoF_8":"CTA","campoF_9":"32","campoB_15":"","campoB_16":"","campoB_17":"","campoB_18":"","campoB_19":"FAMILIA","campoB_20":"","campoB_21":"NA","campoB_22":"NA","campoB_25":"NA","campoB_26":"NA","campoB_27":"NA"}
-                    {"campoC_3":"contador_secuencia","campoC_4":"Ymd"} // campos funcionales
-                    {"campo0_1":"8","campo0_2":"8"}//complemento ceros, cantidad de caracteres
-                    {"campoB_5":"cedula_id","campoB_7":"valortotal","campoB_10":"tipcta","campoB_11":"cuenta","campoB_12":"tipide","campoB_13":"cedula_id","campoB_14":"nombre","campoB_23":"subtotal","campoB_24":"deduccion_impuesto"}
-                        EaGenCamExport(){
-                        generar
-                    }
-                    */
-
+                          //  {"campoF_1":"CO","campoF_2":"632575","campoF_6":"USD","campoF_8":"CTA","campoF_9":"32","campoF_15":"","campoF_16":"","campoF_17":"","campoF_18":"","campoF_19":"FAMILIA","campoF_20":"","campoF_21":"NA","campoF_22":"NA","campoF_25":"NA","campoF_26":"NA","campoF_27":"NA"}
+                          //  {"campoF_1":"CO","campoF_2":"632575","campoF_6":"USD","campoF_8":"CTA","campoF_9":"32","campoF_15":"","campoF_16":"","campoF_17":"","campoF_18":"","campoF_19":"ENFERMEDADES GRAVES","campoF_20":"","campoF_21":"NA","campoF_22":"NA","campoF_25":"NA","campoF_26":"NA","campoF_27":"NA"}
+                          //  {"campoF_1":"CO","campoF_2":"632575","campoF_6":"USD","campoF_8":"CTA","campoF_9":"32","campoF_15":"","campoF_16":"","campoF_17":"","campoF_18":"","campoF_19":"HOGAR","campoF_20":"","campoF_21":"NA","campoF_22":"NA","campoF_25":"NA","campoF_26":"NA","campoF_27":"NA"}
+                          //  {"campoF_1":"CO","campoF_2":"632575","campoF_6":"USD","campoF_8":"CTA","campoF_9":"32","campoF_15":"","campoF_16":"","campoF_17":"","campoF_18":"","campoF_19":"PYMES","campoF_20":"","campoF_21":"NA","campoF_22":"NA","campoF_25":"NA","campoF_26":"NA","campoF_27":"NA"}
+                          //  {"campoF_1":"CO","campoF_2":"632575","campoF_6":"USD","campoF_8":"CTA","campoF_9":"32","campoF_15":"","campoF_16":"","campoF_17":"","campoF_18":"","campoF_19":"HOMBRE","campoF_20":"","campoF_21":"NA","campoF_22":"NA","campoF_25":"NA","campoF_26":"NA","campoF_27":"NA"}
+                          //  {"campoF_1":"CO","campoF_2":"632575","campoF_6":"USD","campoF_8":"CTA","campoF_9":"32","campoF_15":"","campoF_16":"","campoF_17":"","campoF_18":"","campoF_19":"MUJER","campoF_20":"","campoF_21":"NA","campoF_22":"NA","campoF_25":"NA","campoF_26":"NA","campoF_27":"NA"}
+                          //  {"campoF_1":"CO","campoF_2":"632575","campoF_6":"USD","campoF_8":"CTA","campoF_9":"32","campoF_15":"","campoF_16":"","campoF_17":"","campoF_18":"","campoF_19":"ANTIFRAUDES","campoF_20":"","campoF_21":"NA","campoF_22":"NA","campoF_25":"NA","campoF_26":"NA","campoF_27":"NA"}
+                          //  {"campoF_1":"CO","campoF_2":"632575","campoF_6":"USD","campoF_8":"CTA","campoF_9":"32","campoF_15":"","campoF_16":"","campoF_17":"","campoF_18":"","campoF_19":"ENFEREMEDADES GRAVES","campoF_20":"","campoF_21":"NA","campoF_22":"NA","campoF_25":"NA","campoF_26":"NA","campoF_27":"NA"}
                             if (isset($op_client->num_elem_export)) {
                                 //inicia flujo elemento 
-                                $cont_ceros2 = "";
-
+                                //$cont_ceros2 = "";
                                 for ($i = 1; $i <= $op_client->num_elem_export; $i++) {
                                     $text_temp = ""; // variable temporal que tendra el texto
                                     //$cont
                                     if (isset($campos_export['campoB_' . $i]) || isset($opciones_fijas['campoF_' . $i])) {
                                         $value_field =  isset($campos_export['campoB_' . $i]) ? $individual[$campos_export['campoB_' . $i]] : $opciones_fijas['campoF_' . $i];
 
+                                        if($campos_export['campoB_' . $i]== 'cuenta'){
+
+
+                                        }
+                                        
                                         if (isset($campo0['campo0_' . $i])) { //iria al final o al comienzo ?    
                                             //if (isset($value_field)) {
+
                                             $cerosCod = (int)$campo0['campo0_' . $i] - strlen($text_temp);
                                             $establecimiento_print = "";
+                                            //dd($cerosCod);
                                             if ($cerosCod > 0) {
                                                 for ($i = 0; $i < $cerosCod; $i++) {
                                                     $establecimiento_print .= "0";
                                                 }
+                                                $text_temp = $value_field;
+                                                $establecimiento_print .= $text_temp;
+                                                $textoPlano .= $establecimiento_print;
+                                            } else {
+                                                $text_temp = $value_field;
                                                 $establecimiento_print .= $text_temp;
                                                 $textoPlano .= $establecimiento_print;
                                             }
                                             //}
                                         } else {
-                                            $textoPlano .= $text_temp;
+                                            $textoPlano .= $value_field;
                                         }
                                         //$text_temp = $cont_ceros2 . $text_temp;
                                     } elseif (isset($campoC)) {
@@ -402,18 +406,15 @@ class EaCargaIndividualExport extends Controller
                                         } else {
                                         }
                                     }
-
-
-                                    if (isset($op_client->espacios)) { // pendiente crear en base
-                                        $textoPlano .= "\t";
-                                    }
+                                    // if (isset($op_client->espacios)) { // pendiente crear en base
+                                    $textoPlano .= "\t";
+                                    // }
                                 }
                                 // siempre tiene que existir campos fijos , el que use como secuencia o indicador (cedula_ID o secuencia)
                                 // el siguiente campo lo extraigo directamente de la consulta 
                                 // FECHA_REGISTRO => SE AUTOGENERA SE PUEDE INSERTAR SIN PROBLEMAS
-
                                 /*
-                                 $row_insert_detalle = array();
+                                $row_insert_detalle = array();
                                 $row_insert_detalle['id_sec'] =$individual->id_sec; //NO CAMBIOS 
                                 $row_insert_detalle['id_carga'] = $id_carga; //NO CAMBIOS
                                 $row_insert_detalle['secuencia'] = $individual->cedula_id; //INSERTAR OPCION PARA DISTINGUIR SI ES NESCESARIO SECUENCIA O CEDULA U OTRO CAMPO PUEDO USAR UNA CONDICION EN CASO QUE EXISTA LA CEDULA? se puede
@@ -430,23 +431,15 @@ class EaCargaIndividualExport extends Controller
                             } else {
                                 dd("Falta una configuracion , porfavor acceda a Ea_opciones_carga_cliente");
                             }
-
-
                             $textoPlano .= "\n";
                         }
-
                         $tiempo_final = microtime(true);
                         \Log::info('tiempo que termina : ' . $tiempo_final);
                     }
-
-
                     //INICIO DE METODO GLOBAL
 
                     //$op_client = EaOpcionesCargaCliente::where('cliente', $request->cliente)->where('subproducto', $request->producto)->first();
-                    dd($op_client);
-
-
-
+                    //dd($textoPlano);
 
                     break;
                 case "BBOLIVARIANO":
@@ -565,7 +558,7 @@ class EaCargaIndividualExport extends Controller
                 $file_reg_carga['fec_carga'] = $fecha_generacion;
                 $file_reg_carga['usuario'] = \Auth::user()->username;
                 $validoacion_par = json_encode($detallevalidacion);
-                $objEXPORT->registro_cargas($file_reg_carga, $validoacion_par);
+                //$objEXPORT->registro_cargas($file_reg_carga, $validoacion_par);
                 $fileName = $request->cliente . "-" . $detalle_subproducto->desc_subproducto . "-" . date("d-m-Y") . "-" .  $varcontrolsecuencia . ".txt";
                 //$request->cliente, $request->producto
                 //$request->carga_resp
@@ -591,6 +584,9 @@ class EaCargaIndividualExport extends Controller
                     'Content-Disposition' => sprintf('attachment; filename="%s"', $fileName),
                 ];
                 return Response::make($textoPlano, 200, $headers);
+                // el make usa lo que es la respuesta del response para enviar parametros o en este caso obliga al navegador a que la cadena se imprima como
+                // el response de la misma aplicacion 
+
             }
 
             return redirect()->route('EaCargaIndividualImport.index')->with([
