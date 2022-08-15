@@ -144,7 +144,7 @@ class EaCargaIndividualExport extends Controller
             $campos_export = json_decode($op_client->campos_export, true);
             $campoC = json_decode($op_client->campoc, true);
             $campo0 = json_decode($op_client->campo0, true);
-            
+
             // ARMA LAS RESPUESTA QUE SE INSERTAN EN EL DOCUMENTO TXT , Y ADICIONAL LLAMA AL METODO QUE LO INSTERTA EN LA BASE DE DATOS.
             switch ($request->cliente) {
                 case "INTER":
@@ -245,7 +245,7 @@ class EaCargaIndividualExport extends Controller
                                 $row_insert_detalle = array();
                                 $row_insert_detalle['id_sec'] = $individual->id_sec;
                                 $row_insert_detalle['id_carga'] = $id_carga;
-                                $row_insert_detalle['secuencia'] =$cont;
+                                $row_insert_detalle['secuencia'] = $cont;
                                 $row_insert_detalle['fecha_actualizacion'] = null;
                                 $row_insert_detalle['fecha_registro'] = date('d/m/Y H:i:s');
                                 //$row_insert_detalle['producto'] = $request->producto;
@@ -266,6 +266,24 @@ class EaCargaIndividualExport extends Controller
                     if ($detalle_subproducto->tipo_subproducto == 'CTAS') {
                         $tiempo_inicial = microtime(true);
                         \Log::info('tiempo que inicia : ' . $tiempo_inicial);
+                             //{ "frase": "BGRVISA  Fecha de Corte: {{date}} Registros:{{secuencia}}"}
+                             //{"campoC_3":"contador_secuencia","campoC_4":"Ymd","frase": "BGRVISA  Fecha de Corte: {{date}} Registros:{{secuencia}} \n"}
+                            //BGRVISA  Fecha de Corte: 2022/01/16 Registros:     7 d/m/Y
+                            //  {"campoF_1":"CO","campoF_2":"632575","campoF_6":"USD","campoF_8":"CTA","campoF_9":"32","campoF_15":"","campoF_16":"","campoF_17":"","campoF_18":"","campoF_19":"FAMILIA","campoF_20":"","campoF_21":"NA","campoF_22":"NA","campoF_25":"NA","campoF_26":"NA","campoF_27":"NA"}
+                            //  {"campoF_1":"CO","campoF_2":"632575","campoF_6":"USD","campoF_8":"CTA","campoF_9":"32","campoF_15":"","campoF_16":"","campoF_17":"","campoF_18":"","campoF_19":"ENFERMEDADES GRAVES","campoF_20":"","campoF_21":"NA","campoF_22":"NA","campoF_25":"NA","campoF_26":"NA","campoF_27":"NA"}
+                            //  {"campoF_1":"CO","campoF_2":"632575","campoF_6":"USD","campoF_8":"CTA","campoF_9":"32","campoF_15":"","campoF_16":"","campoF_17":"","campoF_18":"","campoF_19":"HOGAR","campoF_20":"","campoF_21":"NA","campoF_22":"NA","campoF_25":"NA","campoF_26":"NA","campoF_27":"NA"}
+                            //  {"campoF_1":"CO","campoF_2":"632575","campoF_6":"USD","campoF_8":"CTA","campoF_9":"32","campoF_15":"","campoF_16":"","campoF_17":"","campoF_18":"","campoF_19":"PYMES","campoF_20":"","campoF_21":"NA","campoF_22":"NA","campoF_25":"NA","campoF_26":"NA","campoF_27":"NA"}
+                            //  {"campoF_1":"CO","campoF_2":"632575","campoF_6":"USD","campoF_8":"CTA","campoF_9":"32","campoF_15":"","campoF_16":"","campoF_17":"","campoF_18":"","campoF_19":"HOMBRE","campoF_20":"","campoF_21":"NA","campoF_22":"NA","campoF_25":"NA","campoF_26":"NA","campoF_27":"NA"}
+                            //  {"campoF_1":"CO","campoF_2":"632575","campoF_6":"USD","campoF_8":"CTA","campoF_9":"32","campoF_15":"","campoF_16":"","campoF_17":"","campoF_18":"","campoF_19":"MUJER","campoF_20":"","campoF_21":"NA","campoF_22":"NA","campoF_25":"NA","campoF_26":"NA","campoF_27":"NA"}
+                            //  {"campoF_1":"CO","campoF_2":"632575","campoF_6":"USD","campoF_8":"CTA","campoF_9":"32","campoF_15":"","campoF_16":"","campoF_17":"","campoF_18":"","campoF_19":"ANTIFRAUDES","campoF_20":"","campoF_21":"NA","campoF_22":"NA","campoF_25":"NA","campoF_26":"NA","campoF_27":"NA"}
+                            //  {"campoF_1":"CO","campoF_2":"632575","campoF_6":"USD","campoF_8":"CTA","campoF_9":"32","campoF_15":"","campoF_16":"","campoF_17":"","campoF_18":"","campoF_19":"ENFEREMEDADES GRAVES","campoF_20":"","campoF_21":"NA","campoF_22":"NA","campoF_25":"NA","campoF_26":"NA","campoF_27":"NA"}
+                            if (isset($campoC["frase"])) {
+                                //echo str_replace("world","Peter","Hello world!");
+                                //Hello Peter!
+                                $textoPlano .= str_replace("{{date}}", date('Y/m/d'), $campoC["frase"]);
+
+                            }
+                        
                         foreach ($recorrido as $individual) {
                             // inicio de bloque de codigo , usando metodo normal
 
@@ -356,41 +374,20 @@ class EaCargaIndividualExport extends Controller
                             }
                             */
 
-                            //  {"campoF_1":"CO","campoF_2":"632575","campoF_6":"USD","campoF_8":"CTA","campoF_9":"32","campoF_15":"","campoF_16":"","campoF_17":"","campoF_18":"","campoF_19":"FAMILIA","campoF_20":"","campoF_21":"NA","campoF_22":"NA","campoF_25":"NA","campoF_26":"NA","campoF_27":"NA"}
-                            //  {"campoF_1":"CO","campoF_2":"632575","campoF_6":"USD","campoF_8":"CTA","campoF_9":"32","campoF_15":"","campoF_16":"","campoF_17":"","campoF_18":"","campoF_19":"ENFERMEDADES GRAVES","campoF_20":"","campoF_21":"NA","campoF_22":"NA","campoF_25":"NA","campoF_26":"NA","campoF_27":"NA"}
-                            //  {"campoF_1":"CO","campoF_2":"632575","campoF_6":"USD","campoF_8":"CTA","campoF_9":"32","campoF_15":"","campoF_16":"","campoF_17":"","campoF_18":"","campoF_19":"HOGAR","campoF_20":"","campoF_21":"NA","campoF_22":"NA","campoF_25":"NA","campoF_26":"NA","campoF_27":"NA"}
-                            //  {"campoF_1":"CO","campoF_2":"632575","campoF_6":"USD","campoF_8":"CTA","campoF_9":"32","campoF_15":"","campoF_16":"","campoF_17":"","campoF_18":"","campoF_19":"PYMES","campoF_20":"","campoF_21":"NA","campoF_22":"NA","campoF_25":"NA","campoF_26":"NA","campoF_27":"NA"}
-                            //  {"campoF_1":"CO","campoF_2":"632575","campoF_6":"USD","campoF_8":"CTA","campoF_9":"32","campoF_15":"","campoF_16":"","campoF_17":"","campoF_18":"","campoF_19":"HOMBRE","campoF_20":"","campoF_21":"NA","campoF_22":"NA","campoF_25":"NA","campoF_26":"NA","campoF_27":"NA"}
-                            //  {"campoF_1":"CO","campoF_2":"632575","campoF_6":"USD","campoF_8":"CTA","campoF_9":"32","campoF_15":"","campoF_16":"","campoF_17":"","campoF_18":"","campoF_19":"MUJER","campoF_20":"","campoF_21":"NA","campoF_22":"NA","campoF_25":"NA","campoF_26":"NA","campoF_27":"NA"}
-                            //  {"campoF_1":"CO","campoF_2":"632575","campoF_6":"USD","campoF_8":"CTA","campoF_9":"32","campoF_15":"","campoF_16":"","campoF_17":"","campoF_18":"","campoF_19":"ANTIFRAUDES","campoF_20":"","campoF_21":"NA","campoF_22":"NA","campoF_25":"NA","campoF_26":"NA","campoF_27":"NA"}
-                            //  {"campoF_1":"CO","campoF_2":"632575","campoF_6":"USD","campoF_8":"CTA","campoF_9":"32","campoF_15":"","campoF_16":"","campoF_17":"","campoF_18":"","campoF_19":"ENFEREMEDADES GRAVES","campoF_20":"","campoF_21":"NA","campoF_22":"NA","campoF_25":"NA","campoF_26":"NA","campoF_27":"NA"}
+
                             if (isset($op_client->num_elem_export)) {
-                                //inicia flujo elemento 
-                                //$cont_ceros2 = "";
                                 $cont++;
                                 $secuencia = "";
                                 for ($i = 1; $i <= $op_client->num_elem_export; $i++) {
                                     $text_temp = ""; // variable temporal que tendra el texto
-                                    //$cont
                                     if (isset($campos_export['campoB_' . $i]) || isset($opciones_fijas['campoF_' . $i])) {
-                                        //$valueB = isset($campos_export['campoB_' . $i]) ? $campos_export['campoB_' . $i] : "NULL";
-                                        //$valueF = isset($opciones_fijas['campoF_' . $i]) ? $opciones_fijas['campoF_' . $i] : "NULL" ;
-                                        //echo $i."- secuencia valor B:".$valueB ." valor F:".$valueF;
-                                        //echo " \n";
                                         $value_field =  isset($campos_export['campoB_' . $i]) ? $individual[$campos_export['campoB_' . $i]] : $opciones_fijas['campoF_' . $i];
-
-
                                         if ((strlen($value_field) > 100)) {
                                             $value_field = Crypto::decrypt($value_field, $clave);
                                         }
-
-
                                         if (isset($campo0['campo0_' . $i])) { //iria al final o al comienzo ?    
-                                            //if (isset($value_field)) {
-
                                             $cerosCod = (int)$campo0['campo0_' . $i] - strlen($text_temp);
                                             $establecimiento_print = "";
-                                            //dd($cerosCod);
                                             if ($cerosCod > 0) {
                                                 for ($i = 0; $i < $cerosCod; $i++) {
                                                     $establecimiento_print .= "0";
@@ -403,7 +400,6 @@ class EaCargaIndividualExport extends Controller
                                                 $establecimiento_print .= $text_temp;
                                                 $textoPlano .= $establecimiento_print;
                                             }
-                                            //}
                                         } else {
                                             $textoPlano .= $value_field;
                                         }
@@ -418,38 +414,19 @@ class EaCargaIndividualExport extends Controller
                                         //16
                                         //09+21-1205
                                         //48-7-53
-
+                                        //{"campoC_3":"contador_secuencia","campoC_4":"Ymd"}
+                                        //{"campoC_3":"identificacion","campoC_4":"Ymd"}
                                     } elseif (isset($campoC['campoC_' . $i])) {
-                                        //echo (isset($campoC['campoC_' . $i])?$campoC['campoC_' . $i]:"false");
-
-
-
-
-                                        //  $campoC['campoC_' . $i] == "contador_secuencia"  : significa que requiere o usa un contador como identificador
-                                        //  $campoC['campoC_' . $i] == "identificacion"     : usa cedula o pasaporte , independiente usa el campo cedula_id
                                         if ($campoC['campoC_' . $i] == "contador_secuencia") {
-                                            //$cont
+                                            $secuencia = $cont;
                                         } elseif ($campoC['campoC_' . $i] == "identificacion") {
-                                            //$individual->cedula_id;
+                                            $secuencia = $individual->cedula_id;
+                                        } else {
+                                            $secuencia = date($campoC['campoC_' . $i]);
                                         }
 
-                                        $textoPlano .= date($campoC['campoC_' . $i]);
+                                        $textoPlano .= $secuencia;
                                     }
-
-                                    $row_insert_detalle = array();
-                                    $row_insert_detalle['id_sec'] = $individual->id_sec;
-                                    $row_insert_detalle['id_carga'] = $id_carga;
-                                    $row_insert_detalle['secuencia'] = $secuencia;
-                                    $row_insert_detalle['fecha_registro'] = date('d/m/Y H:i:s');
-                                    //$row_insert_detalle['producto'] = $request->producto;
-                                    $row_insert_detalle['subproducto'] = $request->producto;
-                                    $row_insert_detalle['cliente'] = $request->cliente;
-                                    $row_insert_detalle['estado'] = "0";
-                                    $row_insert_detalle['detalle'] = null;
-                                    $row_insert_detalle['bin'] = $example;
-                                    $row_insert_detalle['fecha_generacion'] =  date('mY');
-                                    $objEXPORT->view_reg_state($row_insert_detalle);
-
 
                                     // if (isset($op_client->espacios)) { // pendiente crear en base
                                     $textoPlano .= "\t";
@@ -459,7 +436,7 @@ class EaCargaIndividualExport extends Controller
                                 // siempre tiene que existir campos fijos , el que use como secuencia o indicador (cedula_ID o secuencia)
                                 // el siguiente campo lo extraigo directamente de la consulta 
                                 // FECHA_REGISTRO => SE AUTOGENERA SE PUEDE INSERTAR SIN PROBLEMAS
-                                /*
+                                /* 
                                 $row_insert_detalle = array();
                                 $row_insert_detalle['id_sec'] =$individual->id_sec; //NO CAMBIOS 
                                 $row_insert_detalle['id_carga'] = $id_carga; //NO CAMBIOS
@@ -478,10 +455,34 @@ class EaCargaIndividualExport extends Controller
                                 dd("Falta una configuracion , porfavor acceda a Ea_opciones_carga_cliente");
                             }
                             $textoPlano .= "\n";
+                            if (!isset($request->carga_resp)) {
+                                $condicion = true;
+                                $id_carga = (isset($individual->id_carga) ? $individual->id_carga : 1);
+                                $fecha_generacion = (isset($ultima_carga->fecha_generacion) ? $ultima_carga->fecha_generacion : 0);
+                                if ($fecha_generacion != date('mY')) {
+                                    $id_carga = (isset($ultima_carga->id_carga) ? $ultima_carga->id_carga : 0);
+                                }
+                                $row_insert_detalle = array();
+                                $row_insert_detalle['id_sec'] = $individual->id_sec;
+                                $row_insert_detalle['id_carga'] = $id_carga;
+                                $identificador_export = "";
+                                if ($identificador_export == 'secuencia') {
+                                    $row_insert_detalle['secuencia'] = $secuencia;
+                                } elseif ($identificador_export == 'cedula_id') {
+                                    $row_insert_detalle['secuencia'] = $individual->cedula_id;
+                                }
+                                $row_insert_detalle['fecha_registro'] = date('d/m/Y H:i:s');
+                                $row_insert_detalle['subproducto'] = $request->producto;
+                                $row_insert_detalle['cliente'] = $request->cliente;
+                                $row_insert_detalle['estado'] = "0";
+                                $row_insert_detalle['fecha_generacion'] =  date('mY');
+                                $objEXPORT->view_reg_state($row_insert_detalle);
+                            }
                         }
                         $tiempo_final = microtime(true);
                         \Log::info('tiempo que termina : ' . $tiempo_final);
                     }
+                    $textoPlano =  str_replace("{{secuencia}}",$cont,  $textoPlano );
                     //INICIO DE METODO GLOBAL
 
                     //$op_client = EaOpcionesCargaCliente::where('cliente', $request->cliente)->where('subproducto', $request->producto)->first();
