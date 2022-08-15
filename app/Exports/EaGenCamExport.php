@@ -503,7 +503,6 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
                 'id_sec' => isset($rows['id_sec']) ? trim($rows['id_sec']) : null,
                 'secuencia' => isset($rows['secuencia']) ? trim($rows['secuencia']) : null,
                 'fecha_registro' => isset($rows['fecha_registro']) ? trim($rows['fecha_registro']) : null,
-                'producto' => isset($this->producto) ? trim($this->producto) : '',
                 'cliente' => isset($this->cliente) ? trim($this->cliente) : '',
                 'estado' => '0',
                 'fecha_generacion' => isset($rows['fecha_generacion']) ? trim($rows['fecha_generacion']) : null,
