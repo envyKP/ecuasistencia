@@ -48,12 +48,11 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
         $detalles = $this->is_carga_older();
         $generar_return = null;
         switch ($this->cliente) {
-            case 'disable':
-
-                break;
-            default:
+            case 'INTER':
                 $fecha_generacion = (isset($detalles->fecha_generacion) ? $detalles->fecha_generacion : 0);
+
                 if (($fecha_generacion) == date('mY')) {
+
                     // echo ($detalles->fecha_generacion) . ($detalles->id_sec) . " se encuentra dentro del mes";
                     $carga_secuencia = "";
                     if (isset($this->cod_carga_corp)) {
@@ -63,25 +62,32 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
                     }
                     $this->cod_carga_corp = $detalles->id_carga;
                     if ($this->tipo_subproducto == 'TC') {
-                        //dd("no implementado");
+                        ///dd($carga_secuencia);
                         \Log::info('$carga_secuencia : ' . $carga_secuencia);
-                        \Log::info('condicion - secuencia - mes - Cliente : INTER CTAS');
+                        \Log::info('condicion - secuencia - mes - Cliente : INTER TC');
                         $generar_return =  EaBaseActiva::join("ea_subproductos", "ea_subproductos.desc_subproducto", "=", "ea_base_activa.subproducto")
                             ->join("ea_detalle_debito", "ea_detalle_debito.id_sec", "=", "ea_base_activa.id_sec")
                             ->select(
                                 'ea_base_activa.id_sec',
-                                'ea_base_activa.tarjeta',
+                                'tarjeta',
                                 'ea_subproductos.cod_establecimiento',
+                                EaBaseActiva::raw("FORMAT (getdate(), 'yyyyMMdd') as date"),
                                 'ea_subproductos.subtotal',
-                                'ea_base_activa.feccad',
-                                'ea_detalle_debito.id_carga',
-                                'ea_base_activa.cedula_id',
-                                'ea_base_activa.tipcta',
-                                'ea_base_activa.tipide',
+                                EaBaseActiva::raw("'00000000000000000' as constante1"),
+                                EaBaseActiva::raw("'202' as constante2"),
+                                EaBaseActiva::raw("'000000' as constante3"),
+                                EaBaseActiva::raw("'00' as constante4"),
+                                EaBaseActiva::raw("'00000' as reemplazar"),
+                                EaBaseActiva::raw("'439473' as constante5"),
+                                'feccad',
                                 'ea_subproductos.deduccion_impuesto',
-                                'ea_base_activa.nombre',
-                                'ea_base_activa.ciudadet',
-                                'ea_subproductos.valortotal',
+                                EaBaseActiva::raw("'00' as constante6"),
+                                EaBaseActiva::raw("'D' as constante7"),
+                                EaBaseActiva::raw("'00000' as constante8"),
+                                'ea_subproductos.subtotal',
+                                EaBaseActiva::raw("'000000000000000' as constante9"),
+                                'ea_base_activa.id_sec',
+                                'ea_detalle_debito.id_carga'
                             )
                             ->where('ea_detalle_debito.subproducto_id', $this->id_subproducto)
                             ->where('ea_detalle_debito.id_carga', $carga_secuencia)
@@ -93,6 +99,12 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
                             ->where('ea_detalle_debito.estado', '0')
                             ->orderby('ea_base_activa.id_sec')
                             ->get();
+                        // preguntar luego
+                        /*
+                  ->where('detresp', 'ACEPTA SERVICIO')
+                   ->where('ea_base_activa.estado', 'Z')
+            */
+                        //->where('ea_detalle_debito.producto', $this->producto)
                     } elseif ($this->tipo_subproducto == 'CTAS') {
                         //inicio condigo cuentas KPE
                         \Log::info('$carga_secuencia : ' . $carga_secuencia);
@@ -101,17 +113,14 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
                             ->join("ea_detalle_debito", "ea_detalle_debito.id_sec", "=", "ea_base_activa.id_sec")
                             ->select(
                                 'ea_base_activa.id_sec',
-                                'ea_subproductos.cod_establecimiento',
-                                'ea_subproductos.subtotal',
-                                'ea_base_activa.feccad',
-                                'ea_detalle_debito.id_carga',
                                 'ea_base_activa.cedula_id',
                                 'ea_base_activa.cuenta',
                                 'ea_base_activa.tipcta',
                                 'ea_base_activa.tipide',
+                                'ea_subproductos.subtotal',
                                 'ea_subproductos.deduccion_impuesto',
                                 'ea_base_activa.nombre',
-                                'ea_base_activa.ciudadet',
+                                'ea_subproductos.subtotal',
                                 'ea_subproductos.valortotal',
                             )
                             ->where('ea_detalle_debito.subproducto_id', $this->id_subproducto)
@@ -125,50 +134,61 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
                             ->orderby('ea_base_activa.id_sec')
                             ->get();
                     } else {
+
+
                         dd('Error interno porfavor cominiquese con soporte.');
                     }
                 } else {
                     if ($this->tipo_subproducto == 'TC') {
-                        \Log::info('condicion - Inicio - mes - CTAS');
+                        \Log::info('condicion - Inicio - mes - Cliente : INTER TC');
                         $generar_return =  EaBaseActiva::join("ea_subproductos", "ea_subproductos.contrato_ama", "=", "ea_base_activa.producto")
                             ->select(
                                 'ea_base_activa.id_sec',
-                                'ea_base_activa.tarjeta',
+                                'tarjeta',
                                 'ea_subproductos.cod_establecimiento',
+                                EaBaseActiva::raw("FORMAT (getdate(), 'yyyyMMdd') as date"),
                                 'ea_subproductos.subtotal',
-                                'ea_base_activa.feccad',
-                                'ea_detalle_debito.id_carga',
-                                'ea_base_activa.cedula_id',
-
-                                'ea_base_activa.tipcta',
-                                'ea_base_activa.tipide',
+                                EaBaseActiva::raw("'00000000000000000' as constante1"),
+                                EaBaseActiva::raw("'202' as constante2"),
+                                EaBaseActiva::raw("'000000' as constante3"),
+                                EaBaseActiva::raw("'00' as constante4"),
+                                EaBaseActiva::raw("'00000' as reemplazar"),
+                                EaBaseActiva::raw("'439473' as constante5"),
+                                'feccad',
                                 'ea_subproductos.deduccion_impuesto',
-                                'ea_base_activa.nombre',
-                                'ea_base_activa.ciudadet',
-                                'ea_subproductos.valortotal',
+                                EaBaseActiva::raw("'00' as constante6"),
+                                EaBaseActiva::raw("'D' as constante7"),
+                                EaBaseActiva::raw("'00000' as constante8"),
+                                'ea_subproductos.subtotal',
+                                EaBaseActiva::raw("'000000000000000' as constante9"),
+                                'ea_base_activa.id_sec'
                             )
                             ->where('desc_subproducto', $this->producto)
                             ->where('ea_base_activa.cliente', $this->cliente)
                             ->where('tipresp', '1')
-                            ->where('detresp', 'ACEPTA SERVICIO')
+                            ->where('detresp', 'ACEPTA')
                             ->where('ea_base_activa.estado', 'Z')
                             ->where('codresp', '100')
                             ->orderby('ea_base_activa.id_sec')
                             ->get();
+                        // preguntar luego
+                        /*
+                            ->where('detresp', 'ACEPTA')
+                            ->where('ea_base_activa.estado', 'Z')
+                        */
+                        //->where('producto', $this->producto)
+
                     } elseif ($this->tipo_subproducto == 'CTAS') {
-                        \Log::info('condicion - Inicio - mes - CTAS');
+                        //inicio codigo cuentas KPE
+                        \Log::info('condicion - Inicio - mes - Cliente : INTER TC');
                         $generar_return =  EaBaseActiva::join("ea_subproductos", "ea_subproductos.contrato_ama", "=", "ea_base_activa.producto")
                             ->select(
                                 'ea_base_activa.id_sec',
-
-                                'ea_subproductos.cod_establecimiento',
-                                'ea_subproductos.subtotal',
-                                'ea_base_activa.feccad',
-                                'ea_detalle_debito.id_carga',
                                 'ea_base_activa.cedula_id',
                                 'ea_base_activa.cuenta',
                                 'ea_base_activa.tipcta',
                                 'ea_base_activa.tipide',
+                                'ea_subproductos.subtotal',
                                 'ea_subproductos.deduccion_impuesto',
                                 'ea_base_activa.nombre',
                                 'ea_base_activa.ciudadet',
@@ -177,17 +197,80 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
                             ->where('desc_subproducto', $this->producto)
                             ->where('ea_base_activa.cliente', $this->cliente)
                             ->where('tipresp', '1')
-                            ->where('detresp', 'ACEPTA SERVICIO')
+                            ->where('detresp', 'ACEPTA')
                             ->where('ea_base_activa.estado', 'Z')
                             ->where('codresp', '100')
                             ->orderby('ea_base_activa.id_sec')
                             ->get();
                     } else {
+
+
                         dd('Error interno porfavor cominiquese con soporte.');
                     }
                 }
-                //dd($generar_return);
+
                 return $generar_return;
+
+                break;
+
+            case "BBOLIVARIANO":
+                return EaBaseActiva::join("ea_subproductos", "ea_subproductos.contrato_ama", "=", "ea_base_activa.producto")
+                    ->select(
+                        'tarjeta',
+                        'ea_subproductos.cod_establecimiento',
+                        EaBaseActiva::raw("FORMAT (getdate(), 'yyyyMMdd') as date"),
+                        'ea_subproductos.subtotal',
+                        EaBaseActiva::raw("'00000000000000000' as constante1"),
+                        EaBaseActiva::raw("'202' as constante2"),
+                        EaBaseActiva::raw("'000000' as constante3"),
+                        EaBaseActiva::raw("'00' as constante4"),
+                        EaBaseActiva::raw("'00000' as reemplazar"),
+                        EaBaseActiva::raw("'439473' as constante5"),
+                        'feccad',
+                        'ea_subproductos.deduccion_impuesto',
+                        EaBaseActiva::raw("'00' as constante6"),
+                        EaBaseActiva::raw("'D' as constante7"),
+                        EaBaseActiva::raw("'00000' as constante8"),
+                        'ea_subproductos.subtotal',
+                        EaBaseActiva::raw("'000000000000000' as constante9"),
+                        'ea_base_activa.id_sec'
+                    )
+                    ->where('desc_subproducto', $this->producto)
+                    ->where('ea_base_activa.cliente', $this->cliente)
+                    ->where('tipresp', '1')
+                    ->where('codresp', '100')
+                    ->where('detresp', 'ACEPTA SERVICIO')
+                    ->where('estado', 'Z')
+                    ->get();
+
+                break;
+            case "BGR":
+                break;
+            case "PICHINCHA":
+               
+                break;
+            case "PRODUBANCO":
+              
+                break;
+            case "DINERS":
+             
+                break;
+            case "MOVISTAR":
+               
+                break;
+            case "NOVA":
+               
+                break;
+            case "REALME":
+               
+                break;
+            case "SAMSUNG":
+                
+                break;
+
+
+            default:
+                return "error consulte a soporte";
                 break;
         }
     }
@@ -256,7 +339,6 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
                 'cod_carga' => isset($rows['cod_carga']) ? $rows['cod_carga'] + 1 : null,
                 'fecha_actualizacion' => isset($row['fecha_actualizacion']) ? $rows['fecha_actualizacion'] : '',
                 'fec_registro' => isset($rows['fecha_registro']) ? trim($rows['fecha_registro']) : null,
-                'producto' =>  isset($rows['producto']) ? trim($rows['producto']) : null,
                 'desc_producto' => isset($this->producto) ? trim($this->producto) : '',
                 'cliente' => isset($this->cliente) ? trim($this->cliente) : '',
                 'producto' => $this->id_subproducto,
@@ -275,7 +357,7 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
     public function is_carga_older()
     {
         return EaDetalleDebito::where('cliente', $this->cliente)
-            ->where('producto', $this->producto)
+            ->where('subproducto_id', $this->id_subproducto)
             ->orderbydesc('id_carga')
             ->first();
     }
@@ -449,10 +531,10 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
 
     public function __construct(string $cliente, string $producto, string $cod_carga_corp = null, string $sub_producto_id, $tipo_subproducto)
     {
-
+        
         $this->cliente = $cliente;
         $this->cod_carga_corp = $cod_carga_corp;
-        $this->producto = $producto; //usanddo la desc
+        $this->producto = $producto;//usanddo la desc
         $this->id_subproducto = $sub_producto_id;
         $this->tipo_subproducto = $tipo_subproducto;
         $this->collection = null;

@@ -40,7 +40,7 @@ class EaCargaIndividualExport extends Controller
 {
     /**
      * Display a listing of the resource.
-     *
+     * En memoria de FIDO "Gordito"
      * @return \Illuminate\Http\Response
      */
     public function index()
@@ -52,16 +52,13 @@ class EaCargaIndividualExport extends Controller
             ->with(compact('RegistrosPendientes'));
     }
     /**
-     * Remove the specified resource from storage.
+     * en memoria de FIDO "Gordito"
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
     public function exporta(Request $request)
     {
-
         if ($request->btn_genera == 'buscar') {
-
-
             // $logFile = 'import.log';
             //Log::useDailyFiles(storage_path().'/logs/'.$logFile);
             //Log::info('This is some useful information.');
@@ -139,461 +136,133 @@ class EaCargaIndividualExport extends Controller
             $cont = 0;
             $condicion = false;
             $op_client = EaOpcionesCargaCliente::where('cliente', $request->cliente)->where('subproducto', $request->producto)->first();
-
             $opciones_fijas = json_decode($op_client->opciones_fijas, true);
             $campos_export = json_decode($op_client->campos_export, true);
             $campoC = json_decode($op_client->campoc, true);
             $campo0 = json_decode($op_client->campo0, true);
 
-            // ARMA LAS RESPUESTA QUE SE INSERTAN EN EL DOCUMENTO TXT , Y ADICIONAL LLAMA AL METODO QUE LO INSTERTA EN LA BASE DE DATOS.
-            switch ($request->cliente) {
-                case "INTER":
-                    if ($detalle_subproducto->tipo_subproducto == 'TC') {
-                        $tiempo_inicial = microtime(true);
-                        \Log::info('tiempo que inicia : ' . $tiempo_inicial);
-                        foreach ($recorrido as $individual) {
-                            //dd($individual['tarjeta']);
-                            $subtotal = $individual->subtotal;
-                            $numberCeros = 17 - strlen((string)(floatval($subtotal) * 100));
-                            $cerossub = "";
-                            for ($i = 0; $i < $numberCeros; $i++) {
-                                $cerossub .= "0";
+            $tiempo_inicial = microtime(true);
+            \Log::info('tiempo que inicia : ' . $tiempo_inicial);
+            if (isset($campoC["frase"])) {
+                $textoPlano .= str_replace("{{date}}", date('Y/m/d'), $campoC["frase"]);
+            }
+            foreach ($recorrido as $individual) {
+                if (isset($op_client->num_elem_export)) {
+                    $cont++;
+                    $secuencia = "";
+                    for ($i = 1; $i <= $op_client->num_elem_export; $i++) {
+                        // variable temporal que tendra el texto
+                        if (isset($campos_export[$i]) || isset($opciones_fijas[$i])) {
+                            $value_field =  isset($campos_export[$i]) ? $individual[$campos_export[$i]] : $opciones_fijas[$i];
+                            //$text_temp = strlen($value_field);
+                            if ((strlen($value_field) > 100)) {
+                                $value_field = Crypto::decrypt($value_field, $clave);
                             }
-                            $subtotalF = $cerossub . floatval($subtotal) * 100;
-                            $numberCeros = 17 - strlen((string)(floatval($individual->deduccion_impuesto) * 100));
-                            $cerossub = "";
-                            for ($i = 0; $i < $numberCeros; $i++) {
-                                $cerossub .= "0";
+                            if (
+                                isset($campos_export[$i]) == 'deduccion_impuesto'  ||
+                                isset($campos_export[$i]) == 'subtotal' ||
+                                isset($campos_export[$i]) == 'valortotal'
+                            ) {
+                                $value_field =   str_replace(".", "", $value_field);
                             }
-                            $impuestoF = $cerossub . (floatval($individual->deduccion_impuesto) * 100);
-                            //$textoPlano .= "\t";
-                            $example = "0";
-                            if (isset($individual->tarjeta) and (strlen($individual->tarjeta) > 20)) {
-                                $example = Crypto::decrypt($individual->tarjeta, $clave);
-                            } else {
-                                $example = "ERROR";
-                            }
-                            //$textoPlano .= "-1-";
-                            $textoPlano .= $example;
-                            //$textoPlano .= "-2-";
-                            $establecimiento_print = "";
-                            if (isset($individual->cod_establecimiento)) {
-                                $cerosCod = 8 - strlen($individual->cod_establecimiento);
+                            if (isset($campo0['campo0_' . $i])) { //iria al final o al comienzo ?    
+
+                                $cerosCod = (int)$campo0['campo0_' . $i] - strlen($value_field);
+                                // dd($cerosCod);
+                                $establecimiento_print = "";
                                 if ($cerosCod > 0) {
-                                    for ($i = 0; $i < $cerosCod; $i++) {
+                                    for ($j = 0; $j < $cerosCod; $j++) {
                                         $establecimiento_print .= "0";
                                     }
-                                    $establecimiento_print .= $individual->cod_establecimiento;
+                                    $text_temp = $value_field;
+                                    $establecimiento_print .= $text_temp;
+                                    $textoPlano .= $establecimiento_print;
+                                } else {
+                                    $text_temp = $value_field;
+                                    $establecimiento_print .= $text_temp;
+                                    $textoPlano .= $establecimiento_print;
                                 }
-                            }
-                            $textoPlano .= (isset($individual->cod_establecimiento)) ? $establecimiento_print : "00000000";
-                            //$textoPlano .= "-3-";
-                            $textoPlano .= (isset($individual->date)) ? $individual->date : "000000";
-                            //$individual->date;
-                            //$textoPlano .= "-4-";
-                            $textoPlano .= $subtotalF;
-                            //$textoPlano .= "-5-";
-                            $textoPlano .= $individual->constante1;
-                            //$textoPlano .= "-6-";
-                            $textoPlano .= $individual->constante2;
-                            //$textoPlano .= "-7-";
-                            $textoPlano .= $individual->constante3;
-                            //$textoPlano .= "-8-";
-                            $textoPlano .= $individual->constante4;
-                            $cont++;
-                            $cont_prin = 6 - strlen((string)($cont));
-                            $cont_ceros2 = "";
-                            for ($i = 0; $i < $cont_prin; $i++) {
-                                $cont_ceros2 .= "0";
-                            }
-                            //$textoPlano .= "-9-";
-                            $textoPlano .= $cont_ceros2 . $cont;
-                            ///bloque para realizar insert en base con la secuencia en la tabla ea_detalle_debito
-                            //$textoPlano .= "\t";
-                            //$textoPlano .= "-10-";
-                            $textoPlano .= $individual->constante5;
-                            //$textoPlano .= "-11-";
-                            $textoPlano .= (isset($individual->feccad)) ? $individual->feccad : "000000";
-                            //preguntar si va quemado 
-                            //$textoPlano .= $individual->feccad;
-                            //$textoPlano .= "-12-";
-                            $textoPlano .= $impuestoF;
-                            //$textoPlano .= "-13-";
-                            $textoPlano .= $individual->constante6;
-                            //$textoPlano .= "-14-";
-                            $textoPlano .= $individual->constante7;
-                            //$textoPlano .= "-15-";
-                            $textoPlano .= $individual->constante8;
-                            //$textoPlano .= "-16-";
-                            $cerossub = "";
-                            $numberCeros = 15 - strlen((string)(floatval($individual->subtotal) * 100));
-                            for ($i = 0; $i < $numberCeros; $i++) {
-                                $cerossub .= "0";
-                            }
-                            $subtotalF = $cerossub . floatval($subtotal) * 100;
-                            $textoPlano .= $subtotalF;
-                            //$textoPlano .= "-17-";
-                            $textoPlano .= $individual->constante9;
-                            $textoPlano .= "\n";
-                            if (!isset($request->carga_resp)) {
-                                $condicion = true;
-                                $id_carga = (isset($individual->id_carga) ? $individual->id_carga : 1);
-                                $fecha_generacion = (isset($ultima_carga->fecha_generacion) ? $ultima_carga->fecha_generacion : 0);
-                                if ($fecha_generacion != date('mY')) {
-                                    $id_carga = (isset($ultima_carga->id_carga) ? $ultima_carga->id_carga : 0);
-                                }
-                                $row_insert_detalle = array();
-                                $row_insert_detalle['id_sec'] = $individual->id_sec;
-                                $row_insert_detalle['id_carga'] = $id_carga;
-                                $row_insert_detalle['secuencia'] = $cont;
-                                $row_insert_detalle['fecha_actualizacion'] = null;
-                                $row_insert_detalle['fecha_registro'] = date('d/m/Y H:i:s');
-                                //$row_insert_detalle['producto'] = $request->producto;
-                                $row_insert_detalle['subproducto'] = $request->producto;
-                                $row_insert_detalle['cliente'] = $request->cliente;
-                                $row_insert_detalle['estado'] = "0";
-                                $row_insert_detalle['detalle'] = null;
-                                $row_insert_detalle['bin'] = $example;
-                                $row_insert_detalle['fecha_generacion'] =  date('mY');
-                                $objEXPORT->view_reg_state($row_insert_detalle);
-                            }
-                            //area de validaciones -- por el momemto quemada
-                            $detallevalidacion = array('validacion_campo_1' => 'Establecimiento', 'validacion_valor_1' => $individual->cod_establecimiento);
-                        }
-                        $tiempo_final = microtime(true);
-                        \Log::info('tiempo que termina : ' . $tiempo_final);
-                    }
-                    if ($detalle_subproducto->tipo_subproducto == 'CTAS') {
-                        $tiempo_inicial = microtime(true);
-                        \Log::info('tiempo que inicia : ' . $tiempo_inicial);
-                             //{ "frase": "BGRVISA  Fecha de Corte: {{date}} Registros:{{secuencia}}"}
-                             //{"campoC_3":"contador_secuencia","campoC_4":"Ymd","frase": "BGRVISA  Fecha de Corte: {{date}} Registros:{{secuencia}} \n"}
-                            //BGRVISA  Fecha de Corte: 2022/01/16 Registros:     7 d/m/Y
-                            //  {"campoF_1":"CO","campoF_2":"632575","campoF_6":"USD","campoF_8":"CTA","campoF_9":"32","campoF_15":"","campoF_16":"","campoF_17":"","campoF_18":"","campoF_19":"FAMILIA","campoF_20":"","campoF_21":"NA","campoF_22":"NA","campoF_25":"NA","campoF_26":"NA","campoF_27":"NA"}
-                            //  {"campoF_1":"CO","campoF_2":"632575","campoF_6":"USD","campoF_8":"CTA","campoF_9":"32","campoF_15":"","campoF_16":"","campoF_17":"","campoF_18":"","campoF_19":"ENFERMEDADES GRAVES","campoF_20":"","campoF_21":"NA","campoF_22":"NA","campoF_25":"NA","campoF_26":"NA","campoF_27":"NA"}
-                            //  {"campoF_1":"CO","campoF_2":"632575","campoF_6":"USD","campoF_8":"CTA","campoF_9":"32","campoF_15":"","campoF_16":"","campoF_17":"","campoF_18":"","campoF_19":"HOGAR","campoF_20":"","campoF_21":"NA","campoF_22":"NA","campoF_25":"NA","campoF_26":"NA","campoF_27":"NA"}
-                            //  {"campoF_1":"CO","campoF_2":"632575","campoF_6":"USD","campoF_8":"CTA","campoF_9":"32","campoF_15":"","campoF_16":"","campoF_17":"","campoF_18":"","campoF_19":"PYMES","campoF_20":"","campoF_21":"NA","campoF_22":"NA","campoF_25":"NA","campoF_26":"NA","campoF_27":"NA"}
-                            //  {"campoF_1":"CO","campoF_2":"632575","campoF_6":"USD","campoF_8":"CTA","campoF_9":"32","campoF_15":"","campoF_16":"","campoF_17":"","campoF_18":"","campoF_19":"HOMBRE","campoF_20":"","campoF_21":"NA","campoF_22":"NA","campoF_25":"NA","campoF_26":"NA","campoF_27":"NA"}
-                            //  {"campoF_1":"CO","campoF_2":"632575","campoF_6":"USD","campoF_8":"CTA","campoF_9":"32","campoF_15":"","campoF_16":"","campoF_17":"","campoF_18":"","campoF_19":"MUJER","campoF_20":"","campoF_21":"NA","campoF_22":"NA","campoF_25":"NA","campoF_26":"NA","campoF_27":"NA"}
-                            //  {"campoF_1":"CO","campoF_2":"632575","campoF_6":"USD","campoF_8":"CTA","campoF_9":"32","campoF_15":"","campoF_16":"","campoF_17":"","campoF_18":"","campoF_19":"ANTIFRAUDES","campoF_20":"","campoF_21":"NA","campoF_22":"NA","campoF_25":"NA","campoF_26":"NA","campoF_27":"NA"}
-                            //  {"campoF_1":"CO","campoF_2":"632575","campoF_6":"USD","campoF_8":"CTA","campoF_9":"32","campoF_15":"","campoF_16":"","campoF_17":"","campoF_18":"","campoF_19":"ENFEREMEDADES GRAVES","campoF_20":"","campoF_21":"NA","campoF_22":"NA","campoF_25":"NA","campoF_26":"NA","campoF_27":"NA"}
-                            if (isset($campoC["frase"])) {
-                                //echo str_replace("world","Peter","Hello world!");
-                                //Hello Peter!
-                                $textoPlano .= str_replace("{{date}}", date('Y/m/d'), $campoC["frase"]);
-
-                            }
-                        
-                        foreach ($recorrido as $individual) {
-                            // inicio de bloque de codigo , usando metodo normal
-
-                            /*
-                            $example = "CO";
-                            $cont++;
-                            $cont_ceros2 = "";
-                            $textoPlano .= $example; //codigo de orientacion
-                            $textoPlano .= "\t";
-                            $textoPlano .= "632575"; // cuenta de la empresa //ver si púedo poner un json
-                            $textoPlano .= "\t";
-                            $textoPlano .= $cont; //secuencial
-                            $textoPlano .= "\t";
-                            $textoPlano .= date('Ymd'); //comprobante de cobro//fecha que se realia YYYYMMDD
-                            $textoPlano .= "\t";
-                            $textoPlano .= $individual->cedula_id; //contrapartida /// cedula_id
-                            $textoPlano .= "\t";
-                            $textoPlano .= "USD"; //moneda //USD //fijo ?
-                            $textoPlano .= "\t";
-                            $textoPlano .= str_replace(".", "", $individual->valortotal); //valor // viene de subproducto valorTotal
-                            $textoPlano .= "\t";
-                            $textoPlano .= "CTA"; /// forma de cobor // CTA // fijo ver si JSON
-                            $textoPlano .= "\t";
-                            $textoPlano .= "32"; // codigo banco // 32
-                            $textoPlano .= "\t";
-                            $textoPlano .= $individual->tipcta; // tipo cuenta // tipcta
-                            $textoPlano .= "\t";
-                            if (isset($individual->cuenta) and (strlen($individual->cuenta) > 20)) {
-                                $example = Crypto::decrypt($individual->cuenta, $clave);
                             } else {
-                                $example = "ERROR";
-                            }
-                            $textoPlano .= $example; //numero cuenta // BA - cuenta 
-                            $textoPlano .= "\t";
-                            $textoPlano .= $individual->tipide; //tipo cliente // tipide
-                            $textoPlano .= "\t";
-                            $textoPlano .= $individual->cedula_id; //numero id cliente // cedula_id
-                            $textoPlano .= "\t";
-                            $textoPlano .= $individual->nombre; //nombre completo BA
-                            $textoPlano .= "\t";
-                            $textoPlano .= ""; // espacion en blanco // direccion del deudor
-                            $textoPlano .= "\t";
-                            $textoPlano .= ""; // espacion en blanco // ciudad del deudor
-                            $textoPlano .= "\t";
-                            $textoPlano .= ""; // espacion en blanco // telefono del deudor
-                            $textoPlano .= "\t";
-                            $textoPlano .= ""; // espacion en blanco // localidad cobor
-                            $textoPlano .= "\t";
-                            $textoPlano .= "familia"; // referencia // de ley que hay que sacar del json
-                            $textoPlano .= "\t";
-                            $textoPlano .= ""; // espacion en blanco // referencia adicional
-                            $textoPlano .= "\t";
-                            $textoPlano .= 'NA'; // NA// base imponible
-                            $textoPlano .= "\t";
-                            $textoPlano .= 'NA'; // NA// iva bienes 
-                            $textoPlano .= "\t";
-                            $textoPlano .= str_replace(".", "", $individual->subtotal); // subproducto.subtotal // base imponible 
-                            $textoPlano .= "\t";
-                            $textoPlano .= str_replace(".", "", $individual->deduccion_impuesto); //iva servicios // subproducto.deduccion_impuesto
-                            $textoPlano .= "\t";
-                            $textoPlano .= ""; // espacion en blanco //ice
-                            $textoPlano .= "\t";
-                            $textoPlano .= ""; // espacion en blanco // referencia facturacion
-                            $textoPlano .= "\t";
-                            $textoPlano .= ""; // espacion en blanco // campo opcional 
-                            $textoPlano .= "\n";
-                            if (!isset($request->carga_resp)) {
-                                $condicion = true;
-                                $id_carga = (isset($individual->id_carga) ? $individual->id_carga : 1);
-                                $fecha_generacion = (isset($ultima_carga->fecha_generacion) ? $ultima_carga->fecha_generacion : 0);
-                                if ($fecha_generacion != date('mY')) {
-                                    $id_carga = (isset($ultima_carga->id_carga) ? $ultima_carga->id_carga : 0);
+                                if (isset($campoC['insert_date_' . $i])) {
+                                    $value_field = str_replace('insert_date_' . $i, strtoupper(date($campoC['insert_date_' . $i])), $value_field);
                                 }
-                                $row_insert_detalle = array();
-                                $row_insert_detalle['id_sec'] = $individual->id_sec;
-                                $row_insert_detalle['id_carga'] = $id_carga;
-                                $row_insert_detalle['secuencia'] = $individual->cedula_id; // cedula 
-                                $row_insert_detalle['fecha_actualizacion'] = null;
-                                $row_insert_detalle['fecha_registro'] = date('d/m/Y H:i:s');
-                                $row_insert_detalle['producto'] = $request->producto;
-                                $row_insert_detalle['subproducto'] = $request->producto;
-                                $row_insert_detalle['cliente'] = $request->cliente;
-                                $row_insert_detalle['estado'] = "0";
-                                $row_insert_detalle['detalle'] = null;
-                                //$row_insert_detalle['bin'] = $example;
-                                $row_insert_detalle['fecha_generacion'] =  date('mY');
-                                $objEXPORT->view_reg_state($row_insert_detalle);
+                                $textoPlano .= $value_field;
                             }
-                            */
+                        } elseif (isset($campoC['campoC_' . $i])) {
+                            if ($campoC['campoC_' . $i] == "contador_secuencia") {
+                                $secuencia = $cont;
+                            } else {
+                                $secuencia = date($campoC['campoC_' . $i]);
+                            }
 
-
-                            if (isset($op_client->num_elem_export)) {
-                                $cont++;
-                                $secuencia = "";
-                                for ($i = 1; $i <= $op_client->num_elem_export; $i++) {
-                                    $text_temp = ""; // variable temporal que tendra el texto
-                                    if (isset($campos_export['campoB_' . $i]) || isset($opciones_fijas['campoF_' . $i])) {
-                                        $value_field =  isset($campos_export['campoB_' . $i]) ? $individual[$campos_export['campoB_' . $i]] : $opciones_fijas['campoF_' . $i];
-                                        if ((strlen($value_field) > 100)) {
-                                            $value_field = Crypto::decrypt($value_field, $clave);
-                                        }
-                                        if (isset($campo0['campo0_' . $i])) { //iria al final o al comienzo ?    
-                                            $cerosCod = (int)$campo0['campo0_' . $i] - strlen($text_temp);
-                                            $establecimiento_print = "";
-                                            if ($cerosCod > 0) {
-                                                for ($i = 0; $i < $cerosCod; $i++) {
-                                                    $establecimiento_print .= "0";
-                                                }
-                                                $text_temp = $value_field;
-                                                $establecimiento_print .= $text_temp;
-                                                $textoPlano .= $establecimiento_print;
-                                            } else {
-                                                $text_temp = $value_field;
-                                                $establecimiento_print .= $text_temp;
-                                                $textoPlano .= $establecimiento_print;
-                                            }
-                                        } else {
-                                            $textoPlano .= $value_field;
-                                        }
-
-                                        // 16-24-28-44-48-40-56-16
-                                        //54-69-52-22-66-61-16
-                                        //37-4 -9 -8 -32-16
-                                        //66-79-33-27-16
-                                        //53-65-27-16
-                                        //84-28-16
-                                        //27-16
-                                        //16
-                                        //09+21-1205
-                                        //48-7-53
-                                        //{"campoC_3":"contador_secuencia","campoC_4":"Ymd"}
-                                        //{"campoC_3":"identificacion","campoC_4":"Ymd"}
-                                    } elseif (isset($campoC['campoC_' . $i])) {
-                                        if ($campoC['campoC_' . $i] == "contador_secuencia") {
-                                            $secuencia = $cont;
-                                        } elseif ($campoC['campoC_' . $i] == "identificacion") {
-                                            $secuencia = $individual->cedula_id;
-                                        } else {
-                                            $secuencia = date($campoC['campoC_' . $i]);
-                                        }
-
-                                        $textoPlano .= $secuencia;
+                            if (isset($campo0['campo0_' . $i])) { //iria al final o al comienzo ?    
+                                $cerosCod = (int)$campo0['campo0_' . $i] - strlen($secuencia);
+                                // dd($cerosCod);
+                                $establecimiento_print = "";
+                                if ($cerosCod > 0) {
+                                    for ($j = 0; $j < $cerosCod; $j++) {
+                                        $establecimiento_print .= "0";
                                     }
-
-                                    // if (isset($op_client->espacios)) { // pendiente crear en base
-                                    $textoPlano .= "\t";
-                                    // }
+                                    $text_temp =  $secuencia;
+                                    $establecimiento_print .= $text_temp;
+                                    $secuencia = $establecimiento_print;
+                                } else {
+                                    $text_temp =  $secuencia;
+                                    $establecimiento_print .= $text_temp;
+                                    $secuencia = $establecimiento_print;
                                 }
-
-                                // siempre tiene que existir campos fijos , el que use como secuencia o indicador (cedula_ID o secuencia)
-                                // el siguiente campo lo extraigo directamente de la consulta 
-                                // FECHA_REGISTRO => SE AUTOGENERA SE PUEDE INSERTAR SIN PROBLEMAS
-                                /* 
-                                $row_insert_detalle = array();
-                                $row_insert_detalle['id_sec'] =$individual->id_sec; //NO CAMBIOS 
-                                $row_insert_detalle['id_carga'] = $id_carga; //NO CAMBIOS
-                                $row_insert_detalle['secuencia'] = $individual->cedula_id; //INSERTAR OPCION PARA DISTINGUIR SI ES NESCESARIO SECUENCIA O CEDULA U OTRO CAMPO PUEDO USAR UNA CONDICION EN CASO QUE EXISTA LA CEDULA? se puede
-                                $row_insert_detalle['fecha_actualizacion'] = null;// LA PUEDO BORRA // VERIFICAR
-                                $row_insert_detalle['fecha_registro'] = date('d/m/Y H:i:s');// NO CAMBIOS
-                                $row_insert_detalle['producto'] = $request->producto;// NO CAMBIOS // SE PUEDE USAR LA DEL METODO EN EL COMIEZO 
-                                $row_insert_detalle['subproducto'] = $request->producto; // NO CAMBIOS // SE PUEDE USAR LA DEL METODO EN EL COMIEZO 
-                                $row_insert_detalle['cliente'] = $request->cliente; // NO CAMBIOS// SE PUEDE USAR LA DEL METODO EN EL COMIEZO 
-                                $row_insert_detalle['estado'] = "0"; // NO CAMBIOS
-                                $row_insert_detalle['detalle'] = null; // NO CAMBIOS SE PUEDE BORRAR 
-                                //$row_insert_detalle['bin'] = $example; // NO CAMBIOS SE PUEDE BORRAR
-                                $row_insert_detalle['fecha_generacion'] =  date('mY');
-                                */
-                            } else {
-                                dd("Falta una configuracion , porfavor acceda a Ea_opciones_carga_cliente");
                             }
-                            $textoPlano .= "\n";
-                            if (!isset($request->carga_resp)) {
-                                $condicion = true;
-                                $id_carga = (isset($individual->id_carga) ? $individual->id_carga : 1);
-                                $fecha_generacion = (isset($ultima_carga->fecha_generacion) ? $ultima_carga->fecha_generacion : 0);
-                                if ($fecha_generacion != date('mY')) {
-                                    $id_carga = (isset($ultima_carga->id_carga) ? $ultima_carga->id_carga : 0);
-                                }
-                                $row_insert_detalle = array();
-                                $row_insert_detalle['id_sec'] = $individual->id_sec;
-                                $row_insert_detalle['id_carga'] = $id_carga;
-                                $identificador_export = "";
-                                if ($identificador_export == 'secuencia') {
-                                    $row_insert_detalle['secuencia'] = $secuencia;
-                                } elseif ($identificador_export == 'cedula_id') {
-                                    $row_insert_detalle['secuencia'] = $individual->cedula_id;
-                                }
-                                $row_insert_detalle['fecha_registro'] = date('d/m/Y H:i:s');
-                                $row_insert_detalle['subproducto'] = $request->producto;
-                                $row_insert_detalle['cliente'] = $request->cliente;
-                                $row_insert_detalle['estado'] = "0";
-                                $row_insert_detalle['fecha_generacion'] =  date('mY');
-                                $objEXPORT->view_reg_state($row_insert_detalle);
-                            }
+
+                            $textoPlano .= $secuencia;
                         }
-                        $tiempo_final = microtime(true);
-                        \Log::info('tiempo que termina : ' . $tiempo_final);
+                        if (isset($campoC["espacios"])) {
+                            $textoPlano .= $campoC["espacios"];
+                        }
                     }
-                    $textoPlano =  str_replace("{{secuencia}}",$cont,  $textoPlano );
-                    //INICIO DE METODO GLOBAL
-
-                    //$op_client = EaOpcionesCargaCliente::where('cliente', $request->cliente)->where('subproducto', $request->producto)->first();
-                    //dd($textoPlano);
-
-                    break;
-                case "BBOLIVARIANO":
-                    # code...
-                    break;
-                case "BGR":
-                    foreach ($recorrido as $individual) {
-
-                        $subtotal = $individual->subtotal;
-                        $numberCeros = 17 - strlen((string)(floatval($subtotal) * 100));
-                        $cerossub = "";
-                        for ($i = 0; $i < $numberCeros; $i++) {
-                            $cerossub .= "0";
-                        }
-                        $subtotalF = $cerossub . floatval($subtotal) * 100;
-                        $numberCeros = 17 - strlen((string)(floatval($individual->deduccion_impuesto) * 100));
-                        $cerossub = "";
-                        for ($i = 0; $i < $numberCeros; $i++) {
-                            $cerossub .= "0";
-                        }
-                        $impuestoF = $cerossub . (floatval($individual->deduccion_impuesto) * 100);
-                        //$textoPlano .= "\t";
-                        $example = "0";
-                        if (isset($individual->tarjeta) and (strlen($individual->tarjeta) > 20)) {
-                            $example = Crypto::decrypt($individual->tarjeta, $clave);
+                } else {
+                    dd("Falta una configuracion , porfavor acceda a Ea_opciones_carga_cliente");
+                }
+                $textoPlano .= "\n";
+                if (!isset($request->carga_resp)) {
+                    /*
+                            elseif ($campoC['campoC_' . $i] == "identificacion") {
+                                    $secuencia = $individual->cedula_id;
+                                } 
+                        */
+                    $condicion = true;
+                    $id_carga = (isset($individual->id_carga) ? $individual->id_carga : 1);
+                    $fecha_generacion = (isset($ultima_carga->fecha_generacion) ? $ultima_carga->fecha_generacion : 0);
+                    if ($fecha_generacion != date('mY')) {
+                        $id_carga = (isset($ultima_carga->id_carga) ? $ultima_carga->id_carga : 0);
+                    }
+                    $row_insert_detalle = array();
+                    $row_insert_detalle['id_sec'] = $individual->id_sec;
+                    $row_insert_detalle['id_carga'] = $id_carga;
+                    if (isset($campoC['identificador'])) {
+                        if ($campoC['identificador'] == 'secuencia') {
+                            $row_insert_detalle['secuencia'] = $secuencia;
+                        } elseif ($campoC['identificador'] == 'cedula_id') {
+                            //cuentas , cedula por defecto
+                            $row_insert_detalle['secuencia'] = $individual->cedula_id;
                         } else {
-                            $example = "1234560000000078";
+                            dd("Error Fatal , no esta bien configurado el identificador de forma correcta , porfavor especifique si es el campo cedula_id o es una secuencia");
                         }
-                        //$textoPlano .= "-1-";
-                        $textoPlano .= $example;
-                        //$textoPlano .= "-2-";
-                        $textoPlano .= (isset($individual->cod_establecimiento)) ? $$individual->cod_establecimiento : "00000000";
-                        //$textoPlano .= "-3-";
-                        $textoPlano .= (isset($individual->date)) ? $individual->date : "000000";
-                        //$individual->date;
-                        //$textoPlano .= "-4-";
-                        $textoPlano .= $subtotalF;
-                        //$textoPlano .= "-5-";
-                        $textoPlano .= $individual->constante1;
-                        //$textoPlano .= "-6-";
-                        $textoPlano .= $individual->constante2;
-                        //$textoPlano .= "-7-";
-                        $textoPlano .= $individual->constante3;
-                        //$textoPlano .= "-8-";
-                        $textoPlano .= $individual->constante4;
-                        $cont++;
-                        $cont_prin = 6 - strlen((string)($cont));
-                        $cont_ceros2 = "";
-                        for ($i = 0; $i < $cont_prin; $i++) {
-                            $cont_ceros2 .= "0";
-                        }
-                        //$textoPlano .= "-9-";
-                        $textoPlano .= $cont_ceros2 . $cont;
-                        ///bloque para realizar insert en base con la secuencia en la tabla ea_detalle_debito
-                        //$textoPlano .= "\t";
-                        //$textoPlano .= "-10-";
-                        $textoPlano .= $individual->constante5;
-                        //$textoPlano .= "-11-";
-                        $textoPlano .= (isset($individual->feccad)) ? $individual->feccad : "000000";
-                        //$textoPlano .= $individual->feccad;
-                        //$textoPlano .= "-12-";
-                        $textoPlano .= $impuestoF;
-                        //$textoPlano .= "-13-";
-                        $textoPlano .= $individual->constante6;
-                        //$textoPlano .= "-14-";
-                        $textoPlano .= $individual->constante7;
-                        //$textoPlano .= "-15-";
-                        $textoPlano .= $individual->constante8;
-                        //$textoPlano .= "-16-";
-                        $cerossub = "";
-                        $numberCeros = 15 - strlen((string)(floatval($individual->subtotal) * 100));
-                        for ($i = 0; $i < $numberCeros; $i++) {
-                            $cerossub .= "0";
-                        }
-                        $subtotalF = $cerossub . floatval($subtotal) * 100;
-                        $textoPlano .= $subtotalF;
-                        //$textoPlano .= "-17-";
-                        $textoPlano .= $individual->constante9;
-                        $textoPlano .= "\n";
+                    } else {
+                        //cuentas , cedula por defecto
+                        $row_insert_detalle['secuencia'] = $individual->cedula_id;
                     }
-                    break;
-                case "PICHINCHA":
-                    # code...
-                    break;
-                case "PRODUBANCO":
-                    # code...
-                    break;
-                case "DINERS":
-                    # code...
-                    break;
-                case "MOVISTAR":
-                    # code...
-                    break;
-                case "NOVA":
-                    # code...
-                    break;
-                case "REALME":
-                    # code...
-                    break;
-                case "SAMSUNG":
-                    # code...
-                    break;
-                default:
-                    # code...
-                    break;
+                    $row_insert_detalle['fecha_registro'] = date('d/m/Y H:i:s');
+                    $row_insert_detalle['subproducto'] = $request->producto;
+                    $row_insert_detalle['cliente'] = $request->cliente;
+                    $row_insert_detalle['estado'] = "0";
+                    $row_insert_detalle['fecha_generacion'] =  date('mY');
+                    $objEXPORT->view_reg_state($row_insert_detalle);
+                }
             }
-
+            $tiempo_final = microtime(true);
+            \Log::info('tiempo que termina : ' . $tiempo_final);
+            // }
+            $textoPlano =  str_replace("{{secuencia}}", $cont,  $textoPlano);
             if ($condicion == true) {
                 $id_carga = (isset($ultima_carga->id_carga) ? $ultima_carga->id_carga : 0);
                 $fecha_generacion = (isset($ultima_carga->fecha_generacion) ? $ultima_carga->fecha_generacion : 0);
@@ -633,9 +302,7 @@ class EaCargaIndividualExport extends Controller
                 return Response::make($textoPlano, 200, $headers);
                 // el make usa lo que es la respuesta del response para enviar parametros o en este caso obliga al navegador a que la cadena se imprima como
                 // el response de la misma aplicacion 
-
             }
-
             return redirect()->route('EaCargaIndividualImport.index')->with([
                 'success' => isset($success) ? $success : '',
                 'errorTecnico' => isset($errorTecnico) ?  $errorTecnico  : 'hubo un error disculpe los inconvenientes',
@@ -721,3 +388,50 @@ class EaCargaIndividualExport extends Controller
         return Excel::download(new EaGenCamExport($request->cliente, $detalle_subproducto->desc_subproducto, $varcontrolsecuencia, $request->producto, $detalle_subproducto->tipo_subproducto), $request->cliente . "-" . $name_producto . "-" . date("Y-m-d") . '.xlsx');
     }
 }
+
+
+
+
+
+                                     // ARMA LAS RESPUESTA QUE SE INSERTAN EN EL DOCUMENTO TXT , Y ADICIONAL LLAMA AL METODO QUE LO INSTERTA EN LA BASE DE DATOS.
+            //dd($recorrido);
+            // Ejemplo BGR CTAS
+            //{"campoF_1":"CO","campoF_2":"8020000304","campoF_6":"USD","campoF_7":"293","campoF_8":"CTA","campoF_9":"42","campoF_16":"","campoF_18":"ESTUDIANTE SEGURO_insert_date_18-P0","campoF_19":"0","campoF_20":"","campoF_21":"","campoF_22":"","campoF_23":"","campoF_24":"332","campoF_25":"","campoF_26":"","campoF_27":"","campoF_28":"31","campoF_29":"","campoF_30":"8"}
+            //{"campoB_5":"cedula_id","campoB_10":"tipcta","campoB_11":"cuenta","campoB_12":"tipide","campoB_13":"cedula_id","campoB_14":"nombre","campoB_15":"ciudadet","campoB_17":"ciudadet","campoB_22":"valortotal"}
+            //{"campoC_3":"contador_secuencia","campoC_4":"Ymd","espacios":"\t","insert_date_18":"M-Y"}
+
+            //ejemplo INTER CTAS
+            //{"campoF_1":"CO","campoF_2":"632575","campoF_6":"USD","campoF_8":"CTA","campoF_9":"32","campoF_15":"","campoF_16":"","campoF_17":"","campoF_18":"","campoF_19":"FAMILIA","campoF_20":"","campoF_21":"NA","campoF_22":"NA","campoF_25":"NA","campoF_26":"NA","campoF_27":"NA"}
+            //{"campoB_5":"cedula_id","campoB_7":"valortotal","campoB_10":"tipcta","campoB_11":"cuenta","campoB_12":"tipide","campoB_13":"cedula_id","campoB_14":"nombre","campoB_23":"subtotal","campoB_24":"deduccion_impuesto"}
+            //{"campoC_3":"contador_secuencia","campoC_4":"Ymd","espacios":"\t","identificador":"cedula_id"}
+
+            //ejemplo Produbanco CTAS
+            //{"campoF_1":"CO","campoF_2":"02005112032","campoF_6":"USD","campoF_8":"CTA","campoF_9":"32","campoF_15":"","campoF_16":"","campoF_17":"","campoF_18":"","campoF_19":"FAMILIA","campoF_20":"","campoF_21":"NA","campoF_22":"NA","campoF_25":"NA","campoF_26":"NA","campoF_27":"NA"}
+            //{"campoB_5":"cedula_id","campoB_7":"valortotal","campoB_10":"tipcta","campoB_11":"cuenta","campoB_12":"tipide","campoB_13":"cedula_id","campoB_14":"nombre","campoB_23":"subtotal","campoB_24":"deduccion_impuesto"}
+            //{"campoC_3":"contador_secuencia","campoC_4":"Ymd","espacios":"\t","identificador":"cedula_id"}
+
+
+            //CO	02005112032	0000007	00000000000000000000	          1706765052	USD	0000000000300	CTA	0036	CTE	02010000578	C	   1706765052	BELLAGAMBA STREUBEL GUILLERMO           	VICTOR EMILIO ESTRADA1208   LAURELES    	           GUAYAQUIL	           042888048	               QUITO	                                                                                                                                                                                     DEBITO DEL 20220118		0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	0000000000000
+            /* produbanco CTAS
+CO	02005112032	0000001	00000000000000000000	          0908851496	USD	0000000000300	CTA	0036	CTE	02010000522	C	   0908851496	CUESTA ASTUDILLO CARLO MAGNO            	MACHALA609    E/ CHAMBERS Y OCONNORS    	           GUAYAQUIL	           042338886	               QUITO	                                                                                                                                                                                     DEBITO DEL 20220118		0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	0000000000000
+CO	02005112032	0000002	00000000000000000000	          0918156639	USD	0000000000300	CTA	0036	CTE	02000000349	C	   0918156639	ALVAREZ PACHECO ROBERTO CARLOS          	ASUNCION28     MEXICO                   	           GUAYAQUIL	           042331377	               QUITO	                                                                                                                                                                                     DEBITO DEL 20220118		0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	0000000000000
+CO	02005112032	0000003	00000000000000000000	          0912799095	USD	0000000000300	CTA	0036	AHO	12010000865	C	   0912799095	ANCHUNDIA ESPINOZA OSCAR ALEXANDER      	SAN MARTIN5504   ENTRE 32AVA Y 33AVA    	           GUAYAQUIL	           042473695	               QUITO	                                                                                                                                                                                     DEBITO DEL 20220118		0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	0000000000000
+CO	02005112032	0000004	00000000000000000000	          0905147013	USD	0000000000300	CTA	0036	CTE	02220000926	C	   0905147013	BARAHONA INTRIAGO CECILIO ALFREDO       	PLAYAS, BARRIO ALEXANDER360    Y CARLOS 	           GUAYAQUIL	           042760742	               QUITO	                                                                                                                                                                                     DEBITO DEL 20220118		0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	0000000000000
+CO	02005112032	0000005	00000000000000000000	          0919253146	USD	0000000000300	CTA	0036	CTE	02000000127	C	   0919253146	ALVARADO AREVALO JOSE LUIS              	NULL                                    	           GUAYAQUIL	           042843571	               QUITO	                                                                                                                                                                                     DEBITO DEL 20220118		0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	0000000000000
+CO	02005112032	0000006	00000000000000000000	          1801463298	USD	0000000000300	CTA	0036	AHO	12080000243	C	   1801463298	BARRIGA IZURIETA NORI ALICIA            	AV.PASTEUR321    LUXEMBURGO             	              AMBATO	           032824535	               QUITO	                                                                                                                                                                                     DEBITO DEL 20220118		0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	0000000000000
+CO	02005112032	0000007	00000000000000000000	          1706765052	USD	0000000000300	CTA	0036	CTE	02010000578	C	   1706765052	BELLAGAMBA STREUBEL GUILLERMO           	VICTOR EMILIO ESTRADA1208   LAURELES    	           GUAYAQUIL	           042888048	               QUITO	                                                                                                                                                                                     DEBITO DEL 20220118		0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	0000000000000
+                */
+
+                            // 16-24-28-44-48-40-56-16
+                            //54-69-52-22-66-61-16
+                            //37-4 -9 -8 -32-16
+                            //66-79-33-27-16
+                            //53-65-27-16
+                            //84-28-16
+                            //27-16
+
+                            //16
+                            //09+21-1205
+                            //48-7-53
+                            //{"campoC_3":"contador_secuencia","campoC_4":"Ymd"}
+                            //{"campoC_3":"identificacion","campoC_4":"Ymd"}
