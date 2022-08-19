@@ -58,23 +58,6 @@ class EaCargaIndividualExport extends Controller
      */
     public function exporta(Request $request)
     {
-        /*Storage::disk('public')->put('example.txt', 'Contents');
-        $request['saveFile'] =  file_put_contents('zomie.txt', 'Contents');
-        $data = [
-            ['user_id' => 'Coder 1', 'subject_id' => 4096],
-            ['user_id' => 'Coder 2', 'subject_id' => 2048],
-            //...
-        ];*/
-
-        //$data=(object)$data;
-
-        // $data->storeAs('lecturaDebito/', 'examplewwww.txt', 'public');
-        //$gen_file =  file_put_contents('/storage/generacion_debito/smple.txt', 'Contents');
-        //$request->file('archivo')->storeAs('lecturaDebito/', 'examplewwww.txt' , 'public');
-        //Storage::put('file.txt', 'Contents', 'public/generacion_debito');
-        //file('file.txt', null , 'Contents') ->storeAs('generacion_debito', 'public');
-        //Storage::put('example.txt', 'Contents')->storeAs('generacion_debito', 'public');
-        //dd(Storage::disk('public')->put('example.txt', 'Contents'));
 
         if ($request->btn_genera == 'buscar') {
             // $logFile = 'import.log';
@@ -150,7 +133,7 @@ class EaCargaIndividualExport extends Controller
             \Log::info('    $request->producto : ' . $request->producto);
             \Log::info('    varcontrolsecuencia : ' . $varcontrolsecuencia);
             $recorrido = $objEXPORT->generar();
-            //dd($recorrido);
+
             $ultima_carga = $objEXPORT->is_carga_older();
             $textoPlano = "";
             $detallevalidacion = array();
@@ -164,39 +147,11 @@ class EaCargaIndividualExport extends Controller
             $this->campo0 = $campo0;
             $tiempo_inicial = microtime(true);
             \Log::info('tiempo que inicia : ' . $tiempo_inicial);
-            $valido_sec = 1;
-            $valido_total = count($recorrido);
-            $valido_reg_sec = $valido_total;
-            // EN GENERACION CAMPOS QUEMADOS
             if (isset($campoC["frase"])) {
-                switch ($request->cliente) {
-                    case 'BGR':
-                        $textoPlano .= str_replace("{{date}}", date('Y/m/d'), $campoC["frase"]);
-                        $textoPlano .= "     " . count($recorrido);
-                        $textoPlano .= "\n";
-                        break;
-                    case 'PRODUBANCO':
-                        if (isset($campoC["fraseF"])) {
-                        } else {
-                            //frase = TREC02210000000
-                            $cont = 1;
-                            $textoPlano .= $campoC["frase"] . $cont . "30850130850000000000000000033975300000000000000000000000000";
-                            $textoPlano .= "\n";
-                        }
-                        break;
-                    default:
-                        $textoPlano .= $campoC["frase"];
-                        break;
-                }
+                $textoPlano .= str_replace("{{date}}", date('Y/m/d'), $campoC["frase"]);
+                $textoPlano .= "     " . count($recorrido);
+                $textoPlano .= "\n";
             }
-            //$campoC["fraseI"];
-            // FRASE SOLO SE APLICA EN LA PRIMERA LINEA
-            //$campoC["fraseF"];
-            //contador adelantada
-            //experimental Insert 
-            //dd(Crypto::encrypt(trim("8427521309006015"), $clave));
-            $limit_insert = 150;
-            $row_insert_detalle = array();
             foreach ($recorrido as $individual) {
                 if (isset($op_client->num_elem_export)) {
                     $cont++;
@@ -204,14 +159,18 @@ class EaCargaIndividualExport extends Controller
                     for ($i = 1; $i <= $op_client->num_elem_export; $i++) {
                         // variable temporal que tendra el texto
                         $value_field = "";
+
                         if (isset($campos_export[$i]) || isset($opciones_fijas[$i])) {
+
                             $value_field =  isset($campos_export[$i]) ? $individual[$campos_export[$i]] : $opciones_fijas[$i];
                             //$text_temp = strlen($value_field);
+
                             if ((strlen($value_field) > 100)) {
                                 // echo $value_field;
                                 $value_field = Crypto::decrypt($value_field, $clave);
                                 //dd($value_field);
                             }
+
                             if (isset($campos_export[$i])) {
                                 // dd("esta en campos_export");
                                 if (
@@ -234,7 +193,9 @@ class EaCargaIndividualExport extends Controller
                                     }
                                 }
                             }
-                            if (isset($campo0['campo0_' . $i]) || isset($campo0['campo0D_' . $i]) || isset($campo0['campoE_' . $i]) || isset($campo0['campoED_' . $i])) { //iria al final o al comienzo ?    
+
+
+                            if (isset($campo0['campo0_' . $i])) { //iria al final o al comienzo ?    
                                 // METODO 
                                 //  dd("esta en campo0");
                                 $value_field = $this->validate_0_E($value_field, $i);
@@ -243,6 +204,8 @@ class EaCargaIndividualExport extends Controller
                                     $value_field = str_replace('insert_date_' . $i, strtoupper(date($campoC['insert_date_' . $i])), $value_field);
                                 }
                             }
+
+
                             $textoPlano .= $value_field;
                             //echo  $textoPlano;
                             //dd($value_field);
@@ -255,7 +218,7 @@ class EaCargaIndividualExport extends Controller
                             } else {
                                 $secuencia = date($campoC['campoC_' . $i]);
                             }
-                            if (isset($campo0['campo0_' . $i]) || isset($campo0['campo0D_' . $i]) || isset($campo0['campoE_' . $i]) || isset($campo0['campoED_' . $i])) { //iria al final o al comienzo ?    
+                            if (isset($campo0['campo0_' . $i])) { //iria al final o al comienzo ?    
                                 $secuencia = $this->validate_0_E($secuencia, $i);
                             }
                             $value_field = $secuencia;
@@ -270,57 +233,46 @@ class EaCargaIndividualExport extends Controller
                 }
                 $textoPlano .= "\n";
                 if (!isset($request->carga_resp)) {
+                    /*
+                            elseif ($campoC['campoC_' . $i] == "identificacion") {
+                                    $secuencia = $individual->cedula_id;
+                                } 
+                        */
                     $condicion = true;
-                    $row_insert_sets = array();
                     $id_carga = (isset($individual->id_carga) ? $individual->id_carga : 1);
                     $fecha_generacion = (isset($ultima_carga->fecha_generacion) ? $ultima_carga->fecha_generacion : 0);
                     if ($fecha_generacion != date('mY')) {
                         $id_carga = (isset($ultima_carga->id_carga) ? $ultima_carga->id_carga : 0);
                     }
-                    $row_insert_sets['id_sec'] = isset($individual->id_sec) ? trim($individual->id_sec) : null; // ok
-                    $row_insert_sets['id_carga'] = $id_carga + 1; // ok
+                    $row_insert_detalle = array();
+                    $row_insert_detalle['id_sec'] = $individual->id_sec;
+                    $row_insert_detalle['id_carga'] = $id_carga;
                     if (isset($campoC['identificador'])) {
                         if ($campoC['identificador'] == 'secuencia') {
-                            $row_insert_sets['secuencia'] = $secuencia;
+                            $row_insert_detalle['secuencia'] = $secuencia;
                         } elseif ($campoC['identificador'] == 'cedula_id') {
                             //cuentas , cedula por defecto
-                            $row_insert_sets['secuencia'] = $individual->cedula_id;
+                            $row_insert_detalle['secuencia'] = $individual->cedula_id;
                         } else {
                             dd("Error Fatal , no esta bien configurado el identificador de forma correcta , porfavor especifique si es el campo cedula_id o es una secuencia");
                         }
                     } else {
-                        $row_insert_sets['secuencia'] = $individual->cedula_id;
+                        //cuentas , cedula por defecto
+                        $row_insert_detalle['secuencia'] = $individual->cedula_id;
                     }
-                    $row_insert_sets['fecha_registro'] = date('d/m/Y H:i:s'); //ok
-                    $row_insert_sets['subproducto_id'] = $request->producto; //ok
-                    $row_insert_sets['cliente'] = $request->cliente; //ok
-                    $row_insert_sets['estado'] = "0"; //sing
-                    $row_insert_sets['fecha_generacion'] =  date('mY'); //ok
-                    array_push($row_insert_detalle, $row_insert_sets);
-                    $row_insert_sets = array();
-                    if ($valido_sec == $limit_insert) {
-                        $valido_sec = 0;
-                        $valido_reg_sec = $valido_reg_sec - $limit_insert;
-                        $objEXPORT->view_reg_state($row_insert_detalle);
-                        $row_insert_detalle = array();
-                    } elseif ($valido_sec == $valido_reg_sec) {
-                        $objEXPORT->view_reg_state($row_insert_detalle);
-                    }
-                    $valido_sec++;
+                    $row_insert_detalle['fecha_registro'] = date('d/m/Y H:i:s');
+                    $row_insert_detalle['subproducto'] = $request->producto;
+                    $row_insert_detalle['cliente'] = $request->cliente;
+                    $row_insert_detalle['estado'] = "0"; //sing
+                    $row_insert_detalle['fecha_generacion'] =  date('mY');
+                    $objEXPORT->view_reg_state($row_insert_detalle);
+                
                 }
             }
-
             $tiempo_final = microtime(true);
             \Log::info('tiempo que termina : ' . $tiempo_final);
             // }
             $textoPlano =  str_replace("{{secuencia}}", $cont,  $textoPlano);
-            $extension_file = ".";
-            if (isset($campoC["extension"])) {
-                $extension_file .= $campoC["extension"];
-            } else {
-                $extension_file .= "txt";
-            }
-
             if ($condicion == true) {
                 $id_carga = (isset($ultima_carga->id_carga) ? $ultima_carga->id_carga : 0);
                 $fecha_generacion = (isset($ultima_carga->fecha_generacion) ? $ultima_carga->fecha_generacion : 0);
@@ -333,14 +285,10 @@ class EaCargaIndividualExport extends Controller
                 $file_reg_carga['usuario'] = \Auth::user()->username;
                 $validoacion_par = json_encode($detallevalidacion);
                 $objEXPORT->registro_cargas($file_reg_carga, $validoacion_par);
-                $fileName = $request->cliente . "-" . $detalle_subproducto->desc_subproducto . "-" . date("d-m-Y") . "-" .  $varcontrolsecuencia .  $extension_file;
+                $fileName = $request->cliente . "-" . $detalle_subproducto->desc_subproducto . "-" . date("d-m-Y") . "-" .  $varcontrolsecuencia . ".txt";
                 //$request->cliente, $request->producto
                 //$request->carga_resp
                 $success = 'se genero exitosamente , se procede a realizar la descarga ';
-                Storage::disk('public')->makeDirectory('generacion_debito/' . $request->cliente . '/' . $request->producto . '/' . date('mY'));
-                file_put_contents(public_path('storage/generacion_debito/' . $request->cliente . '/' . $request->producto . '/' . date('mY') . '/' . $fileName), $textoPlano);
-
-
                 return redirect()->route('EaCargaIndividualImport.index')->with([
                     'success' => isset($success) ? $success : '',
                     'generacionVal' => isset($success) ? '200' : '',
@@ -350,13 +298,17 @@ class EaCargaIndividualExport extends Controller
                     'errorTecnico' => isset($errorTecnico) ?  $errorTecnico  : '',
                     'registros_no_cumplen' => isset($registros_no_cumplen) ? $registros_no_cumplen : ''
                 ]);
+                /* $headers = [
+                    'Content-type' => 'text/plain',
+                    'Content-Disposition' => sprintf('attachment; filename="%s"', $fileName),
+                ];
+                return Response::make($textoPlano, 200, $headers);*/
             } else {
-                $fileName = $request->cliente . "-" . $detalle_subproducto->desc_subproducto . "-" . date("d-m-Y") . "-" . $varcontrolsecuencia .  $extension_file;
+                $fileName = $request->cliente . "-" . $detalle_subproducto->desc_subproducto . "-" . date("d-m-Y") . "-" . $varcontrolsecuencia .  ".txt";
                 $headers = [
                     'Content-type' => 'text/plain',
                     'Content-Disposition' => sprintf('attachment; filename="%s"', $fileName),
                 ];
-                //Storage::put($fileName,$textoPlano);
                 return Response::make($textoPlano, 200, $headers);
                 // el make usa lo que es la respuesta del response para enviar parametros o en este caso obliga al navegador a que la cadena se imprima como
                 // el response de la misma aplicacion 
@@ -421,7 +373,7 @@ class EaCargaIndividualExport extends Controller
                 $value_field = $establecimiento_print;
             }
         } elseif (isset($campo0['campo0D_' . $i])) {
-            $cerosCod = (int)$campo0['campo0D_' . $i] - strlen((string)$value_field);
+            $cerosCod = (int)$campo0['campo0_' . $i] - strlen((string)$value_field);
             $establecimiento_print = "";
             if ($cerosCod > 0) {
                 for ($j = 0; $j < $cerosCod; $j++) {
@@ -433,8 +385,8 @@ class EaCargaIndividualExport extends Controller
                 $establecimiento_print .= $value_field;
                 $value_field = $establecimiento_print;
             }
-        } elseif (isset($campo0['campoE_' . $i])) {
-            $cerosCod = (int)$campo0['campoE_' . $i] - strlen((string)$value_field);
+        } elseif (isset($campo0['campo0E_' . $i])) {
+            $cerosCod = (int)$campo0['campo0_' . $i] - strlen((string)$value_field);
             $establecimiento_print = "";
             if ($cerosCod > 0) {
                 for ($j = 0; $j < $cerosCod; $j++) {
@@ -446,8 +398,8 @@ class EaCargaIndividualExport extends Controller
                 $establecimiento_print .= $value_field;
                 $value_field = $establecimiento_print;
             }
-        } elseif (isset($campo0['campoED_' . $i])) {
-            $cerosCod = (int)$campo0['campoED_' . $i] - strlen((string)$value_field);
+        } elseif (isset($campo0['campo0ED_' . $i])) {
+            $cerosCod = (int)$campo0['campo0_' . $i] - strlen((string)$value_field);
             $establecimiento_print = "";
             if ($cerosCod > 0) {
                 for ($j = 0; $j < $cerosCod; $j++) {

@@ -43,7 +43,7 @@
                                 @break
 
                                 @case('PRODUBANCO')
-                                    BANCO BOLIVARIANO
+                                    BANCO PRODUBANCO
                                 @break
 
                                 @case('DINERS')

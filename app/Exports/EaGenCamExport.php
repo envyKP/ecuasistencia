@@ -46,6 +46,7 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
         }
 
         $detalles = $this->is_carga_older();
+
         $generar_return = null;
         switch ($this->cliente) {
             case 'disable':
@@ -61,9 +62,11 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
                     } else {
                         $carga_secuencia = $detalles->id_carga;
                     }
-                    $this->cod_carga_corp = $detalles->id_carga;
+                    $this->cod_carga_corp = $carga_secuencia;
+
                     if ($this->tipo_subproducto == 'TC') {
-                        //dd("no implementado");
+
+
                         \Log::info('$carga_secuencia : ' . $carga_secuencia);
                         \Log::info('condicion - secuencia - mes - Cliente : INTER CTAS');
                         $generar_return =  EaBaseActiva::join("ea_subproductos", "ea_subproductos.desc_subproducto", "=", "ea_base_activa.subproducto")
@@ -74,12 +77,14 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
                                 'ea_subproductos.cod_establecimiento',
                                 'ea_subproductos.subtotal',
                                 'ea_base_activa.feccad',
+                                'ea_base_activa.cuenta',
                                 'ea_detalle_debito.id_carga',
                                 'ea_base_activa.cedula_id',
                                 'ea_base_activa.tipcta',
                                 'ea_base_activa.tipide',
                                 'ea_subproductos.deduccion_impuesto',
                                 'ea_base_activa.nombre',
+                                'ea_base_activa.direccion',
                                 'ea_base_activa.ciudadet',
                                 'ea_subproductos.valortotal',
                             )
@@ -88,8 +93,9 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
                             ->where('ea_base_activa.cliente', $this->cliente)
                             ->where('tipresp', '1')
                             ->where('codresp', '100')
-                            ->where('detresp', 'ACEPTA')
+                            ->where('detresp', 'ACEPTA SERVICIO')
                             ->where('ea_base_activa.estado', 'Z')
+                            ->where('ea_base_activa.codestado', 'A')
                             ->where('ea_detalle_debito.estado', '0')
                             ->orderby('ea_base_activa.id_sec')
                             ->get();
@@ -119,7 +125,8 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
                             ->where('ea_base_activa.cliente', $this->cliente)
                             ->where('tipresp', '1')
                             ->where('codresp', '100')
-                            ->where('detresp', 'ACEPTA')
+                            ->where('detresp', 'ACEPTA SERVICIO')
+                            ->where('ea_base_activa.codestado', 'A')
                             ->where('ea_base_activa.estado', 'Z')
                             ->where('ea_detalle_debito.estado', '0')
                             ->orderby('ea_base_activa.id_sec')
@@ -137,7 +144,7 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
                                 'ea_subproductos.cod_establecimiento',
                                 'ea_subproductos.subtotal',
                                 'ea_base_activa.feccad',
-                                'ea_detalle_debito.id_carga',
+                                'ea_base_activa.cuenta',
                                 'ea_base_activa.cedula_id',
 
                                 'ea_base_activa.tipcta',
@@ -153,6 +160,7 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
                             ->where('detresp', 'ACEPTA SERVICIO')
                             ->where('ea_base_activa.estado', 'Z')
                             ->where('codresp', '100')
+                            ->where('ea_base_activa.codestado', 'A')
                             ->orderby('ea_base_activa.id_sec')
                             ->get();
                     } elseif ($this->tipo_subproducto == 'CTAS') {
@@ -164,7 +172,7 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
                                 'ea_subproductos.cod_establecimiento',
                                 'ea_subproductos.subtotal',
                                 'ea_base_activa.feccad',
-                                'ea_detalle_debito.id_carga',
+
                                 'ea_base_activa.cedula_id',
                                 'ea_base_activa.cuenta',
                                 'ea_base_activa.tipcta',
@@ -180,8 +188,10 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
                             ->where('detresp', 'ACEPTA SERVICIO')
                             ->where('ea_base_activa.estado', 'Z')
                             ->where('codresp', '100')
+                            ->where('ea_base_activa.codestado', 'A')
                             ->orderby('ea_base_activa.id_sec')
                             ->get();
+                        //pymes todo esta como acepta , en mi base le cambiare a acepta servicio.
                     } else {
                         dd('Error interno porfavor cominiquese con soporte.');
                     }
@@ -201,9 +211,24 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
     public function view_reg_state(array $rows)
     {
         //MODIFICAR EN EL FUTURO LA TABLA QUE SE DEBE INSERTAR O CREAR UN ALTER ESPÉCIFICO PARA PRODUBANCO DEBIDO A QUE ESTE NO CUENTA CON EL CAMPO SECUENCIA
-
+        //dd($rows);
         try {
-            EaDetalleDebito::create([
+            //optimizar insert block
+           /* $row_insert_detalle = array();
+            $data =
+                array('id_sec' => '448487', 'id_carga' => '777');
+            array_push($row_insert_detalle, $data);
+
+            EaDetalleDebito::insert($row_insert_detalle);
+            dd($rows);
+            */
+            EaDetalleDebito::insert($rows); // Eloquent approach
+            //DB::table('table')->insert($data); /
+
+
+
+            //  old block
+            /*EaDetalleDebito::create([
                 'id_carga' => isset($rows['id_carga']) ? $rows['id_carga'] + 1 : null,
                 'id_sec' => isset($rows['id_sec']) ? trim($rows['id_sec']) : null,
                 'secuencia' => isset($rows['secuencia']) ? trim($rows['secuencia']) : null,
@@ -213,7 +238,9 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
                 'fecha_generacion' => isset($rows['fecha_generacion']) ? trim($rows['fecha_generacion']) : null,
                 'subproducto_id' => isset($this->id_subproducto) ? trim($this->id_subproducto) : '',
             ]);
+            */
         } catch (\Exception $e) {
+            dd("error fatal:" . $e->getMessage());
             \Log::warning('error view_reg_state:  ' . $e);
             // $obj_det_carga_corp->truncate($this->cod_carga, $this->cliente );
             $this->errorTecnico = $e->getMessage();
@@ -274,8 +301,9 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
 
     public function is_carga_older()
     {
+
         return EaDetalleDebito::where('cliente', $this->cliente)
-            ->where('producto', $this->producto)
+            ->where('subproducto_id', $this->id_subproducto)
             ->orderbydesc('id_carga')
             ->first();
     }
