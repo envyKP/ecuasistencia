@@ -99,7 +99,8 @@ class EaCargaIndividualImport extends Controller
             $datosCab['fec_carga'] = Date('d/m/Y H:i:s');
             if ($request->hasfile('archivo')) {
                 $nombre_archivo = $request->file('archivo')->getClientOriginalName();
-                $datosCab['archivo'] = $request->file('archivo')->storeAs('lecturaDebito/' . $request->cliente . '/' . $request->desc_producto . '/' . $request->cod_carga, $nombre_archivo, 'public');
+                $descripcion = preg_replace('([^A-Za-z0-9 ])','', $request->desc_producto);
+                $datosCab['archivo'] = $request->file('archivo')->storeAs('lecturaDebito/' . $request->cliente . '/' . $descripcion . '/' . $request->cod_carga, $nombre_archivo, 'public');
             }
             $trx = EaCabeceraDetalleCarga::where('desc_producto', (isset($datosCab['desc_producto']) ? $datosCab['desc_producto'] : ''))
                 ->where('producto', (isset($datosCab['producto']) ? $datosCab['producto'] : ''))

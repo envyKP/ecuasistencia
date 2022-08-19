@@ -24,14 +24,19 @@ require __DIR__ . '/../vendor/autoload.php';
 
 
 //bloque transformar texto cadena ordenar y sacar la primera pala de cada cadena
-$str = 'Kevin Johan Perez Macias'; // cadena nombre
-$re = '/\b(\w)[^\s]*\s*/m'; // expresion regular 
-$subst = '$1'; // 1 caracter
+$str = 'Kevin / Johan ++ Perez *@ Macias'; // cadena nombre
+
+//$re = '/\b(\w)[^\s]*\s*/m'; // expresion regular 
+/*$subst = '$1'; // 1 caracter
 $name = explode(' ', $str); // separar
 sort($name); // ordenar 
 $rename_order = implode(" ", $name); //unir 
 $result = preg_replace($re, $subst, $rename_order); // procesar para sacar la primera palabra
 echo $result;
+*/
+$res = preg_replace('([^A-Za-z0-9 ])', '', $str);
+echo $res;
+die();
 
 $pila = array(["hola", "como", "estas"]);
 array_push($pila, ["hola", "como", "estas"]);
@@ -41,7 +46,6 @@ print_r($pila);
 $data = [
     ['user_id'=>'Coder 1', 'subject_id'=> 4096],
     ['user_id'=>'Coder 2', 'subject_id'=> 2048],
-    //...
 ];
 
 //Model::insert($data); // Eloquent approach
@@ -71,9 +75,4 @@ for ($i = 1; $i <= $total; $i++) {
 }
 
 echo date('Y-m-d h i s', '1660838482.5864');
-echo "  **  ";
 echo date('Y-m-d h i s', '1660834793.0605');
-echo "  /////  ";
-echo date('Y-m-d h i s', '1660838912.8709');
-echo "  **  ";
-echo date('Y-m-d h i s', '1660838934.6182');
