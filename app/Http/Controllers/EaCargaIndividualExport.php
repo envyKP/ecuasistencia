@@ -112,7 +112,6 @@ class EaCargaIndividualExport extends Controller
                 ->with(isset($resumen_cabecera) ? compact('resumen_cabecera') : '');
         } else {
 
-            //dd($request);
             \Log::info('funcion exporta clase EaCargaIndividualExport');
             \Log::warning('usuario que realiza la orden: ' . \Auth::user()->username);
             // \Log::warning('Something could be going wrong.');
@@ -303,8 +302,6 @@ class EaCargaIndividualExport extends Controller
                 $validoacion_par = json_encode($detallevalidacion);
                 //$descripcion = preg_replace('([^A-Za-z0-9 ])', ' ', $detalle_subproducto->desc_subproducto);
                 $fileName = ($id_carga + 1) . $extension_file;
-                //$request->cliente, $request->producto
-                //$request->carga_resp
                 $success = 'se genero exitosamente , se procede a realizar la descarga ';
                 Storage::disk('public')->makeDirectory('generacion_debito/' . $request->cliente . '/' . $request->producto . '/' . date('Y'));
                 file_put_contents(public_path('storage/generacion_debito/' . $request->cliente . '/' . $request->producto . '/' . date('Y') . '/' . $fileName), $textoPlano);
@@ -338,23 +335,8 @@ class EaCargaIndividualExport extends Controller
                     'Content-type' => 'text/plain',
                     'Content-Disposition' => sprintf('attachment; filename="%s"', $fileName),
                 ];
-                //PDF file is stored under project/public/download/info.pdf
-                //dd($ruta);
                 $file = public_path() . '/' . $ruta->ruta_gen_debito;
-                //$file = public_path().$ruta;
-                //$file = 'C:\wamp\www\ecuasistencia\storage\app\public\generacion_debito\INTER\16\2022\1.txt';
-                //dd($file);
-                /*
-                $headers = array(
-                    'Content-Type: application/pdf',
-                );*/
-                //storage/generacion_debito/INTER/16/2022/
                 return Response::download($file, $fileName, $headers);
-                //'storage/generacion_debito/' . $request->cliente . '/' . $request->producto . '/' . date('Y') . '/' .
-                //Route::get('/download/{file}','Controller@download')->name('download');
-                //$file = public_path() . "/download/info.pdf";
-                //return response()->download($file);
-                //return Response::make($textoPlano, 200, $headers);
                 //https://www.adictosaltrabajo.com/2015/01/29/regexsam/
             }
             return redirect()->route('EaCargaIndividualImport.index')->with([

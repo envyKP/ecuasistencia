@@ -23,9 +23,106 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow
      * @param array $row
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Database\Eloquent\Model|null
-    */
+     */
 
     public function collection(Collection $rows)
+    {
+        \Log::info('inside colleccion IMPORT class EaGemCamImport');
+
+        $obj_detalle_debito = (new EaDetalleDebitoController);
+        $obj_subproducto = (new EaSubproductoController);
+        $obj_det_carga_corp = (new EaDetalleDebitoController);
+        $registros_duplicados = array();
+        $registros_archivos = array();
+        $datos_subproductos = $obj_subproducto->getSubproductoDetalle($this->cliente, $this->producto);
+        $op_client = EaOpcionesCargaCliente::where('cliente', $this->cliente)->where('subproducto', $this->producto)->first();
+        $opciones_validacion = null;
+        $opciones_import = null;
+        if (isset($op_client->opciones_validacion) && isset($op_client->campos_import)) {
+            $opciones_import = json_decode($op_client->campos_import, true);
+            $opciones_validacion = json_decode($op_client->opciones_validacion, true);
+        } else {
+            dd("Error no existe configuracion en base para realizar esta operacion ");
+        }
+        //$datos_validacion = EaOpcionesCargaCliente::where();{"validacion_campo_1":"Establecimiento","validacion_valor_1":"873134"}
+
+        foreach ($rows as $row) {
+
+            // recorre todo el excel , tengo un campo validacion y el otro campo es el valor que viene desde el export
+            //siempre tiene que estar el campo quemado 
+            if (isset($row[$opciones_import[$opciones_validacion['identificador_secuencia']]])) {
+                //if(isset(campor_identificacion[cedula_id ! tarjeta ! cuenta ! secuencia]) )
+                /// se tiene que transforma los nombres de los campos pero como soluciono la confucion =? 
+                //ok puede ser , identificador : "cedula_id"
+
+                // op_validador{"identificador_secuencia":"cedula_id","validacion_campo_1":"Referencia_adicional","validacion_valor_1":"ESTUDIANTE SEGURO%"} -- estar en el validador
+                // op_import{"cedula_id":"contrapartida","cuenta":"cuenta","estado":"1","estado_1":"estado","valor_debitado":"valor"}
+
+                $updateRow = array();
+                if (isset($op_validador['identificador_secuencia'])) {
+
+                    if ($op_validador['identificador_secuencia'] == "cuenta" || $op_validador['identificador_secuencia'] == "tarjeta") {
+                        //# experimental tarjeta-cuenta
+                        #cifra el campo
+                        #compara el campo
+                        #si existe actualiza por el id_sec
+                        #no salta no actualiza
+
+                    } elseif ($op_validador['identificador_secuencia'] == "secuencia" || $op_validador['identificador_secuencia'] == "cedula_id") {
+                        #el modo normal puede usar lo mismo y hago una condicion en el metodo de si es cedula_id , o secuencia
+                        $updateRow['secuencia'] = $row[$opciones_import[$opciones_validacion['identificador_secuencia']]]; // cedula - secuencia
+
+                        $updateRow['fecha_actualizacion'] = isset($row[$opciones_import['fecha_actualizacion']]) ? date('Y-m-d', $row[$opciones_import['fecha_actualizacion']]) : date('Y-m-d');
+                        //2022-08-04  date('Y-m-d', $date);
+                        //sacar el valor total del subproducto
+                        $updateRow['valor_debitado'] = isset($row[$opciones_import['valor_debitado']]) ? $row[$opciones_import['valor_debitado']] : $datos_subproductos->valortotal;
+
+                        $updateRow['detalle'] = isset($row[$opciones_import['detalle']]) ? $row[$opciones_import['detalle']] : '';
+
+                        $existe =  $obj_detalle_debito->update_debit_detail($this->cod_carga, $this->cliente, $this->producto, $updateRow);
+                    } else {
+                        dd("error validando el indentificador o no se encuentra base");
+                    }
+                } else {
+                    dd("No se encuentra configurado los campos que resciben la respuestas del banco , para este subproducto");
+                }
+            }
+        }
+        $this->detalle_proceso['valido'] = $this->condicio_1;
+        $this->detalle_proceso['vacio'] = $this->condicion_2;
+        $this->detalle_proceso['error_insertar'] = $this->err_insert;
+        $this->detalle_proceso['error_validacion'] =  $this->err_validacion;
+        $this->detalle_proceso['error_msg'] = $this->errorTecnico_1;
+        $this->detalle_proceso['condicion_validacion'] = $this->condicion_3;
+        return $this->detalle_proceso;
+    }
+
+
+    public function rules(): array
+    {
+        return [
+            '*.0' => ['ordinal', 'unique:ea_detalle_carga_corp,ordinal']
+        ];
+    }
+
+    public function __construct(int $cod_carga, string $cliente, string $producto)
+    {
+        $this->cliente = $cliente;
+        $this->cod_carga = $cod_carga;
+        $this->producto = $producto;
+        $this->condicio_1 = 0;
+        $this->condicion_2 = 0;
+        $this->condicion_3 = 0;
+        $this->condicion_4 = 0;
+        $this->err_insert = 0;
+        $this->err_validacion = 0;
+        $this->cumple_validacion = 0;
+        $this->errorTecnico_1 = '';
+        $this->detalle_proceso = array();
+    }
+}
+/*
+ public function collection(Collection $rows)
     {
          \Log::info('inside colleccion IMPORT class EaGemCamImport');
         // \Log::warning('Something could be going wrong.');
@@ -90,7 +187,7 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow
                         //echo  '$this->cumple_validacion : ' . $this->cumple_validacion;
                         try {
 
-                            $existe =  $obj_detalle_debito->valida_resgistro_detalle_debito_INTER_TC($this->cod_carga, $this->cliente, $this->producto, intval($row['vale']), $row);
+                            $existe =  $obj_detalle_debito->update_debit_detail_INTER_TC($this->cod_carga, $this->cliente, $this->producto, intval($row['vale']), $row);
                             
                         } catch (\Throwable $th) {
                             $this->err_insert++;
@@ -102,10 +199,12 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow
                         $this->errorTecnico_1 = 'ERROR';
                         //$this->errorTecnico_1 = 'Error en las validaciones';
                     }
+
+                    
                 } else {
                     //echo 'no valida';
                     //no hay validaciones 
-                    $existe =  $obj_detalle_debito->valida_resgistro_detalle_debito_INTER_TC($this->cod_carga, $this->cliente, $this->producto, intval($row['vale']), $row);
+                    $existe =  $obj_detalle_debito->update_debit_detail_INTER_TC($this->cod_carga, $this->cliente, $this->producto, intval($row['vale']), $row);
                 }
             } else {
                 $this->condicion_2++;
@@ -120,38 +219,4 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow
         return $this->detalle_proceso;
     }
 
-
-    public function rules(): array
-    {
-        return [
-            '*.0' => ['ordinal', 'unique:ea_detalle_carga_corp,ordinal']
-        ];
-    }
-
-//def50200746ed788e1610594c120c4ef64f2da0463e6f3ba678935e028a6c9b7d1ca3c1d48f47db1b18a4639d3d852ce4f42bbca29ef55b9a9e6a5913fb0e0b07c20c7c28f8a2552398545aa42913985475e49a6590a7b0a70db17ad73f8455b5533
-/*
-1	07/06/2017		def50200746ed788e1610594c120c4ef64f2da0463e6f3ba678935e028a6c9b7d1ca3c1d48f47db1b18a4639d3d852ce4f42bbca29ef55b9a9e6a5913fb0e0b07c20c7c28f8a2552398545aa42913985475e49a6590a7b0a70db17ad73f8455b5533	PERKINS ROBLES ADRIANA CRISTIN	C	CEDULA	1707769657	AV DEL PARQUE. SN Y 1ERA TRANSVERSAL ED: CJTO JARDINES D PS: TO SC: NORTE BR: UN		06/05/1975					0							QUITO	A	ACTIVO										Z	1	100	ACEPTA	06/07/2017	08:54	APOZO	GXC		0995699620	026037268	0	0	0				ADRIANAPERKINS@YAHOO.COM		DINERS	450100092000393	ASISTENCIA PROTECCIÓN	"ASISTENCIA PROTECCION DESEMPLEO PLAN 1
-"		23/11/2021 12:28:57	ccampoverde		DINERS_CARGA.txt										
 */
-
-//75e49a6590a7b0a70db17ad73f8455b5533
-    // producto = Es el ID de subproducto
-    public function __construct(int $cod_carga, string $cliente, string $producto)
-    {
-        $this->cliente = $cliente;
-        $this->cod_carga = $cod_carga;
-        $this->producto = $producto;
-        $this->condicio_1 = 0;
-        $this->condicion_2 = 0;
-        $this->condicion_3 = 0;
-        $this->condicion_4 = 0;
-        $this->err_insert = 0;
-        $this->err_validacion = 0;
-        $this->cumple_validacion = 0;
-        $this->errorTecnico_1 = '';
-        $this->detalle_proceso = array();
-    }
-}
-/*
-
-

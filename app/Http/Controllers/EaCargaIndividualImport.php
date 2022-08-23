@@ -97,7 +97,7 @@ class EaCargaIndividualImport extends Controller
             $datosCab['fec_carga'] = Date('d/m/Y H:i:s');
             if ($request->hasfile('archivo')) {
                 $nombre_archivo = $request->file('archivo')->getClientOriginalName();
-                $descripcion = preg_replace('([^A-Za-z0-9 ])','', $request->desc_producto);
+                $descripcion = preg_replace('([^A-Za-z0-9 ])', '', $request->desc_producto);
                 $datosCab['archivo'] = $request->file('archivo')->storeAs('lecturaDebito/' . $request->cliente . '/' . $descripcion . '/' . $request->cod_carga, $nombre_archivo, 'public');
             }
             $trx = EaCabeceraDetalleCarga::where('desc_producto', (isset($datosCab['desc_producto']) ? $datosCab['desc_producto'] : ''))
@@ -110,7 +110,7 @@ class EaCargaIndividualImport extends Controller
                 $success = "Archivo: " . $nombre_archivo . ", del cliente: " . $request->cliente . " cargado en estado pendiente de guardar/procesar.";
             }
         } else {
-            $error = "Archivos permitidos: xls ó xlsx";
+            $error = "Archivos permitidos: xls o xlsx";
         }
 
         $detalle_proceso['estado_cabecera'] = isset($request->estado) ? $request->estado : '';
@@ -154,48 +154,7 @@ class EaCargaIndividualImport extends Controller
 
         return response()->json(['success' => 'Procesado Existosamente']);
     }
-    /**
-     * Display the specified resource.
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function procesar_respaldo(Request $request)
-    {
-        echo 'llegaste hasta aki extraño';
-        dd($request);
-        $cabecera_update = array();
-        $registroCarga = EaCabeceraDetalleCarga::where('cod_carga', $request->cod_carga)
-            ->where('cliente', $request->cliente)
-            ->where('producto', $request->producto)->first();
-        $import = (new EaGemCamImport($request->cod_carga, $request->cliente, $request->producto));
-        $import->import($registroCarga->archivo, 'public');
-        if (!empty($import->detalle_proceso['errorTecnico'])) {
-            $cabecera_update['estado'] = 'ERROR';
-            //$cabecera_update['visible'] = 'N';
-            $errorTecnico = $import->detalle_proceso['errorTecnico'];
-            $trx = $this->update_datos_cab_carga($registroCarga->cliente, $request->cod_carga, $request->producto, $cabecera_update);
-        } else {
 
-            try {
-                $update_cab_carga =  $this->update_datos_cab_carga($registroCarga->cliente, $request->cod_carga, $request->producto, $cabecera_update);
-            } catch (\Exception $e) {
-                $errorTecnico = $e->getMessage();
-            }
-            if ($update_cab_carga) {
-
-                $rsp = (new EaCabCargaInicialBitacoraController)->update_datos_cod_carga_bita($request->cod_carga, $request->cliente, 'carga_inicial', $cabecera_update);
-
-                $nombre_archivo = explode("/", substr($registroCarga->archivo, stripos($registroCarga->archivo, $request->cliente)))[1];
-                $registros_no_cumplen = isset($import->detalle_proceso['registros_no_cumplen']) ? $import->detalle_proceso['registros_no_cumplen'] : '';
-                $success = "Carga realizada del archivo: " . $nombre_archivo . ' ver detalles';
-            }
-        }
-        return redirect()->route('cargaIndividualI.home.index')->with([
-            'success' => isset($success) ? $success : '',
-            'errorTecnico' => isset($errorTecnico) ?  $errorTecnico  : '',
-            'registros_no_cumplen' => isset($registros_no_cumplen) ? $registros_no_cumplen : ''
-        ]);
-    }
 
     /**
      * Remove the specified resource from storage.

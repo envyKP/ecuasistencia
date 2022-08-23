@@ -5,8 +5,6 @@
 1 tarjeta, 2 cod_establecimient,4 subtotal , 11 feccad ,12 deduccion_impuesto quitar . , 16 subtotal 
         ,2 00000000,3 yyyyMMdd ,4 17=0 ,5 00000000000000000 ,6 202,7 000000,8 00,9 secuencia 000000 , 10 439473 ,12 17=0, 13 00 , 14 D , 15 00000, 16 15=0,17 000000000000000
         campos totales 17
-             
-        
         {"1":"tarjeta", "2":"cod_establecimient" ,"4":"subtotal","11":"feccad","12":"deduccion_impuesto","16":"subtotal"}
         {"5":"","6":"202","7":"","8":"00","10":"439473","13":"00","14":"D","15":"00000","16":"","17":""}
         {"campo0_2":"8","campo0_4":"17","campo0_5":"17","campo0_7":"6","campo0_9":"6","campo0_12":"17","campo0_16":"15","campo0_17":"15"}
@@ -168,4 +166,92 @@ TREC0221 00000001 30850130850000000000000000033975300000000000000000000000000
 000004530852376800000080102022022100000000000250101                                                  
 
 
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+inicia Export:
+campos que puede existir , secuencia, cedula_id, cuenta, tarjeta, fecha_actualizacion
+
+
+{"cedula_id":"ContraPartida","cuenta":"Cuenta","estado":"estado","":""}
+
+
+
+BGR - CTAS
+ContraPartida - CEDULA_ID
+Cuenta - "AH|8020000600" -CUENTA
+Estado - DETALLE
+VALOR "2.93"
+ESTADO - "PROCESO OK"
+
+BGR - TC
+VALE - SECUENCIA 
+FECHA VALE - FECHA ACTUALIZACION.
+CODSOC_0_0 - TARJETA
+PUEDO USAR COMO DESCRIPCION COD_RECHAZO -DESCRIPCION  -- DESCRIPCION
+COD_RECHAZO - "17"¿DESCONOSCO EL OK? PARA PRUEBAS "0"
+
+
+BOLIVARIANO CTAS
+CLIENTE - CEDULA_ID
+NUM_CUENTA - CUENTA
+COD_ERROR DESC_ERROR  -- DESCRIPCION
+COD_ERROR = 0 == OK
+//VALIDACION//  
+_______________
+REFERENCIA - VALIDACION "Servicio 24 Asistencia                                      000000000"
+NUM_ORDEN_BCO - "8775542"
+
+
+BOLIVARIANO TC
+TIENE TARJETA Y SECUENCIA('VALE')
+TIENE 3 PESTAÑAS , (HABLAR PARA QUE SEA NOMAS 1 , UNIDA ,BAJO LOS MISMOS CAMPOS)
+(ISSET(FECHA DE AUTORIZACION) - FECHA ACTUALIZACION(INSERTAR LA REAL EN CABEZERA)
+ERROR = NULL ) CUMPLE CONDICION
+
+//VALIDACION//
+RECAP - "C-2202-24254514" 
+
+
+BI - CTAS
+Número Identificación - Contrapartida  -- CEDULA_ID
+Fecha Proceso "07/01/2022 16:32:39" -- FECHA ACTUALIZACION
+"1650000193" - Cuenta Débito 
+Estado Item - "PROCESADO NO EXITOSO"
+Mensaje de Procesamiento - "PROCESO OK"
+//validacion//
+Referencia de Cobro
+
+
+Estado Item
+
+
+BI - TC
+OK
+
+Fecha Autorización - "2022-01-28 00:00:00.000"
+Cod Error - NULL
+
+NO
+Cod Error
+Descripción
+
+
+//validacion//
+
+
+PRODU -TC - 1
+es un txt
+tarjeta
+
+PRODU -TC - 2
+es un txt
+tarjeta
+
+
+PRODU -CTAS
+Fecha Proc. - fecha_actualizacion
+Contrapartida - cedula_id
+Cuenta beneficiario - cuenta
+Mensaje Proceso	- descripcion
+ 
 
