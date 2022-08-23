@@ -87,8 +87,6 @@ class EaCargaIndividualImport extends Controller
      */
     public function uploadArchivos(Request  $request)
     {
-
-
         $datosCab = $request->except('_token', 'filtro_cliente', 'filtro_producto', 'filtro_genera', 'estado_cabecera', 'registros_no_cumplen', 'row');
 
         $fecha = Date('Y-m-d');

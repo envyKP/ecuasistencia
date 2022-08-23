@@ -247,25 +247,25 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
             case "BGR":
                 break;
             case "PICHINCHA":
-               
+
                 break;
             case "PRODUBANCO":
-              
+
                 break;
             case "DINERS":
-             
+
                 break;
             case "MOVISTAR":
-               
+
                 break;
             case "NOVA":
-               
+
                 break;
             case "REALME":
-               
+
                 break;
             case "SAMSUNG":
-                
+
                 break;
 
 
@@ -334,7 +334,6 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
     public function registro_cargas(array $rows, $validoacion_par)
     {
         try {
-
             EaCabeceraDetalleCarga::create([
                 'cod_carga' => isset($rows['cod_carga']) ? $rows['cod_carga'] + 1 : null,
                 'fecha_actualizacion' => isset($row['fecha_actualizacion']) ? $rows['fecha_actualizacion'] : '',
@@ -531,10 +530,10 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
 
     public function __construct(string $cliente, string $producto, string $cod_carga_corp = null, string $sub_producto_id, $tipo_subproducto)
     {
-        
+
         $this->cliente = $cliente;
         $this->cod_carga_corp = $cod_carga_corp;
-        $this->producto = $producto;//usanddo la desc
+        $this->producto = $producto; //usanddo la desc
         $this->id_subproducto = $sub_producto_id;
         $this->tipo_subproducto = $tipo_subproducto;
         $this->collection = null;

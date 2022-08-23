@@ -214,7 +214,7 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
         //dd($rows);
         try {
             //optimizar insert block
-           /* $row_insert_detalle = array();
+            /* $row_insert_detalle = array();
             $data =
                 array('id_sec' => '448487', 'id_carga' => '777');
             array_push($row_insert_detalle, $data);
@@ -224,9 +224,6 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
             */
             EaDetalleDebito::insert($rows); // Eloquent approach
             //DB::table('table')->insert($data); /
-
-
-
             //  old block
             /*EaDetalleDebito::create([
                 'id_carga' => isset($rows['id_carga']) ? $rows['id_carga'] + 1 : null,
@@ -292,16 +289,32 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
                 'estado' => 'PENDIENTE',
                 'is_det_debito' => '1',
                 'opciones_validacion' => $validoacion_par,
+                'ruta_gen_debito' => isset($rows['ruta_gen_debito']) ? trim($rows['ruta_gen_debito']) : null,
             ]);
         } catch (\Exception $e) {
             // $obj_det_carga_corp->truncate($this->cod_carga, $this->cliente );
             $this->errorTecnico = $e->getMessage();
         }
     }
+    public function ruta_carga()
+    {
+
+        #$this->cliente = $cliente;
+        #$this->cod_carga_corp = $cod_carga_corp;
+        #$this->producto = $producto; //usanddo la desc
+        #$this->id_subproducto = $sub_producto_id;
+        #$this->tipo_subproducto = $tipo_subproducto;
+
+        try {
+            return EaCabeceraDetalleCarga::where('cod_carga', $this->cod_carga_corp)->where('producto', $this->id_subproducto)->where('cliente', $this->cliente)->get()->first();
+        } catch (\Exception $e) {
+            $this->errorTecnico = $e->getMessage();
+        }
+    }
+
 
     public function is_carga_older()
     {
-
         return EaDetalleDebito::where('cliente', $this->cliente)
             ->where('subproducto_id', $this->id_subproducto)
             ->orderbydesc('id_carga')
@@ -310,9 +323,6 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
 
     public function collection()
     {
-
-
-
         $this->collection =  EaBaseActiva::join("ea_detalle_debito", "ea_detalle_debito.id_sec", "=", "ea_base_activa.id_sec")
             ->select(
                 'ea_base_activa.cedula_id',
@@ -346,28 +356,6 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
 
         return $this->collection;
     }
-
-    /*
-        ,
-               
-                "IFNULL(ea_detalle_debito.valor_debitado, 'null')"
-        return EaBaseActiva::join("ea_detalle_debito", "ea_detalle_debito.id_sec", "=", "ea_base_activa.id_sec")
-        ->select(
-            'ea_base_activa.cedula_id as \'ID  Cliente\'',
-            'ea_base_activa.nombre as \'Nombres Cliente\'',
-            EaBaseActiva::raw("'S/N' as 'Dirección Cliente'"),
-            EaBaseActiva::raw("'S/N' as 'Correo Cliente'"),
-            EaBaseActiva::raw("'S/N' as 'Cta / TC'"),
-            EaBaseActiva::raw("FORMAT (getdate(), 'yyyyMMdd') as 'Fecha Débito'"),
-            'ea_detalle_debito.valor_debitado as \'Valor Debitado\''
-        )
-        ->where('ea_detalle_debito.producto', $this->producto)
-        ->where('ea_detalle_debito.id_carga', $this->cod_carga_corp)
-        ->where('ea_base_activa.cliente', $this->cliente)
-        ->orderby('ea_base_activa.cedula_id')
-        ->get();*/
-
-    //return @json_decode(json_encode($obj_facturacion), true);
 
 
     public function headings(): array
