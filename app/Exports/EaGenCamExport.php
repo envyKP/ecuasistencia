@@ -26,6 +26,8 @@ use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
+use Defuse\Crypto\Crypto;
+use Defuse\Crypto\Key;
 //use Illuminate\Support\ServiceProvider;
 Sheet::macro('styleCells', function (Sheet $sheet, string $cellRange, array $style) {
     $sheet->getDelegate()->getStyle($cellRange)->applyFromArray($style);
@@ -48,10 +50,13 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
         $detalles = $this->is_carga_older();
 
         $generar_return = null;
+        //en caso que exista algo que no se incluya en las consultas
         switch ($this->cliente) {
             case 'disable':
 
                 break;
+
+
             default:
                 $fecha_generacion = (isset($detalles->fecha_generacion) ? $detalles->fecha_generacion : 0);
                 if (($fecha_generacion) == date('mY')) {

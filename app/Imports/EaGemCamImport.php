@@ -15,6 +15,8 @@ use App\Http\Controllers\EaBaseActivaController;
 use App\Http\Controllers\EaSubproductoController;
 use App\Http\Controllers\EaDetalleDebitoController;
 use App\Models\EaDetalleDebito;
+use Defuse\Crypto\Crypto;
+use Defuse\Crypto\Key;
 
 class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow
 {
@@ -31,10 +33,13 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow
 
         $obj_detalle_debito = (new EaDetalleDebitoController);
         $obj_subproducto = (new EaSubproductoController);
-        $obj_det_carga_corp = (new EaDetalleDebitoController);
+
+        //$value_field = Crypto::decrypt($value_field, $clave);
         $registros_duplicados = array();
         $registros_archivos = array();
         $datos_subproductos = $obj_subproducto->getSubproductoDetalle($this->cliente, $this->producto);
+        $datos_subproductos->desc_subproducto; // subproducto - base activa
+        $inner_tables_ba_det = $this->merge_inner_import();
         $op_client = EaOpcionesCargaCliente::where('cliente', $this->cliente)->where('subproducto', $this->producto)->first();
         $opciones_validacion = null;
         $opciones_import = null;
@@ -67,6 +72,12 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow
                         #compara el campo
                         #si existe actualiza por el id_sec
                         #no salta no actualiza
+                        //desencripto de la base lo extraido , y al estar dentro del loop se hara cada vez
+                        //$value_field = Crypto::decrypt($row[$op_validador['identificador_secuencia']], $clave);
+
+                        //encripto el valor pero , al ser mas de 150 caracteres puede afectar
+                        //$value_field = Crypto::encrypt($row[$op_validador['identificador_secuencia']], $clave);
+
 
                     } elseif ($op_validador['identificador_secuencia'] == "secuencia" || $op_validador['identificador_secuencia'] == "cedula_id") {
                         #el modo normal puede usar lo mismo y hago una condicion en el metodo de si es cedula_id , o secuencia
@@ -119,6 +130,37 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow
         $this->cumple_validacion = 0;
         $this->errorTecnico_1 = '';
         $this->detalle_proceso = array();
+    }
+    public function merge_inner_import()
+    {
+        $merge_inner_import =  EaDetalleDebito::join("ea_base_activa", "ea_base_activa.id_sec", "=", "ea_detalle_debito.id_sec")
+            ->select(
+                'ea_base_activa.id_sec',
+                'ea_detalle_debito.id_carga',
+                'ea_base_activa.cedula_id',
+                'ea_base_activa.cuenta',
+                'ea_base_activa.tarjeta',
+            )
+            ->where('ea_detalle_debito.id_carga', $this->cod_carga)
+            ->where('ea_detalle_debito.cliente', $this->cliente)
+            ->where('ea_detalle_debito.subproducto_id', $this->producto)
+            ->get();
+
+        $contenido = file_get_contents("../salsa.txt");
+        $clave = Key::loadFromAsciiSafeString($contenido);
+
+        foreach ($merge_inner_import as $row) {
+            if (isset($row['tarjeta'])) {
+                $value_field = Crypto::decrypt($row['tarjeta'], $clave);
+                $row['tarjeta'] = $value_field;
+            } elseif (isset($row['cuenta'])) {
+                $value_field = Crypto::decrypt($row['cuenta'], $clave);
+                $row['cuenta'] = $value_field;
+            } else {
+                dd("existe un error metodo merge_inner_import");
+            }
+        }
+        return $merge_inner_import;
     }
 }
 /*
