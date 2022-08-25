@@ -114,13 +114,17 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow
                         // declara variable cantidad de validacion(validacion exceptional , el programa se detiene en seco ) . (validacion_num:2)
 
                         $cont = 0;
-                        for ($p = 0; $p <= ($opciones_validacion['estado_valido_num']); $p++) {
+                        for ($p = 0; $p < ($opciones_validacion['estado_valido_num']); $p++) {
                             if ($row[$opciones_validacion['VALIDATION_NAME']] == $opciones_validacion['VALIDATION_VALUE']) {
                                 $cont++;
                             }
                         }
 
                         if ($cont == $opciones_validacion['estado_valido_num']) {
+                            $updateRow['estado'] = '1';
+
+                        }else{
+                            $updateRow['estado'] = '0';
                         }
                         /**
                          * 
