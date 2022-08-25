@@ -2,6 +2,7 @@
 
 use  Illuminate\Support\Facades\Route;
 use  App\Http\Controllers\EausuarioController;
+use  App\Http\Controllers\EaBaDeleteImportController;
 use  App\Http\Controllers\EaClienteController;
 use  App\Http\Controllers\EaBaseActivaController;
 use  App\Http\Controllers\EaProductoController;
@@ -144,14 +145,22 @@ Route::middleware(['auth', 'prevent-back-history', 'isAdmin'])->group(function (
     Route::get('cargar/inicial/index/', [EaCabCargaInicialController::class, 'index'])->name('EaCabCargaInicialController.index');
     Route::post('cargar/inicial/destroy/', [EaCabCargaInicialController::class, 'destroy'])->name('EaCabCargaInicialController.destroy');
     Route::post('cargar/inicial/procesar/', [EaCabCargaInicialController::class, 'procesar'])->name('EaCabCargaInicialController.procesar');
-
     Route::get('get/arhivos/genapt/', [EaCabCargaInicialController::class, 'get_archivos_html_genapt'])->name('EaCabCargaInicialController.get_archivos_html_genapt');
     Route::get('get/archivos/genaif/', [EaCabCargaInicialController::class, 'get_archivos_html_genaif'])->name('EaCabCargaInicialController.get_archivos_html_genaif');
     Route::get('get/procesos/carga/', [EaCabCargaInicialController::class, 'get_procesos_carga_html'])->name('EaCabCargaInicialController.get_procesos_carga_html');
-
     Route::post('cargar/inicial/subirArchivos/', [EaCabCargaInicialController::class, 'uploadArchivos'])->name('EaCabCargaInicialController.uploadArchivos');
     Route::post('cargar/inicial/mover/baseActiva/', [EaCabCargaInicialController::class, 'storeBaseActiva'])->name('EaCabCargaInicialController.storeBaseActiva');
 });
+
+
+Route::middleware(['auth', 'prevent-back-history', 'isAdmin'])->group(function () {
+    Route::get('cargarBA/inicial/index/', [EaBaDeleteImportController::class, 'index'])->name('EaBaDeleteImportController.index');
+    Route::post('cargarBA/inicial/destroy/', [EaBaDeleteImportController::class, 'destroy'])->name('EaBaDeleteImportController.destroy');
+    Route::post('cargarBA/inicial/procesar/', [EaBaDeleteImportController::class, 'procesar'])->name('EaBaDeleteImportController.procesar');
+    Route::post('cargarBA/inicial/subirArchivos/', [EaBaDeleteImportController::class, 'uploadArchivos'])->name('EaBaDeleteImportController.uploadArchivos');
+    Route::post('cargarBA/inicial/borrar/baseActiva/', [EaBaDeleteImportController::class, 'storeBaseActiva'])->name('EaBaDeleteImportController.storeBaseActiva');
+});
+
 
 
 Route::middleware(['auth', 'prevent-back-history', 'isAdmin'])->group(function () {

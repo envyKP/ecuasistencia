@@ -26,6 +26,8 @@ use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
+use Defuse\Crypto\Crypto;
+use Defuse\Crypto\Key;
 //use Illuminate\Support\ServiceProvider;
 Sheet::macro('styleCells', function (Sheet $sheet, string $cellRange, array $style) {
     $sheet->getDelegate()->getStyle($cellRange)->applyFromArray($style);
@@ -47,376 +49,160 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
 
         $detalles = $this->is_carga_older();
 
+        $generar_return = null;
+        //en caso que exista algo que no se incluya en las consultas
         switch ($this->cliente) {
-            case 'INTER':
-                $fecha_generacion = (isset($detalles->fecha_generacion) ? $detalles->fecha_generacion : 0);
+            case 'disable':
 
+                break;
+
+
+            default:
+                $fecha_generacion = (isset($detalles->fecha_generacion) ? $detalles->fecha_generacion : 0);
                 if (($fecha_generacion) == date('mY')) {
                     // echo ($detalles->fecha_generacion) . ($detalles->id_sec) . " se encuentra dentro del mes";
                     $carga_secuencia = "";
-
                     if (isset($this->cod_carga_corp)) {
                         $carga_secuencia = $this->cod_carga_corp;
                     } else {
                         $carga_secuencia = $detalles->id_carga;
                     }
-                    ///dd($carga_secuencia);
-                    $this->cod_carga_corp = $detalles->id_carga;
-                    \Log::info('$carga_secuencia : ' . $carga_secuencia);
-                    \Log::info('condicion - secuencia - mes - Cliente : INTER TC');
-                    return EaBaseActiva::join("ea_subproductos", "ea_subproductos.desc_subproducto", "=", "ea_base_activa.subproducto")
-                        ->join("ea_detalle_debito", "ea_detalle_debito.id_sec", "=", "ea_base_activa.id_sec")
-                        ->select(
-                            'ea_base_activa.id_sec',
-                            'tarjeta',
-                            'ea_subproductos.cod_establecimiento',
-                            EaBaseActiva::raw("FORMAT (getdate(), 'yyyyMMdd') as date"),
-                            'ea_subproductos.subtotal',
-                            EaBaseActiva::raw("'00000000000000000' as constante1"),
-                            EaBaseActiva::raw("'202' as constante2"),
-                            EaBaseActiva::raw("'000000' as constante3"),
-                            EaBaseActiva::raw("'00' as constante4"),
-                            EaBaseActiva::raw("'00000' as reemplazar"),
-                            EaBaseActiva::raw("'439473' as constante5"),
-                            'feccad',
-                            'ea_subproductos.deduccion_impuesto',
-                            EaBaseActiva::raw("'00' as constante6"),
-                            EaBaseActiva::raw("'D' as constante7"),
-                            EaBaseActiva::raw("'00000' as constante8"),
-                            'ea_subproductos.subtotal',
-                            EaBaseActiva::raw("'000000000000000' as constante9"),
-                            'ea_base_activa.id_sec',
-                            'ea_detalle_debito.id_carga'
-                        )
-                        ->where('ea_detalle_debito.producto', $this->producto)
-                        ->where('ea_detalle_debito.id_carga', $carga_secuencia)
-                        ->where('ea_base_activa.cliente', $this->cliente)
-                        ->where('tipresp', '1')
-                        ->where('codresp', '100')
-                        ->where('detresp', 'ACEPTA')
-                        ->where('ea_base_activa.estado', 'Z')
-                        ->where('ea_detalle_debito.estado', '0')
-                        ->orderby('ea_base_activa.id_sec')
-                        ->get();
-                    // preguntar luego
-                    /*
-                        ->where('detresp', 'ACEPTA SERVICIO')
-                        ->where('ea_base_activa.estado', 'Z')
-                    */
+                    $this->cod_carga_corp = $carga_secuencia;
+
+                    if ($this->tipo_subproducto == 'TC') {
 
 
-                    //->where('ea_detalle_debito.producto', $this->producto)
+                        \Log::info('$carga_secuencia : ' . $carga_secuencia);
+                        \Log::info('condicion - secuencia - mes - Cliente : INTER CTAS');
+                        $generar_return =  EaBaseActiva::join("ea_subproductos", "ea_subproductos.desc_subproducto", "=", "ea_base_activa.subproducto")
+                            ->join("ea_detalle_debito", "ea_detalle_debito.id_sec", "=", "ea_base_activa.id_sec")
+                            ->select(
+                                'ea_base_activa.id_sec',
+                                'ea_base_activa.tarjeta',
+                                'ea_subproductos.cod_establecimiento',
+                                'ea_subproductos.subtotal',
+                                'ea_base_activa.feccad',
+                                'ea_base_activa.cuenta',
+                                'ea_detalle_debito.id_carga',
+                                'ea_base_activa.cedula_id',
+                                'ea_base_activa.tipcta',
+                                'ea_base_activa.tipide',
+                                'ea_subproductos.deduccion_impuesto',
+                                'ea_base_activa.nombre',
+                                'ea_base_activa.direccion',
+                                'ea_base_activa.ciudadet',
+                                'ea_subproductos.valortotal',
+                            )
+                            ->where('ea_detalle_debito.subproducto_id', $this->id_subproducto)
+                            ->where('ea_detalle_debito.id_carga', $carga_secuencia)
+                            ->where('ea_base_activa.cliente', $this->cliente)
+                            ->where('tipresp', '1')
+                            ->where('codresp', '100')
+                            ->where('detresp', 'ACEPTA SERVICIO')
+                            ->where('ea_base_activa.estado', 'Z')
+                            ->where('ea_base_activa.codestado', 'A')
+                            ->where('ea_detalle_debito.estado', '0')
+                            ->orderby('ea_base_activa.id_sec')
+                            ->get();
+                    } elseif ($this->tipo_subproducto == 'CTAS') {
+                        //inicio condigo cuentas KPE
+                        \Log::info('$carga_secuencia : ' . $carga_secuencia);
+                        \Log::info('condicion - secuencia - mes - Cliente : INTER CTAS');
+                        $generar_return =  EaBaseActiva::join("ea_subproductos", "ea_subproductos.desc_subproducto", "=", "ea_base_activa.subproducto")
+                            ->join("ea_detalle_debito", "ea_detalle_debito.id_sec", "=", "ea_base_activa.id_sec")
+                            ->select(
+                                'ea_base_activa.id_sec',
+                                'ea_subproductos.cod_establecimiento',
+                                'ea_subproductos.subtotal',
+                                'ea_base_activa.feccad',
+                                'ea_detalle_debito.id_carga',
+                                'ea_base_activa.cedula_id',
+                                'ea_base_activa.cuenta',
+                                'ea_base_activa.tipcta',
+                                'ea_base_activa.tipide',
+                                'ea_subproductos.deduccion_impuesto',
+                                'ea_base_activa.nombre',
+                                'ea_base_activa.ciudadet',
+                                'ea_subproductos.valortotal',
+                            )
+                            ->where('ea_detalle_debito.subproducto_id', $this->id_subproducto)
+                            ->where('ea_detalle_debito.id_carga', $carga_secuencia)
+                            ->where('ea_base_activa.cliente', $this->cliente)
+                            ->where('tipresp', '1')
+                            ->where('codresp', '100')
+                            ->where('detresp', 'ACEPTA SERVICIO')
+                            ->where('ea_base_activa.codestado', 'A')
+                            ->where('ea_base_activa.estado', 'Z')
+                            ->where('ea_detalle_debito.estado', '0')
+                            ->orderby('ea_base_activa.id_sec')
+                            ->get();
+                    } else {
+                        dd('Error interno porfavor cominiquese con soporte.');
+                    }
                 } else {
-                    \Log::info('condicion - Inicio - mes - Cliente : INTER TC');
-                    return  EaBaseActiva::join("ea_subproductos", "ea_subproductos.contrato_ama", "=", "ea_base_activa.producto")
-                        ->select(
-                            'ea_base_activa.id_sec',
-                            'tarjeta',
-                            'ea_subproductos.cod_establecimiento',
-                            EaBaseActiva::raw("FORMAT (getdate(), 'yyyyMMdd') as date"),
-                            'ea_subproductos.subtotal',
-                            EaBaseActiva::raw("'00000000000000000' as constante1"),
-                            EaBaseActiva::raw("'202' as constante2"),
-                            EaBaseActiva::raw("'000000' as constante3"),
-                            EaBaseActiva::raw("'00' as constante4"),
-                            EaBaseActiva::raw("'00000' as reemplazar"),
-                            EaBaseActiva::raw("'439473' as constante5"),
-                            'feccad',
-                            'ea_subproductos.deduccion_impuesto',
-                            EaBaseActiva::raw("'00' as constante6"),
-                            EaBaseActiva::raw("'D' as constante7"),
-                            EaBaseActiva::raw("'00000' as constante8"),
-                            'ea_subproductos.subtotal',
-                            EaBaseActiva::raw("'000000000000000' as constante9"),
-                            'ea_base_activa.id_sec'
-                        )
-                        ->where('desc_subproducto', $this->producto)
-                        ->where('ea_base_activa.cliente', $this->cliente)
-                        ->where('tipresp', '1')
-                        ->where('detresp', 'ACEPTA')
-                        ->where('ea_base_activa.estado', 'Z')
-                        ->where('codresp', '100')
-                        ->orderby('ea_base_activa.id_sec')
-                        ->get();
-                    // preguntar luego
-                    /*
-                        ->where('detresp', 'ACEPTA')
-                        ->where('ea_base_activa.estado', 'Z')
-                    */
-                    //->where('producto', $this->producto)
+                    if ($this->tipo_subproducto == 'TC') {
+                        \Log::info('condicion - Inicio - mes - CTAS');
+                        $generar_return =  EaBaseActiva::join("ea_subproductos", "ea_subproductos.contrato_ama", "=", "ea_base_activa.producto")
+                            ->select(
+                                'ea_base_activa.id_sec',
+                                'ea_base_activa.tarjeta',
+                                'ea_subproductos.cod_establecimiento',
+                                'ea_subproductos.subtotal',
+                                'ea_base_activa.feccad',
+                                'ea_base_activa.cuenta',
+                                'ea_base_activa.cedula_id',
+
+                                'ea_base_activa.tipcta',
+                                'ea_base_activa.tipide',
+                                'ea_subproductos.deduccion_impuesto',
+                                'ea_base_activa.nombre',
+                                'ea_base_activa.ciudadet',
+                                'ea_subproductos.valortotal',
+                            )
+                            ->where('desc_subproducto', $this->producto)
+                            ->where('ea_base_activa.cliente', $this->cliente)
+                            ->where('tipresp', '1')
+                            ->where('detresp', 'ACEPTA SERVICIO')
+                            ->where('ea_base_activa.estado', 'Z')
+                            ->where('codresp', '100')
+                            ->where('ea_base_activa.codestado', 'A')
+                            ->orderby('ea_base_activa.id_sec')
+                            ->get();
+                    } elseif ($this->tipo_subproducto == 'CTAS') {
+                        \Log::info('condicion - Inicio - mes - CTAS');
+                        $generar_return =  EaBaseActiva::join("ea_subproductos", "ea_subproductos.contrato_ama", "=", "ea_base_activa.producto")
+                            ->select(
+                                'ea_base_activa.id_sec',
+
+                                'ea_subproductos.cod_establecimiento',
+                                'ea_subproductos.subtotal',
+                                'ea_base_activa.feccad',
+
+                                'ea_base_activa.cedula_id',
+                                'ea_base_activa.cuenta',
+                                'ea_base_activa.tipcta',
+                                'ea_base_activa.tipide',
+                                'ea_subproductos.deduccion_impuesto',
+                                'ea_base_activa.nombre',
+                                'ea_base_activa.ciudadet',
+                                'ea_subproductos.valortotal',
+                            )
+                            ->where('desc_subproducto', $this->producto)
+                            ->where('ea_base_activa.cliente', $this->cliente)
+                            ->where('tipresp', '1')
+                            ->where('detresp', 'ACEPTA SERVICIO')
+                            ->where('ea_base_activa.estado', 'Z')
+                            ->where('codresp', '100')
+                            ->where('ea_base_activa.codestado', 'A')
+                            ->orderby('ea_base_activa.id_sec')
+                            ->get();
+                        //pymes todo esta como acepta , en mi base le cambiare a acepta servicio.
+                    } else {
+                        dd('Error interno porfavor cominiquese con soporte.');
+                    }
                 }
-                break;
-
-            case "BBOLIVARIANO":
-                return EaBaseActiva::join("ea_subproductos", "ea_subproductos.contrato_ama", "=", "ea_base_activa.producto")
-                    ->select(
-                        'tarjeta',
-                        'ea_subproductos.cod_establecimiento',
-                        EaBaseActiva::raw("FORMAT (getdate(), 'yyyyMMdd') as date"),
-                        'ea_subproductos.subtotal',
-                        EaBaseActiva::raw("'00000000000000000' as constante1"),
-                        EaBaseActiva::raw("'202' as constante2"),
-                        EaBaseActiva::raw("'000000' as constante3"),
-                        EaBaseActiva::raw("'00' as constante4"),
-                        EaBaseActiva::raw("'00000' as reemplazar"),
-                        EaBaseActiva::raw("'439473' as constante5"),
-                        'feccad',
-                        'ea_subproductos.deduccion_impuesto',
-                        EaBaseActiva::raw("'00' as constante6"),
-                        EaBaseActiva::raw("'D' as constante7"),
-                        EaBaseActiva::raw("'00000' as constante8"),
-                        'ea_subproductos.subtotal',
-                        EaBaseActiva::raw("'000000000000000' as constante9"),
-                        'ea_base_activa.id_sec'
-                    )
-                    ->where('desc_subproducto', $this->producto)
-                    ->where('ea_base_activa.cliente', $this->cliente)
-                    ->where('tipresp', '1')
-                    ->where('codresp', '100')
-                    ->where('detresp', 'ACEPTA SERVICIO')
-                    ->where('estado', 'Z')
-                    ->get();
-
-                break;
-            case "BGR":
-                return EaBaseActiva::where('cliente', 'BGR')->select(
-                    'tarjeta',
-                    EaBaseActiva::raw("FORMAT (getdate(), 'yyyyMMdd') as date"),
-                    EaBaseActiva::raw("'00000000000000000' as constante1"),
-                    EaBaseActiva::raw("'202' as constante2"),
-                    EaBaseActiva::raw("'000000' as constante3"),
-                    EaBaseActiva::raw("'00' as constante4"),
-                    EaBaseActiva::raw("'00000' as reemplazar"),
-                    EaBaseActiva::raw("'439473' as constante5"),
-                    'feccad',
-                    'detresp',
-                    'codresp',
-                    EaBaseActiva::raw("'00' as constante6"),
-                    EaBaseActiva::raw("'D' as constante7"),
-                    EaBaseActiva::raw("'00000' as constante8"),
-                    EaBaseActiva::raw("'000000000000000' as constante9"),
-                    'id_sec'
-                )->where('tipresp', '1')
-                    ->where('codresp', '100')
-                    ->where('detresp', 'ACEPTA SERVICIO')
-                    ->where('estado', 'Z')
-                    ->get();
-                break;
-            case "PICHINCHA":
-                return EaBaseActiva::join("ea_subproductos", "ea_subproductos.contrato_ama", "=", "ea_base_activa.producto")
-                    ->select(
-                        'tarjeta',
-                        'ea_subproductos.cod_establecimiento',
-                        EaBaseActiva::raw("FORMAT (getdate(), 'yyyyMMdd') as date"),
-                        'ea_subproductos.subtotal',
-                        EaBaseActiva::raw("'00000000000000000' as constante1"),
-                        EaBaseActiva::raw("'202' as constante2"),
-                        EaBaseActiva::raw("'000000' as constante3"),
-                        EaBaseActiva::raw("'00' as constante4"),
-                        EaBaseActiva::raw("'00000' as reemplazar"),
-                        EaBaseActiva::raw("'439473' as constante5"),
-                        'feccad',
-                        'ea_subproductos.deduccion_impuesto',
-                        EaBaseActiva::raw("'00' as constante6"),
-                        EaBaseActiva::raw("'D' as constante7"),
-                        EaBaseActiva::raw("'00000' as constante8"),
-                        'ea_subproductos.subtotal',
-                        EaBaseActiva::raw("'000000000000000' as constante9"),
-                        'ea_base_activa.id_sec'
-                    )
-                    ->where('desc_subproducto', $this->producto)
-                    ->where('ea_base_activa.cliente', $this->cliente)
-                    ->where('tipresp', '1')
-                    ->where('codresp', '100')
-                    ->where('detresp', 'ACEPTA SERVICIO')
-                    ->where('estado', 'Z')
-                    ->get();
-                break;
-            case "PRODUBANCO":
-                return EaBaseActiva::join("ea_subproductos", "ea_subproductos.contrato_ama", "=", "ea_base_activa.producto")
-                    ->select(
-                        'tarjeta',
-                        'ea_subproductos.cod_establecimiento',
-                        EaBaseActiva::raw("FORMAT (getdate(), 'yyyyMMdd') as date"),
-                        'ea_subproductos.subtotal',
-                        EaBaseActiva::raw("'00000000000000000' as constante1"),
-                        EaBaseActiva::raw("'202' as constante2"),
-                        EaBaseActiva::raw("'000000' as constante3"),
-                        EaBaseActiva::raw("'00' as constante4"),
-                        EaBaseActiva::raw("'00000' as reemplazar"),
-                        EaBaseActiva::raw("'439473' as constante5"),
-                        'feccad',
-                        'ea_subproductos.deduccion_impuesto',
-                        EaBaseActiva::raw("'00' as constante6"),
-                        EaBaseActiva::raw("'D' as constante7"),
-                        EaBaseActiva::raw("'00000' as constante8"),
-                        'ea_subproductos.subtotal',
-                        EaBaseActiva::raw("'000000000000000' as constante9"),
-                        'ea_base_activa.id_sec'
-                    )
-                    ->where('desc_subproducto', $this->producto)
-                    ->where('ea_base_activa.cliente', $this->cliente)
-                    ->where('tipresp', '1')
-                    ->where('codresp', '100')
-                    ->where('detresp', 'ACEPTA SERVICIO')
-                    ->where('estado', 'Z')
-                    ->get();
-
-                break;
-            case "DINERS":
-                return EaBaseActiva::join("ea_subproductos", "ea_subproductos.contrato_ama", "=", "ea_base_activa.producto")
-                    ->select(
-                        'tarjeta',
-                        'ea_subproductos.cod_establecimiento',
-                        EaBaseActiva::raw("FORMAT (getdate(), 'yyyyMMdd') as date"),
-                        'ea_subproductos.subtotal',
-                        EaBaseActiva::raw("'00000000000000000' as constante1"),
-                        EaBaseActiva::raw("'202' as constante2"),
-                        EaBaseActiva::raw("'000000' as constante3"),
-                        EaBaseActiva::raw("'00' as constante4"),
-                        EaBaseActiva::raw("'00000' as reemplazar"),
-                        EaBaseActiva::raw("'439473' as constante5"),
-                        'feccad',
-                        'ea_subproductos.deduccion_impuesto',
-                        EaBaseActiva::raw("'00' as constante6"),
-                        EaBaseActiva::raw("'D' as constante7"),
-                        EaBaseActiva::raw("'00000' as constante8"),
-                        'ea_subproductos.subtotal',
-                        EaBaseActiva::raw("'000000000000000' as constante9"),
-                        'ea_base_activa.id_sec'
-                    )
-                    ->where('desc_subproducto', $this->producto)
-                    ->where('ea_base_activa.cliente', $this->cliente)
-                    ->where('tipresp', '1')
-                    ->where('codresp', '100')
-                    ->where('detresp', 'ACEPTA SERVICIO')
-                    ->where('estado', 'Z')
-                    ->get();
-                break;
-            case "MOVISTAR":
-                return EaBaseActiva::join("ea_subproductos", "ea_subproductos.contrato_ama", "=", "ea_base_activa.producto")
-                    ->select(
-                        'tarjeta',
-                        'ea_subproductos.cod_establecimiento',
-                        EaBaseActiva::raw("FORMAT (getdate(), 'yyyyMMdd') as date"),
-                        'ea_subproductos.subtotal',
-                        EaBaseActiva::raw("'00000000000000000' as constante1"),
-                        EaBaseActiva::raw("'202' as constante2"),
-                        EaBaseActiva::raw("'000000' as constante3"),
-                        EaBaseActiva::raw("'00' as constante4"),
-                        EaBaseActiva::raw("'00000' as reemplazar"),
-                        EaBaseActiva::raw("'439473' as constante5"),
-                        'feccad',
-                        'ea_subproductos.deduccion_impuesto',
-                        EaBaseActiva::raw("'00' as constante6"),
-                        EaBaseActiva::raw("'D' as constante7"),
-                        EaBaseActiva::raw("'00000' as constante8"),
-                        'ea_subproductos.subtotal',
-                        EaBaseActiva::raw("'000000000000000' as constante9"),
-                        'ea_base_activa.id_sec'
-                    )
-                    ->where('desc_subproducto', $this->producto)
-                    ->where('ea_base_activa.cliente', $this->cliente)
-                    ->where('tipresp', '1')
-                    ->where('codresp', '100')
-                    ->where('detresp', 'ACEPTA SERVICIO')
-                    ->where('estado', 'Z')
-                    ->get();
-                break;
-            case "NOVA":
-                return EaBaseActiva::join("ea_subproductos", "ea_subproductos.contrato_ama", "=", "ea_base_activa.producto")
-                    ->select(
-                        'tarjeta',
-                        'ea_subproductos.cod_establecimiento',
-                        EaBaseActiva::raw("FORMAT (getdate(), 'yyyyMMdd') as date"),
-                        'ea_subproductos.subtotal',
-                        EaBaseActiva::raw("'00000000000000000' as constante1"),
-                        EaBaseActiva::raw("'202' as constante2"),
-                        EaBaseActiva::raw("'000000' as constante3"),
-                        EaBaseActiva::raw("'00' as constante4"),
-                        EaBaseActiva::raw("'00000' as reemplazar"),
-                        EaBaseActiva::raw("'439473' as constante5"),
-                        'feccad',
-                        'ea_subproductos.deduccion_impuesto',
-                        EaBaseActiva::raw("'00' as constante6"),
-                        EaBaseActiva::raw("'D' as constante7"),
-                        EaBaseActiva::raw("'00000' as constante8"),
-                        'ea_subproductos.subtotal',
-                        EaBaseActiva::raw("'000000000000000' as constante9"),
-                        'ea_base_activa.id_sec'
-                    )
-                    ->where('desc_subproducto', $this->producto)
-                    ->where('ea_base_activa.cliente', $this->cliente)
-                    ->where('tipresp', '1')
-                    ->where('codresp', '100')
-                    ->where('detresp', 'ACEPTA SERVICIO')
-                    ->where('estado', 'Z')
-                    ->get();
-                break;
-            case "REALME":
-                return EaBaseActiva::join("ea_subproductos", "ea_subproductos.contrato_ama", "=", "ea_base_activa.producto")
-                    ->select(
-                        'tarjeta',
-                        'ea_subproductos.cod_establecimiento',
-                        EaBaseActiva::raw("FORMAT (getdate(), 'yyyyMMdd') as date"),
-                        'ea_subproductos.subtotal',
-                        EaBaseActiva::raw("'00000000000000000' as constante1"),
-                        EaBaseActiva::raw("'202' as constante2"),
-                        EaBaseActiva::raw("'000000' as constante3"),
-                        EaBaseActiva::raw("'00' as constante4"),
-                        EaBaseActiva::raw("'00000' as reemplazar"),
-                        EaBaseActiva::raw("'439473' as constante5"),
-                        'feccad',
-                        'ea_subproductos.deduccion_impuesto',
-                        EaBaseActiva::raw("'00' as constante6"),
-                        EaBaseActiva::raw("'D' as constante7"),
-                        EaBaseActiva::raw("'00000' as constante8"),
-                        'ea_subproductos.subtotal',
-                        EaBaseActiva::raw("'000000000000000' as constante9"),
-                        'ea_base_activa.id_sec'
-                    )
-                    ->where('desc_subproducto', $this->producto)
-                    ->where('ea_base_activa.cliente', $this->cliente)
-                    ->where('tipresp', '1')
-                    ->where('codresp', '100')
-                    ->where('detresp', 'ACEPTA SERVICIO')
-                    ->where('estado', 'Z')
-                    ->get();
-                break;
-            case "SAMSUNG":
-                return EaBaseActiva::join("ea_subproductos", "ea_subproductos.contrato_ama", "=", "ea_base_activa.producto")
-                    ->select(
-                        'tarjeta',
-                        'ea_subproductos.cod_establecimiento',
-                        EaBaseActiva::raw("FORMAT (getdate(), 'yyyyMMdd') as date"),
-                        'ea_subproductos.subtotal',
-                        EaBaseActiva::raw("'00000000000000000' as constante1"),
-                        EaBaseActiva::raw("'202' as constante2"),
-                        EaBaseActiva::raw("'000000' as constante3"),
-                        EaBaseActiva::raw("'00' as constante4"),
-                        EaBaseActiva::raw("'00000' as reemplazar"),
-                        EaBaseActiva::raw("'439473' as constante5"),
-                        'feccad',
-                        'ea_subproductos.deduccion_impuesto',
-                        EaBaseActiva::raw("'00' as constante6"),
-                        EaBaseActiva::raw("'D' as constante7"),
-                        EaBaseActiva::raw("'00000' as constante8"),
-                        'ea_subproductos.subtotal',
-                        EaBaseActiva::raw("'000000000000000' as constante9"),
-                        'ea_base_activa.id_sec'
-                    )
-                    ->where('desc_subproducto', $this->producto)
-                    ->where('ea_base_activa.cliente', $this->cliente)
-                    ->where('tipresp', '1')
-                    ->where('codresp', '100')
-                    ->where('detresp', 'ACEPTA SERVICIO')
-                    ->where('estado', 'Z')
-                    ->get();
-                break;
-
-
-            default:
-                return "error consulte a soporte";
+                //dd($generar_return);
+                return $generar_return;
                 break;
         }
     }
@@ -430,20 +216,33 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
     public function view_reg_state(array $rows)
     {
         //MODIFICAR EN EL FUTURO LA TABLA QUE SE DEBE INSERTAR O CREAR UN ALTER ESPÉCIFICO PARA PRODUBANCO DEBIDO A QUE ESTE NO CUENTA CON EL CAMPO SECUENCIA
-        
+        //dd($rows);
         try {
-            EaDetalleDebito::create([
+            //optimizar insert block
+            /* $row_insert_detalle = array();
+            $data =
+                array('id_sec' => '448487', 'id_carga' => '777');
+            array_push($row_insert_detalle, $data);
+
+            EaDetalleDebito::insert($row_insert_detalle);
+            dd($rows);
+            */
+            EaDetalleDebito::insert($rows); // Eloquent approach
+            //DB::table('table')->insert($data); /
+            //  old block
+            /*EaDetalleDebito::create([
                 'id_carga' => isset($rows['id_carga']) ? $rows['id_carga'] + 1 : null,
                 'id_sec' => isset($rows['id_sec']) ? trim($rows['id_sec']) : null,
                 'secuencia' => isset($rows['secuencia']) ? trim($rows['secuencia']) : null,
                 'fecha_registro' => isset($rows['fecha_registro']) ? trim($rows['fecha_registro']) : null,
-                'producto' => isset($this->producto) ? trim($this->producto) : '',
                 'cliente' => isset($this->cliente) ? trim($this->cliente) : '',
                 'estado' => '0',
                 'fecha_generacion' => isset($rows['fecha_generacion']) ? trim($rows['fecha_generacion']) : null,
                 'subproducto_id' => isset($this->id_subproducto) ? trim($this->id_subproducto) : '',
             ]);
+            */
         } catch (\Exception $e) {
+            dd("error fatal:" . $e->getMessage());
             \Log::warning('error view_reg_state:  ' . $e);
             // $obj_det_carga_corp->truncate($this->cod_carga, $this->cliente );
             $this->errorTecnico = $e->getMessage();
@@ -466,12 +265,11 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
             \Log::warning('EaDetalleDebito::where(id_carga,' . $cod_carga . ')->where(cliente, ' . $cliente . ')
             ->where(subproducto_id, ' . $producto . ')
             ->delete();');
-            
+
             EaCabeceraDetalleCarga::where('cod_carga', $cod_carga)
                 ->where('cliente', $cliente)
                 ->where('producto', $producto)
                 ->delete();
-
         } catch (\Exception $e) {
             \Log::warning('error view_reg_state:  ' . $e);
             // $obj_det_carga_corp->truncate($this->cod_carga, $this->cliente );
@@ -496,26 +294,40 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
                 'estado' => 'PENDIENTE',
                 'is_det_debito' => '1',
                 'opciones_validacion' => $validoacion_par,
+                'ruta_gen_debito' => isset($rows['ruta_gen_debito']) ? trim($rows['ruta_gen_debito']) : null,
             ]);
         } catch (\Exception $e) {
             // $obj_det_carga_corp->truncate($this->cod_carga, $this->cliente );
             $this->errorTecnico = $e->getMessage();
         }
     }
+    public function ruta_carga()
+    {
+
+        #$this->cliente = $cliente;
+        #$this->cod_carga_corp = $cod_carga_corp;
+        #$this->producto = $producto; //usanddo la desc
+        #$this->id_subproducto = $sub_producto_id;
+        #$this->tipo_subproducto = $tipo_subproducto;
+
+        try {
+            return EaCabeceraDetalleCarga::where('cod_carga', $this->cod_carga_corp)->where('producto', $this->id_subproducto)->where('cliente', $this->cliente)->get()->first();
+        } catch (\Exception $e) {
+            $this->errorTecnico = $e->getMessage();
+        }
+    }
+
 
     public function is_carga_older()
     {
         return EaDetalleDebito::where('cliente', $this->cliente)
-            ->where('producto', $this->producto)
+            ->where('subproducto_id', $this->id_subproducto)
             ->orderbydesc('id_carga')
             ->first();
     }
 
     public function collection()
     {
-
-
-
         $this->collection =  EaBaseActiva::join("ea_detalle_debito", "ea_detalle_debito.id_sec", "=", "ea_base_activa.id_sec")
             ->select(
                 'ea_base_activa.cedula_id',
@@ -549,28 +361,6 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
 
         return $this->collection;
     }
-
-    /*
-        ,
-               
-                "IFNULL(ea_detalle_debito.valor_debitado, 'null')"
-        return EaBaseActiva::join("ea_detalle_debito", "ea_detalle_debito.id_sec", "=", "ea_base_activa.id_sec")
-        ->select(
-            'ea_base_activa.cedula_id as \'ID  Cliente\'',
-            'ea_base_activa.nombre as \'Nombres Cliente\'',
-            EaBaseActiva::raw("'S/N' as 'Dirección Cliente'"),
-            EaBaseActiva::raw("'S/N' as 'Correo Cliente'"),
-            EaBaseActiva::raw("'S/N' as 'Cta / TC'"),
-            EaBaseActiva::raw("FORMAT (getdate(), 'yyyyMMdd') as 'Fecha Débito'"),
-            'ea_detalle_debito.valor_debitado as \'Valor Debitado\''
-        )
-        ->where('ea_detalle_debito.producto', $this->producto)
-        ->where('ea_detalle_debito.id_carga', $this->cod_carga_corp)
-        ->where('ea_base_activa.cliente', $this->cliente)
-        ->orderby('ea_base_activa.cedula_id')
-        ->get();*/
-
-    //return @json_decode(json_encode($obj_facturacion), true);
 
 
     public function headings(): array
@@ -678,13 +468,14 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
         ];
     }
 
-    public function __construct(string $cliente, string $producto, string $cod_carga_corp = null, string $sub_producto_id)
+    public function __construct(string $cliente, string $producto, string $cod_carga_corp = null, string $sub_producto_id, $tipo_subproducto)
     {
 
         $this->cliente = $cliente;
         $this->cod_carga_corp = $cod_carga_corp;
-        $this->producto = $producto;
+        $this->producto = $producto; //usanddo la desc
         $this->id_subproducto = $sub_producto_id;
+        $this->tipo_subproducto = $tipo_subproducto;
         $this->collection = null;
     }
 }

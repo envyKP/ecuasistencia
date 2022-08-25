@@ -124,22 +124,22 @@
             </div>
         </div>
         <!--<div class="col-sm-3 col-md-3">
-            <div class="card text-white bg-success">
-            <div class="card-body">
-                <a href="/{/{ route('EaCargaIndividualExport.index') /}/}" >
-                    <div class="text-muted text-right mb-4">
-                        <svg class="c-icon c-icon-2xl">
-                            <use xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-cloud-download') }}"></use>
-                        </svg>
-                    </div>
-                    <small class="text-muted text-uppercase font-weight-bold">{{ 'Generacion de archivo de campañas' }}</small>
-                    <div class="progress progress-white progress-xs mt-3">
-                        <div class="progress-bar" role="progressbar" style="width: 25%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
-                    </div>
-                </a>
-            </div>
-            </div>
-        </div>-->
+                <div class="card text-white bg-success">
+                <div class="card-body">
+                    <a href="/{/{ route('EaCargaIndividualExport.index') /}/}" >
+                        <div class="text-muted text-right mb-4">
+                            <svg class="c-icon c-icon-2xl">
+                                <use xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-cloud-download') }}"></use>
+                            </svg>
+                        </div>
+                        <small class="text-muted text-uppercase font-weight-bold">{{ 'Generacion de archivo de campañas' }}</small>
+                        <div class="progress progress-white progress-xs mt-3">
+                            <div class="progress-bar" role="progressbar" style="width: 25%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </a>
+                </div>
+                </div>
+            </div>-->
         <div class="col-sm-3 col-md-3">
             <div class="card text-black bg-secondary">
                 <div class="card-body">
@@ -163,7 +163,29 @@
         </div>
     </div>
     <div class="row">
-        <!-- /.col-->
-        
+        <div class="col-sm-3 col-md-3">
+            <div class="card text-black bg-secondary">
+                <div class="card-body">
+                    <a href="{{ route('EaBaDeleteImportController.index') }}">
+                        <div class="text-muted text-right mb-4">
+                            <svg class="c-icon c-icon-2xl">
+                                <use
+                                    xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-cloud-upload') }}">
+                                </use>
+                            </svg>
+                        </div>
+                        <small
+                            class="text-muted text-uppercase font-weight-bold">{{ 'Actualizar/eliminar registros BA' }}</small>
+                        <div class="progress progress-white progress-xs mt-3">
+                            <div class="progress-bar" role="progressbar" style="width: 25%" aria-valuenow="25"
+                                aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+
+
     </div>
 @endsection

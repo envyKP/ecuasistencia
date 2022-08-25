@@ -68,13 +68,62 @@ class EaDetalleDebitoController extends Controller
     }
 
     //modificacion por INTER TC
-    public function valida_resgistro_detalle_debito_INTER_TC($cod_carga, $cliente, $producto, $secuencia,$row)
+    public function update_debit_detail_INTER_TC($cod_carga, $cliente, $producto, $row)
     {
-      return   EaDetalleDebito::where('id_carga', $cod_carga)
-            ->where('cliente' , $cliente)
+        $secuencia = $row['vale'];
+        return   EaDetalleDebito::where('id_carga', $cod_carga)
+            ->where('cliente', $cliente)
             ->where('subproducto_id', $producto)
             ->where('secuencia', $secuencia)
-            ->update(['detalle' => $row['descripcion'], 'valor_debitado' => $row['total'], 'fecha_actualizacion' => $row['fecha_autorizacion'], 'estado' => $row['estado']]);
+            ->update($row);
+    }
+
+    public function update_debit_detail($cod_carga, $cliente, $producto, $row)
+    {
+        $secuencia = $row['secuencia'];
+        dd($row);
+        return   EaDetalleDebito::where('id_carga', $cod_carga)
+            ->where('cliente', $cliente)
+            ->where('subproducto_id', $producto)
+            ->where('secuencia', $secuencia)
+            ->update($row);
+    }
+
+    public function update_debit_detail_join_BA($cod_carga, $cliente, $producto, $row)
+    {
+        //::join("base_activa", "ea_detalle_debito.desc_subproducto", "=", "ea_base_activa.subproducto")
+        /*  $subquery = DB::table('catch-text')
+            ->select(DB::raw("user_id,MAX(created_at) as MaxDate"))
+            ->groupBy('user_id');
+            $query = User::joinSub($subquery,'MaxDates',function($join){
+            $join->on('users.id','=','MaxDates.user_id');
+            })->select(['users.*','MaxDates.*']);
+        */
+
+        /*
+        DB::table('attributes as a')
+        ->join('catalog as c', 'a.parent_id', '=', 'c.id')
+        ->update([ 'a.key' => DB::raw("`c`.`left_key`") ]);
+
+        */
+
+        if ($row['secuencia'] == 'tarjeta') {
+            return   EaDetalleDebito::where('id_carga', $cod_carga)
+                ->where('cliente', $cliente)
+                ->where('subproducto_id', $producto)
+                ->join("ea_base_activa", "ea_base_activa.id_sec", "=", "ea_detalle_debito.id_sec")
+                ->update($row);
+        } elseif ($row['secuencia'] == 'cuenta') {
+            return   EaDetalleDebito::where('id_carga', $cod_carga)
+                ->where('cliente', $cliente)
+                ->where('subproducto_id', $producto)
+                ->where('secuencia', $secuencia)
+                ->update($row);
+        } else {
+            dd("Error en metodo update, no reconoce la entrada de dato id_sec");
+        }
+        $secuencia = $row['secuencia'];
+        dd($row);;
     }
     /**
      * Remove the specified resource from storage.

@@ -15,6 +15,8 @@ use App\Http\Controllers\EaBaseActivaController;
 use App\Http\Controllers\EaSubproductoController;
 use App\Http\Controllers\EaDetalleDebitoController;
 use App\Models\EaDetalleDebito;
+use Defuse\Crypto\Crypto;
+use Defuse\Crypto\Key;
 
 class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow
 {
@@ -23,11 +25,146 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow
      * @param array $row
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Database\Eloquent\Model|null
-     *  custom code -- field name (extract to subproduct, if case  )
-     * //0 no existe 1 toma el string , 2 toma la posicion(celda excel experimental) , 2 toma la posicion(caracteres que se tiene que saltar) 
      */
 
     public function collection(Collection $rows)
+    {
+        \Log::info('inside colleccion IMPORT class EaGemCamImport');
+
+        $obj_detalle_debito = (new EaDetalleDebitoController);
+        $obj_subproducto = (new EaSubproductoController);
+
+        //$value_field = Crypto::decrypt($value_field, $clave);
+        $registros_duplicados = array();
+        $registros_archivos = array();
+        $datos_subproductos = $obj_subproducto->getSubproductoDetalle($this->cliente, $this->producto);
+        $datos_subproductos->desc_subproducto; // subproducto - base activa
+        $inner_tables_ba_det = $this->merge_inner_import();
+        $op_client = EaOpcionesCargaCliente::where('cliente', $this->cliente)->where('subproducto', $this->producto)->first();
+        $opciones_validacion = null;
+        $opciones_import = null;
+        if (isset($op_client->opciones_validacion) && isset($op_client->campos_import)) {
+            $opciones_import = json_decode($op_client->campos_import, true);
+            $opciones_validacion = json_decode($op_client->opciones_validacion, true);
+        } else {
+            dd("Error no existe configuracion en base para realizar esta operacion ");
+        }
+        //$datos_validacion = EaOpcionesCargaCliente::where();{"validacion_campo_1":"Establecimiento","validacion_valor_1":"873134"}
+
+        foreach ($rows as $row) {
+
+            // recorre todo el excel , tengo un campo validacion y el otro campo es el valor que viene desde el export
+            //siempre tiene que estar el campo quemado 
+            if (isset($row[$opciones_import[$opciones_validacion['identificador_secuencia']]])) {
+                //if(isset(campor_identificacion[cedula_id ! tarjeta ! cuenta ! secuencia]) )
+                /// se tiene que transforma los nombres de los campos pero como soluciono la confucion =? 
+                //ok puede ser , identificador : "cedula_id"
+
+                // op_validador{"identificador_secuencia":"cedula_id","validacion_campo_1":"Referencia_adicional","validacion_valor_1":"ESTUDIANTE SEGURO%"} -- estar en el validador
+                // op_import{"cedula_id":"contrapartida","cuenta":"cuenta","estado":"1","estado_1":"estado","valor_debitado":"valor"}
+
+                $updateRow = array();
+                if (isset($op_validador['identificador_secuencia'])) {
+
+                    if ($op_validador['identificador_secuencia'] == "cuenta" || $op_validador['identificador_secuencia'] == "tarjeta") {
+                        //# experimental tarjeta-cuenta
+                        #cifra el campo
+                        #compara el campo
+                        #si existe actualiza por el id_sec
+                        #no salta no actualiza
+                        //desencripto de la base lo extraido , y al estar dentro del loop se hara cada vez
+                        //$value_field = Crypto::decrypt($row[$op_validador['identificador_secuencia']], $clave);
+
+                        //encripto el valor pero , al ser mas de 150 caracteres puede afectar
+                        //$value_field = Crypto::encrypt($row[$op_validador['identificador_secuencia']], $clave);
+
+
+                    } elseif ($op_validador['identificador_secuencia'] == "secuencia" || $op_validador['identificador_secuencia'] == "cedula_id") {
+                        #el modo normal puede usar lo mismo y hago una condicion en el metodo de si es cedula_id , o secuencia
+                        $updateRow['secuencia'] = $row[$opciones_import[$opciones_validacion['identificador_secuencia']]]; // cedula - secuencia
+
+                        $updateRow['fecha_actualizacion'] = isset($row[$opciones_import['fecha_actualizacion']]) ? date('Y-m-d', $row[$opciones_import['fecha_actualizacion']]) : date('Y-m-d');
+                        //2022-08-04  date('Y-m-d', $date);
+                        //sacar el valor total del subproducto
+                        $updateRow['valor_debitado'] = isset($row[$opciones_import['valor_debitado']]) ? $row[$opciones_import['valor_debitado']] : $datos_subproductos->valortotal;
+
+                        $updateRow['detalle'] = isset($row[$opciones_import['detalle']]) ? $row[$opciones_import['detalle']] : '';
+
+                        $existe =  $obj_detalle_debito->update_debit_detail($this->cod_carga, $this->cliente, $this->producto, $updateRow);
+                    } else {
+                        dd("error validando el indentificador o no se encuentra base");
+                    }
+                } else {
+                    dd("No se encuentra configurado los campos que resciben la respuestas del banco , para este subproducto");
+                }
+            }
+        }
+        $this->detalle_proceso['valido'] = $this->condicio_1;
+        $this->detalle_proceso['vacio'] = $this->condicion_2;
+        $this->detalle_proceso['error_insertar'] = $this->err_insert;
+        $this->detalle_proceso['error_validacion'] =  $this->err_validacion;
+        $this->detalle_proceso['error_msg'] = $this->errorTecnico_1;
+        $this->detalle_proceso['condicion_validacion'] = $this->condicion_3;
+        return $this->detalle_proceso;
+    }
+
+
+    public function rules(): array
+    {
+        return [
+            '*.0' => ['ordinal', 'unique:ea_detalle_carga_corp,ordinal']
+        ];
+    }
+
+    public function __construct(int $cod_carga, string $cliente, string $producto)
+    {
+        $this->cliente = $cliente;
+        $this->cod_carga = $cod_carga;
+        $this->producto = $producto;
+        $this->condicio_1 = 0;
+        $this->condicion_2 = 0;
+        $this->condicion_3 = 0;
+        $this->condicion_4 = 0;
+        $this->err_insert = 0;
+        $this->err_validacion = 0;
+        $this->cumple_validacion = 0;
+        $this->errorTecnico_1 = '';
+        $this->detalle_proceso = array();
+    }
+    public function merge_inner_import()
+    {
+        $merge_inner_import =  EaDetalleDebito::join("ea_base_activa", "ea_base_activa.id_sec", "=", "ea_detalle_debito.id_sec")
+            ->select(
+                'ea_base_activa.id_sec',
+                'ea_detalle_debito.id_carga',
+                'ea_base_activa.cedula_id',
+                'ea_base_activa.cuenta',
+                'ea_base_activa.tarjeta',
+            )
+            ->where('ea_detalle_debito.id_carga', $this->cod_carga)
+            ->where('ea_detalle_debito.cliente', $this->cliente)
+            ->where('ea_detalle_debito.subproducto_id', $this->producto)
+            ->get();
+
+        $contenido = file_get_contents("../salsa.txt");
+        $clave = Key::loadFromAsciiSafeString($contenido);
+
+        foreach ($merge_inner_import as $row) {
+            if (isset($row['tarjeta'])) {
+                $value_field = Crypto::decrypt($row['tarjeta'], $clave);
+                $row['tarjeta'] = $value_field;
+            } elseif (isset($row['cuenta'])) {
+                $value_field = Crypto::decrypt($row['cuenta'], $clave);
+                $row['cuenta'] = $value_field;
+            } else {
+                dd("existe un error metodo merge_inner_import");
+            }
+        }
+        return $merge_inner_import;
+    }
+}
+/*
+ public function collection(Collection $rows)
     {
          \Log::info('inside colleccion IMPORT class EaGemCamImport');
         // \Log::warning('Something could be going wrong.');
@@ -87,14 +224,12 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow
                             }
                         }
                     }
-                    //echo  'estado : ' . $row['estado'];
 
-                    //
                     if ($this->cumple_validacion == 1) {
                         //echo  '$this->cumple_validacion : ' . $this->cumple_validacion;
                         try {
 
-                            $existe =  $obj_detalle_debito->valida_resgistro_detalle_debito_INTER_TC($this->cod_carga, $this->cliente, $this->producto, intval($row['vale']), $row);
+                            $existe =  $obj_detalle_debito->update_debit_detail_INTER_TC($this->cod_carga, $this->cliente, $this->producto, intval($row['vale']), $row);
                             
                         } catch (\Throwable $th) {
                             $this->err_insert++;
@@ -106,10 +241,12 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow
                         $this->errorTecnico_1 = 'ERROR';
                         //$this->errorTecnico_1 = 'Error en las validaciones';
                     }
+
+                    
                 } else {
                     //echo 'no valida';
                     //no hay validaciones 
-                    $existe =  $obj_detalle_debito->valida_resgistro_detalle_debito_INTER_TC($this->cod_carga, $this->cliente, $this->producto, intval($row['vale']), $row);
+                    $existe =  $obj_detalle_debito->update_debit_detail_INTER_TC($this->cod_carga, $this->cliente, $this->producto, intval($row['vale']), $row);
                 }
             } else {
                 $this->condicion_2++;
@@ -124,33 +261,4 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow
         return $this->detalle_proceso;
     }
 
-
-    public function rules(): array
-    {
-        return [
-            '*.0' => ['ordinal', 'unique:ea_detalle_carga_corp,ordinal']
-        ];
-    }
-
-
-
-    // producto = Es el ID de subproducto
-    public function __construct(int $cod_carga, string $cliente, string $producto)
-    {
-        $this->cliente = $cliente;
-        $this->cod_carga = $cod_carga;
-        $this->producto = $producto;
-        $this->condicio_1 = 0;
-        $this->condicion_2 = 0;
-        $this->condicion_3 = 0;
-        $this->condicion_4 = 0;
-        $this->err_insert = 0;
-        $this->err_validacion = 0;
-        $this->cumple_validacion = 0;
-        $this->errorTecnico_1 = '';
-        $this->detalle_proceso = array();
-    }
-}
-/*
-
-
+*/
