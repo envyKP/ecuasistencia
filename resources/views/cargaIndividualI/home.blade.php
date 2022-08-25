@@ -172,6 +172,7 @@
                 'desc_producto': desc_producto,
                 'estado_cabecera': estado_cabecera
             });
+
             var procesbarId = "processCargaDetalle" + idbar;
             //document.getElementById("processCargaDetalle").style.display = "block";
             document.getElementById(procesbarId).style.display = "block";
@@ -182,13 +183,18 @@
                 dataType: "json",
                 data: form,
                 success: function(response) {
+                    var parsed_data = JSON.parse(JSON.stringify(response));
+                    let msg_response = parsed_data.mensaje;
                     document.getElementById(procesbarId).style.display = "none";
-                    alert('Procesado exitoso ');
+                    alert(msg_response);
+
+                    $('.progress .progress-bar').css("width", "0%");
 
                 },
                 error: function(response) {
-                    alert("some Error " + data.msg);
+
                     document.getElementById(procesbarId).style.display = "none";
+                    alert("Error " + response.error);
                 }
             });
 

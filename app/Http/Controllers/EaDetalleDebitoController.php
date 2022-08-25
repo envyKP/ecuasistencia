@@ -89,24 +89,24 @@ class EaDetalleDebitoController extends Controller
             ->update($row);
     }
 
-    public function update_debit_detail_join_BA($cod_carga, $cliente, $producto, $row)
+    public function update_debit_detail_join_BA($row)
     {
         //::join("base_activa", "ea_detalle_debito.desc_subproducto", "=", "ea_base_activa.subproducto")
+        // condicion inicial prototipo
         /*  $subquery = DB::table('catch-text')
             ->select(DB::raw("user_id,MAX(created_at) as MaxDate"))
             ->groupBy('user_id');
             $query = User::joinSub($subquery,'MaxDates',function($join){
             $join->on('users.id','=','MaxDates.user_id');
             })->select(['users.*','MaxDates.*']);
-        */
-
-        /*
+        
         DB::table('attributes as a')
         ->join('catalog as c', 'a.parent_id', '=', 'c.id')
         ->update([ 'a.key' => DB::raw("`c`.`left_key`") ]);
-
         */
 
+        //PROTOTIPO 2 TOMANDO EN CUENTA DIFERENCIA ENTRE TARJETA Y CUENTA 
+        /*
         if ($row['secuencia'] == 'tarjeta') {
             return   EaDetalleDebito::where('id_carga', $cod_carga)
                 ->where('cliente', $cliente)
@@ -122,8 +122,14 @@ class EaDetalleDebitoController extends Controller
         } else {
             dd("Error en metodo update, no reconoce la entrada de dato id_sec");
         }
-        $secuencia = $row['secuencia'];
-        dd($row);;
+        */
+        $id_detalle = $row['id_detalle'];
+        //dd($row);
+        return   EaDetalleDebito::where('id_detalle', $id_detalle)
+            ->update($row);
+
+        //$secuencia = $row['secuencia'];
+
     }
     /**
      * Remove the specified resource from storage.

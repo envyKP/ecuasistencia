@@ -140,12 +140,15 @@ class EaCargaIndividualImport extends Controller
         if (!empty($import->detalle_proceso['errorTecnico'])) {
             $cabecera_update['estado'] = 'ERROR';
             $errorTecnico = $import->detalle_proceso['errorTecnico'];
-
             $trx = $this->update_datos_cab_carga($registroCarga->cliente, $request->cod_carga, $request->producto, $cabecera_update);
+            return response()->json(['success' => $import->detalle_proceso['error_msg']]);
         } else {
             try {
                 $cabecera_update['estado'] = 'PROCESADO';
                 $update_cab_carga =  $this->update_datos_cab_carga($registroCarga->cliente, $request->cod_carga, $request->producto, $cabecera_update);
+                if(isset($import->detalle_proceso['error_msg'])){
+                    return response()->json(['success' => $import->detalle_proceso['error_msg']]);
+                }
             } catch (\Exception $e) {
 
                 $errorTecnico = $e->getMessage();
