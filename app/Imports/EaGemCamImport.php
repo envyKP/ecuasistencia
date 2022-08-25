@@ -28,7 +28,7 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow
      */
 
     public function collection(Collection $rows)
-    {   
+    {
 
         dd($rows);
         \Log::info('inside colleccion IMPORT class EaGemCamImport');
@@ -101,25 +101,29 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow
                         $updateRow['detalle'] = isset($row[$opciones_import['detalle']]) ? $row[$opciones_import['detalle']] : '';
                         //bloque condiciones si fue debitado afecta el valor del campo  (estado) en la talbal detalle debito , 0 no cobrado , 1 cobrado
                         // esta condicion es la de los bloques de validacion  
-                        
-                            // reemplazo esto con el campo extraido de la base , existen 2 uno de echo de valores y otro de los campos. 
-                            // púedo añadir otra opcion para lo que es el estado , por ejemplo , condicion_activacion_1: "Proceso OK"
-                            // existiran otras que tengan mas de una condicion de activacion ??
-                            // que no tengan mensaje pero les falte un campo en ese caso 
-                            // condicion_activacion_1 : null ? , o si es como en inter que es fecha actualizacion , por ahi el error es null
-                            //validacion 
-                            // how to estado to 1
 
-                            // declara variable cantida de estados validados. (estado_valido_num:2)
-                            // declara variable cantidad de validacion(validacion exceptional , el programa se detiene en seco ) . (validacion_num:2)
+                        // reemplazo esto con el campo extraido de la base , existen 2 uno de echo de valores y otro de los campos. 
+                        // púedo añadir otra opcion para lo que es el estado , por ejemplo , condicion_activacion_1: "Proceso OK"
+                        // existiran otras que tengan mas de una condicion de activacion ??
+                        // que no tengan mensaje pero les falte un campo en ese caso 
+                        // condicion_activacion_1 : null ? , o si es como en inter que es fecha actualizacion , por ahi el error es null
+                        //validacion 
+                        // how to estado to 1
 
-                            /**
-                                for(estado_valido_num){
-                                    if(opciones_validacion['VALIDATION_NAME']==VALUE && opciones_validacion['VALIDATION_VALUE'] == VALUE ){
+                        // declara variable cantida de estados validados. (estado_valido_num:2)
+                        // declara variable cantidad de validacion(validacion exceptional , el programa se detiene en seco ) . (validacion_num:2)
 
-                                    }
-                                } 
+                        $cont = 0;
+                        for ($p = 0; $p <= ($opciones_validacion['estado_valido_num']); $p++) {
+                            if ($row[$opciones_validacion['VALIDATION_NAME']] == $opciones_validacion['VALIDATION_VALUE']) {
+                                $cont++;
+                            }
+                        }
 
+                        if ($cont == $opciones_validacion['estado_valido_num']) {
+                        }
+                        /**
+                         * 
                                 for(validacion_num){
                                     if(opciones_validacion['VALIDATION_NAME']==VALUE && opciones_validacion['VALIDATION_VALUE'] == VALUE ){
 
@@ -129,21 +133,25 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow
 
                                     }
                                 } 
-                             */
-                            if (is_null($row['fecha_autorizacion']) == 1) {
-                                $row['total'] = null;
-                                $row['estado'] = 0;
+                         */
+
+
+                        if (is_null($row['fecha_autorizacion']) == 1) {
+                            $row['total'] = null;
+                            $row['estado'] = 0;
+                        } else {
+                            if ($row['descripcion'] == "PROCESO OK") {
+                                $row['estado'] = 1;
                             } else {
-                                if ($row['descripcion'] == "PROCESO OK") {
-                                    $row['estado'] = 1;
-                                } else {
-                                    $row['estado'] = 0;
-                                }
+                                $row['estado'] = 0;
                             }
-                        
+                        }
+
+
+
                         //$existe =  $obj_detalle_debito->update_debit_detail_join_BA($this->cod_carga, $this->cliente, $this->producto, $updateRow);
                     } elseif ($opciones_validacion['identificador_secuencia'] == "secuencia" || $opciones_validacion['identificador_secuencia'] == "cedula_id") {
-                       
+
                         #el modo normal puede usar lo mismo y hago una condicion en el metodo de si es cedula_id , o secuencia
                         $updateRow['secuencia'] = $row[$opciones_import[$opciones_validacion['identificador_secuencia']]]; // cedula - secuencia
                         $updateRow['fecha_actualizacion'] = isset($row[$opciones_import['fecha_actualizacion']]) ? date('Y-m-d', $row[$opciones_import['fecha_actualizacion']]) : date('Y-m-d');
@@ -152,9 +160,6 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow
                         $updateRow['valor_debitado'] = isset($row[$opciones_import['valor_debitado']]) ? $row[$opciones_import['valor_debitado']] : $datos_subproductos->valortotal;
                         $updateRow['detalle'] = isset($row[$opciones_import['detalle']]) ? $row[$opciones_import['detalle']] : '';
                         $existe =  $obj_detalle_debito->update_debit_detail($this->cod_carga, $this->cliente, $this->producto, $updateRow);
-                   
-                   
-                   
                     } else {
                         dd("error validando el indentificador o no se encuentra base");
                     }
