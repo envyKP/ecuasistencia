@@ -10,7 +10,7 @@
         {"campo0_2":"8","campo0_4":"17","campo0_5":"17","campo0_7":"6","campo0_9":"6","campo0_12":"17","campo0_16":"15","campo0_17":"15"}
         {"campoC_3":"Ymd","campoC_9":"contador_secuencia","espacios":""}
 
-produbanco cta
+/*produbanco cta
 CO	02005112032	0000001	00000000000000000000	          0908851496	USD	0000000000300	CTA	0036	CTE	02010000522	C	   0908851496	CUESTA ASTUDILLO CARLO MAGNO            	MACHALA609    E/ CHAMBERS Y OCONNORS    	           GUAYAQUIL	           042338886	               QUITO	DEBITO DEL 20220118		0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	0000000000000
 CO	02005112032	0000002	00000000000000000000	          0918156639	USD	0000000000300	CTA	0036	CTE	02000000349	C	   0918156639	ALVAREZ PACHECO ROBERTO CARLOS          	ASUNCION28     MEXICO                   	           GUAYAQUIL	           042331377	               QUITO	DEBITO DEL 20220118		0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	0000000000000
 CO	02005112032	0000003	00000000000000000000	          0912799095	USD	0000000000300	CTA	0036	AHO	12010000865	C	   0912799095	ANCHUNDIA ESPINOZA OSCAR ALEXANDER      	SAN MARTIN5504   ENTRE 32AVA Y 33AVA    	           GUAYAQUIL	           042473695	               QUITO	DEBITO DEL 20220118		0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	0000000000000
@@ -18,7 +18,7 @@ CO	02005112032	0000004	00000000000000000000	          0905147013	USD	00000000003
 CO	02005112032	0000005	00000000000000000000	          0919253146	USD	0000000000300	CTA	0036	CTE	02000000127	C	   0919253146	ALVARADO AREVALO JOSE LUIS              	NULL                                    	           GUAYAQUIL	           042843571	               QUITO	DEBITO DEL 20220118		0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	0000000000000
 CO	02005112032	0000006	00000000000000000000	          1801463298	USD	0000000000300	CTA	0036	AHO	12080000243	C	   1801463298	BARRIGA IZURIETA NORI ALICIA            	AV.PASTEUR321    LUXEMBURGO             	              AMBATO	           032824535	               QUITO	DEBITO DEL 20220118		0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	0000000000000
 CO	02005112032	0000007	00000000000000000000              1706765052	USD	0000000000300	CTA	0036	CTE	02010000578	C	   1706765052	BELLAGAMBA STREUBEL GUILLERMO           	VICTOR EMILIO ESTRADA1208   LAURELES    	           GUAYAQUIL	           042888048	               QUITO	DEBITO DEL 20220118		0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	0000000000000
-
+*/
 produbanto
 {"1":"CO","2":"02005112032","5":"","6":"","8":"USD","10":"CTA","11":"0036","20":"QUITO","25":"DEBITO DEL insert_date_25","26":"","27":"","28":"NA","30":"","32":"NA","33":"","34":"NA","35":"","36":"NA","37":"","38":""}
 
@@ -174,6 +174,13 @@ campos que puede existir , secuencia, cedula_id, cuenta, tarjeta, fecha_actualiz
 
 {"cedula_id":"ContraPartida","cuenta":"Cuenta","estado":"estado","":""}
 
+opciones_validacion
+{"valor_debitado":"nombre en excel","validacion_nombre_":"campo nombre",
+"validacion_valor_":"valor quemado","num_validacion":"1",
+"identificador_secuencia":"tarjeta"}
+
+opciones_import
+{"tarjeta":"nombre en excel","fecha_actualizacion":"campo_fecha_excel","detalle":"detalle de excel"}
 
 
 BGR - CTAS
@@ -183,12 +190,33 @@ Estado - DETALLE
 VALOR "2.93"
 ESTADO - "PROCESO OK"
 
+opciones_validacion
+{"validacion_nombre_0":"Estado",
+"validacion_valor_0":"PROCESO OK","num_validacion":"1",
+"identificador_secuencia":"cedula_id"}
+
+opciones_import
+{"cedula_id":"contrapartida","fecha_actualizacion":"","valor_debitado":"VALOR","detalle":"estado"}
+
+
+
+
 BGR - TC
 VALE - SECUENCIA 
 FECHA VALE - FECHA ACTUALIZACION.
 CODSOC_0_0 - TARJETA
 PUEDO USAR COMO DESCRIPCION COD_RECHAZO -DESCRIPCION  -- DESCRIPCION
 COD_RECHAZO - "17"¿DESCONOSCO EL OK? PARA PRUEBAS "0"
+
+opciones_validacion
+{"validacion_nombre_0":"Estado",
+"validacion_valor_0":"PROCESO OK","num_validacion":"1",
+"identificador_secuencia":"secuencia"}
+
+opciones_import
+{"secuencia":"vale","fecha_actualizacion":"fecha_vale","valor_debitado":"VALOR"}
+
+
 
 
 BOLIVARIANO CTAS
@@ -202,6 +230,21 @@ REFERENCIA - VALIDACION "Servicio 24 Asistencia                                 
 NUM_ORDEN_BCO - "8775542"
 
 
+// bolivariano como ejemplo tc , cuentas y , internacional . como ejemplo ctas
+#existen 2 tipos de validacion la de lectura y la de aceptacion
+{"validacion_campo_1":"Establecimiento","validacion_valor_1":"876406"}
+
+opciones_validacion
+{"validacion_campo_0":"Estado",
+"validacion_valor_0":"PROCESO OK","num_validacion":"1","val_xls_campo_1":"","val_xls_valor_1":"",
+"identificador_secuencia":"cedula_id"}
+
+opciones_import
+{"cedula_id":"contrapartida","fecha_actualizacion":"","valor_debitado":"VALOR","detalle":"estado","validacion_campo_0":"Establecimiento",
+"validacion_valor_0":"876406","num_validacion":"1",}
+
+
+
 BOLIVARIANO TC
 TIENE TARJETA Y SECUENCIA('VALE')
 TIENE 3 PESTAÑAS , (HABLAR PARA QUE SEA NOMAS 1 , UNIDA ,BAJO LOS MISMOS CAMPOS)
@@ -210,6 +253,14 @@ ERROR = NULL ) CUMPLE CONDICION
 
 //VALIDACION//
 RECAP - "C-2202-24254514" 
+
+opciones_validacion
+{"validacion_nombre_0":"Estado",
+"validacion_valor_0":"PROCESO OK","num_validacion":"1",
+"identificador_secuencia":"tarjeta"}
+
+opciones_import
+{"tarjeta":"tarjeta","fecha_actualizacion":"fecha_de_autorizacion"}
 
 
 BI - CTAS
@@ -255,3 +306,17 @@ Cuenta beneficiario - cuenta
 Mensaje Proceso	- descripcion
  
 
+///estructura programacion
+opciones_validacion
+{"valor_debitado":"nombre en excel","validacion_nombre_":"campo nombre",
+"validacion_valor_":"valor quemado","num_validacion":"1",
+"identificador_secuencia":"tarjeta"}
+
+opciones_import
+{"tarjeta":"nombre en excel","fecha_actualizacion":"campo_fecha_excel","detalle":"detalle de excel"}
+
+
+"identificador_secuencia":"tarjeta"
+"identificador_secuencia":"cuenta"
+"identificador_secuencia":"cedula_id"
+"identificador_secuencia":"secuencia"

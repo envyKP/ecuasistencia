@@ -57,18 +57,15 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow
                 $inner_tables_ba_det = $this->merge_inner_import();
             }
         }
-        //$datos_validacion = EaOpcionesCargaCliente::where();{"validacion_campo_1":"Establecimiento","validacion_valor_1":"873134"}
-
         foreach ($rows as $row) {
-
             if (isset($row[$opciones_import[$opciones_validacion['identificador_secuencia']]])) {
-                 $updateRow = array();
-                 if (isset($opciones_validacion['identificador_secuencia'])) {
+                $updateRow = array();
+                if (isset($opciones_validacion['identificador_secuencia'])) {
                     if ($opciones_validacion['identificador_secuencia'] == "cuenta" || $opciones_validacion['identificador_secuencia'] == "tarjeta") {
                         $id_detalle = null;
                         foreach ($inner_tables_ba_det as $indet) {
                             // dejado para que se pueda añadir una condicion posiblemente que incluya otro campo de la base activa
-                            if ($row[$opciones_validacion['identificador_secuencia']] == $indet[$opciones_validacion['identificador_secuencia']]) {
+                            if ($row[$opciones_import[$opciones_validacion['identificador_secuencia']]] == $indet[$opciones_validacion['identificador_secuencia']]) {
                                 $id_detalle = $indet['id_detalle'];
                                 unset($indet);
                                 break;
@@ -78,14 +75,16 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow
                         $updateRow['fecha_actualizacion'] = isset($row[$opciones_import['fecha_actualizacion']]) ? date('Y-m-d', $row[$opciones_import['fecha_actualizacion']]) : date('Y-m-d');
                         $updateRow['valor_debitado'] = isset($row[$opciones_import['valor_debitado']]) ? $row[$opciones_import['valor_debitado']] : $datos_subproductos->valortotal;
                         $updateRow['detalle'] = isset($row[$opciones_import['detalle']]) ? $row[$opciones_import['detalle']] : '';
-                       
                         $cont = 0;
-                        for ($p = 0; $p < ($opciones_validacion['estado_valido_num']); $p++) {
-                            if ($row[$opciones_validacion['VALIDATION_NAME']] == $opciones_validacion['VALIDATION_VALUE']) {
+                        // si es booleano true , de una fecha que venga , o similar , por ejemplo que el campo error tenga null 
+                        // "true"
+                        // terminar esto antes del 28
+                        for ($p = 0; $p < ($opciones_validacion['num_validacion']); $p++) {
+                            if ($row[$opciones_validacion['validacion_campo_' . $p]] == $opciones_validacion['validacion_valor_1' . $p]) {
                                 $cont++;
                             }
                         }
-                        if ($cont == $opciones_validacion['estado_valido_num']) {
+                        if ($cont == $opciones_validacion['num_validacion']) {
                             $updateRow['estado'] = '1';
                         } else {
                             $updateRow['estado'] = '0';
@@ -99,6 +98,18 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow
                         //sacar el valor total del subproducto
                         $updateRow['valor_debitado'] = isset($row[$opciones_import['valor_debitado']]) ? $row[$opciones_import['valor_debitado']] : $datos_subproductos->valortotal;
                         $updateRow['detalle'] = isset($row[$opciones_import['detalle']]) ? $row[$opciones_import['detalle']] : '';
+                        $cont = 0;
+                        for ($p = 0; $p < ($opciones_validacion['num_validacion']); $p++) {
+                            if ($row[$opciones_validacion['validacion_campo_' . $p]] == $opciones_validacion['validacion_valor_1' . $p]) {
+                                $cont++;
+                            }
+                        }
+                        if ($cont == $opciones_validacion['num_validacion']) {
+                            $updateRow['estado'] = '1';
+                        } else {
+                            $updateRow['estado'] = '0';
+                        }
+
                         $existe =  $obj_detalle_debito->update_debit_detail($this->cod_carga, $this->cliente, $this->producto, $updateRow);
                     } else {
                         dd("error validando el indentificador o no se encuentra base");
@@ -173,6 +184,9 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow
                 dd("existe un error metodo merge_inner_import");
             }
         }
+
+        dd($merge_inner_import);
+
         return $merge_inner_import;
     }
 }
