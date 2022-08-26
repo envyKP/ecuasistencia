@@ -235,15 +235,20 @@ NUM_ORDEN_BCO - "8775542"
 {"validacion_campo_1":"Establecimiento","validacion_valor_1":"876406"}
 
 opciones_validacion
-{"validacion_campo_0":"Estado",
-"validacion_valor_0":"PROCESO OK","num_validacion":"1","val_xls_campo_1":"","val_xls_valor_1":"",
+{"validacion_campo_1":"Estado",
+"validacion_valor_1":"PROCESO OK","num_validacion":"1",
 "identificador_secuencia":"cedula_id"}
 
 opciones_import
-{"cedula_id":"contrapartida","fecha_actualizacion":"","valor_debitado":"VALOR","detalle":"estado","validacion_campo_0":"Establecimiento",
-"validacion_valor_0":"876406","num_validacion":"1",}
+{"cedula_id":"contrapartida","fecha_actualizacion":"","valor_debitado":"VALOR","detalle":"estado","validacion_campo_1":"Establecimiento",
+"validacion_valor_1":"873134","num_validacion":"1"}
 
 
+opciones_validacion
+{"validacion_campo_1":"error","validacion_valor_1":"","num_validacion":"1","identificador_secuencia":"cuenta"}
+
+opciones_import
+{"cuenta":"tarjeta","fecha_actualizacion":"fecha_de_autorizacion","valor_debitado":"total","detalle":"error"}
 
 BOLIVARIANO TC
 TIENE TARJETA Y SECUENCIA('VALE')

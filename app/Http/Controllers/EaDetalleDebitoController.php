@@ -89,7 +89,7 @@ class EaDetalleDebitoController extends Controller
             ->update($row);
     }
 
-    public function update_debit_detail_join_BA($row)
+    public function update_debit_detail_join_BA($id_detalle,$row)
     {
         //::join("base_activa", "ea_detalle_debito.desc_subproducto", "=", "ea_base_activa.subproducto")
         // condicion inicial prototipo
@@ -123,7 +123,7 @@ class EaDetalleDebitoController extends Controller
             dd("Error en metodo update, no reconoce la entrada de dato id_sec");
         }
         */
-        $id_detalle = $row['id_detalle'];
+        //$id_detalle = $row['id_detalle'];
         //dd($row);
         return   EaDetalleDebito::where('id_detalle', $id_detalle)
             ->update($row);

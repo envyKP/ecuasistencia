@@ -106,7 +106,6 @@ class EaCargaIndividualImport extends Controller
                 ->where('cod_carga', (isset($datosCab['cod_carga']) ? $datosCab['cod_carga'] : ''))
                 ->update($datosCab);
             if ($trx) {
-
                 $success = "Archivo: " . $nombre_archivo . ", del cliente: " . $request->cliente . " cargado en estado pendiente de guardar/procesar.";
             }
         } else {
