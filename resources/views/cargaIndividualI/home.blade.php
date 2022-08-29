@@ -23,6 +23,10 @@
             opacity: 0;
             z-index: 2;
         }
+
+        .custom-file-input~.custom-file-label::after {
+            content: "Seleccione un archivo";
+        }
     </style>
     <script type="text/javascript">
         $(document).ready(function() {
@@ -46,8 +50,7 @@
                     }
                 });
             });
-            /*
-                        $("#form-procesarCarga").submit(function() {
+            /*$("#form-procesarCarga").submit(function() {
                             $.ajax({
                                 beforeSend: function() {
                                     $("#tabla-det-caraga-corp").find('div,button').prop("disabled", true);
@@ -76,15 +79,9 @@
                 });
             });
 
-
-            $("#form-EnviarBaseActiva").submit(function() {
-                $.ajax({
-                    beforeSend: function() {
-                        $("#processCargarBaseActiva").css("display", "block");
-                    }
-                });
-            });
-
+            /*document.getElementById("filtro_cliente").setCustomValidity(
+                    'Por favor seleccione este campo para continuar');
+    */
             $("#filtro_cliente").click(function() {
                 if ($("#filtro_cliente").is(":checked")) {
                     $("#cliente").css('display', 'block');
@@ -95,15 +92,18 @@
                     $(this).prop("checked", false)
                     $("#filtro_producto").prop("checked", false);
                     $("#btn_genera").prop("disabled", true);
-
+                    document.getElementById("processCargaDetalle").style.display = "none";
 
                 }
             });
 
             $("#filtro_producto").click(function() {
                 if ($("#filtro_producto").is(":checked")) {
-                    $("#producto").css("display", "block");
+                    $("#cliente").css('display', 'block');
+                    $("#producto").css('display', 'block');
+                    $("#filtro_cliente").prop("checked", true);
                     $("#btn_genera").prop("disabled", false);
+                    $("#filtro_producto").prop("checked", true);
                 } else {
                     $("#producto").css("display", "none");
                     $("#filtro_producto").prop("checked", false);
@@ -116,8 +116,13 @@
 
             $("#filtro_genera").click(function() {
                 if ($("#filtro_genera").is(":checked")) {
-                    $("#btn_genera").css("display", "block");
-                    $("#btn_genera").prop("disabled", false);
+                    if ($("#filtro_cliente").is(":checked")) {
+                        if ($("#filtro_producto").is(":checked")) {
+                            $("#btn_genera").css("display", "block");
+                            $("#btn_genera").prop("disabled", false);
+                        }
+                    }
+
                 } else {
                     $("#subproducto").css("display", "none");
                     $("#btn_genera").css("display", "none");
@@ -184,12 +189,10 @@
                 data: form,
                 success: function(response) {
                     var parsed_data = JSON.parse(JSON.stringify(response));
-                    let msg_response = parsed_data.mensaje;
+                    let msg_response = parsed_data.msg;
                     document.getElementById(procesbarId).style.display = "none";
                     alert(msg_response);
-
                     $('.progress .progress-bar').css("width", "0%");
-
                 },
                 error: function(response) {
 
@@ -248,6 +251,14 @@
 
         function validate(formData, jqForm, options) {
             var form = jqForm[0];
+        }
+
+        function updateList() {
+            var input = document.getElementById('archivo');
+            var output = document.getElementById('fileList');
+            for (var i = 0; i < input.files.length; ++i) {
+                output.innerHTML = input.files.item(i).name;
+            }
         }
     </script>
 @endsection

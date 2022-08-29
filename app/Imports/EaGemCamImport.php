@@ -17,11 +17,21 @@ use App\Http\Controllers\EaDetalleDebitoController;
 use App\Models\EaDetalleDebito;
 use Defuse\Crypto\Crypto;
 use Defuse\Crypto\Key;
+use Maatwebsite\Excel\Concerns\WithStartRow;
 
-class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow
+class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow, WithStartRow
 {
     use Importable, SkipsErrors;
-    
+
+    /**
+     * @return int
+     */
+    public function startRow(): int
+    {
+        return 2;
+    }
+
+
     /**
      * @param array $row
      * @param  \Illuminate\Http\Request  $request
@@ -29,7 +39,7 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow
      */
     public function collection(Collection $rows)
     {
-        //dd($rows);
+        
         \Log::info('inside colleccion IMPORT class EaGemCamImport');
         $obj_detalle_debito = (new EaDetalleDebitoController);
         $obj_subproducto = (new EaSubproductoController);
@@ -43,7 +53,9 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow
         $opciones_import = null;
         if (isset($op_client->opciones_validacion) && isset($op_client->campos_import)) {
             $opciones_import = json_decode($op_client->campos_import, true);
+            //opcion que viene de la base , valida si existe el campo y en caso que no no pertenece al archivo
             $opciones_validacion = json_decode($op_client->opciones_validacion, true);
+            //opciones de identificador secuencia influye en el import , y validacion en caso de cumplirse cambia estado debitado de 0 a 1
         } else {
             dd("Error no existe configuracion en base para realizar esta operacion ");
         }
@@ -56,9 +68,11 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow
             if (isset($row[$opciones_import[$opciones_validacion['identificador_secuencia']]])) {
                 $updateRow = array();
                 if (isset($opciones_import['num_validacion'])) {
-                    for ($i = 1; $i <= $opciones_import['num_validacion']; $i++) {
-                        if ($row($opciones_import['validacion_campo_' . $i]) != $opciones_import['validacion_campo_' . $i]) {
-                            dd("validacion invalida , class EaGemCamImport.php - linea 69 ");
+                    for ($i = 0; $i < $opciones_import['num_validacion']; $i++) {
+                        if ($row[$opciones_import['validacion_campo_' . ($i+1)]] != $opciones_import['validacion_valor_' . ($i+1)]) {
+                            //dd("validacion invalida , class EaGemCamImport.php - linea 69 ");
+                            $this->detalle_proceso['msg'] = "No cumple la validacion configurada puede que el archivo subido no pertenezca a este producto o cliente";
+                            return $this->detalle_proceso;
                         }
                     }
                 }
@@ -81,7 +95,11 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow
                         $updateRow['detalle'] = isset($row[$opciones_import['detalle']]) ? $row[$opciones_import['detalle']] : '';
                         $cont = 0;
                         for ($p = 0; $p < ($opciones_validacion['num_validacion']); $p++) {
-                            if ($row[$opciones_validacion['validacion_campo_' . ($p + 1)]] == $opciones_validacion['validacion_valor_' . ($p + 1)]) {
+                            if ($opciones_validacion['validacion_valor_' . ($p + 1)] == "") {
+                                if ($row[$opciones_validacion['validacion_campo_' . ($p + 1)]] != null) {
+                                    $cont++;
+                                }
+                            } elseif ($row[$opciones_validacion['validacion_campo_' . ($p + 1)]] == $opciones_validacion['validacion_valor_' . ($p + 1)]) {
                                 $cont++;
                             }
                         }
@@ -93,6 +111,7 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow
                         //dd($updateRow['estado']);
                         $existe =  $obj_detalle_debito->update_debit_detail_join_BA($id_detalle, $updateRow);
                         $this->condicio_1 = "Se actualizo correctamente";
+                        $this->msg = "completado exitosamente";
                     } elseif ($opciones_validacion['identificador_secuencia'] == "secuencia" || $opciones_validacion['identificador_secuencia'] == "cedula_id") {
                         $actualdate = date('Y-m-d');
                         $input = (isset($row[$opciones_import['fecha_actualizacion']])) ? $row[$opciones_import['fecha_actualizacion']] : $actualdate;
@@ -101,8 +120,13 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow
                         $updateRow['valor_debitado'] = isset($row[$opciones_import['valor_debitado']]) ? $row[$opciones_import['valor_debitado']] : $datos_subproductos->valortotal;
                         $updateRow['detalle'] = isset($row[$opciones_import['detalle']]) ? $row[$opciones_import['detalle']] : '';
                         $cont = 0;
+
                         for ($p = 0; $p < ($opciones_validacion['num_validacion']); $p++) {
-                            if ($row[$opciones_validacion['validacion_campo_' . ($p + 1)]] == $opciones_validacion['validacion_valor_' . ($p + 1)]) {
+                            if ($opciones_validacion['validacion_valor_' . ($p + 1)] == "") {
+                                if ($row[$opciones_validacion['validacion_campo_' . ($p + 1)]] != null) {
+                                    $cont++;
+                                }
+                            } elseif ($row[$opciones_validacion['validacion_campo_' . ($p + 1)]] == $opciones_validacion['validacion_valor_' . ($p + 1)]) {
                                 $cont++;
                             }
                         }
@@ -111,14 +135,19 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow
                         } else {
                             $updateRow['estado'] = '0';
                         }
-                        $updateRow['secuencia'] = $row[$opciones_import[$opciones_validacion['identificador_secuencia']]];
-
+                        $updateRow['secuencia'] = ltrim($row[$opciones_import[$opciones_validacion['identificador_secuencia']]], '0');
+                        
                         $existe =  $obj_detalle_debito->update_debit_detail($this->cod_carga, $this->cliente, $this->producto, $updateRow);
+                        $this->msg = "completado exitosamente";
                     } else {
-                        dd("error validando el indentificador o no se encuentra base");
+                       // dd("error validando el indentificador o no se encuentra base");
+                        $this->detalle_proceso['msg'] = "error validando el indentificador o no se encuentra base";
+                        return $this->detalle_proceso;
                     }
                 } else {
-                    dd("No se encuentra configurado los campos que resciben la respuestas del banco , para este subproducto");
+                    //dd("No se encuentra configurado los campos que resciben la respuestas del banco , para este subproducto");
+                    $this->detalle_proceso['msg'] = "No se encuentra configurado los campos que resciben la respuestas del banco , para este subproducto";
+                    return $this->detalle_proceso;
                 }
             }
         }
@@ -126,7 +155,7 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow
         $this->detalle_proceso['vacio'] = $this->condicion_2;
         $this->detalle_proceso['error_insertar'] = $this->err_insert;
         $this->detalle_proceso['error_validacion'] =  $this->err_validacion; //faLta poner mensaje
-        $this->detalle_proceso['error_msg'] = $this->errorTecnico_1;
+        $this->detalle_proceso['msg'] = $this->msg;
         $this->detalle_proceso['condicion_validacion'] = $this->condicion_3;
         return $this->detalle_proceso;
     }
@@ -151,7 +180,7 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow
         $this->err_insert = 0;
         $this->err_validacion = 0;
         $this->cumple_validacion = 0;
-        $this->errorTecnico_1 = '';
+        $this->msg = '';
         $this->detalle_proceso = array();
     }
     public function merge_inner_import($datos_subproductos)

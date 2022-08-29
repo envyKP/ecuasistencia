@@ -80,12 +80,11 @@ class EaDetalleDebitoController extends Controller
 
     public function update_debit_detail($cod_carga, $cliente, $producto, $row)
     {
-        $secuencia = $row['secuencia'];
-        dd($row);
+        //$secuencia =  ltrim($row['secuencia'], '0');
         return   EaDetalleDebito::where('id_carga', $cod_carga)
             ->where('cliente', $cliente)
             ->where('subproducto_id', $producto)
-            ->where('secuencia', $secuencia)
+            ->where('secuencia', $row['secuencia'])
             ->update($row);
     }
 
