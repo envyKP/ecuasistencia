@@ -486,7 +486,6 @@ class EaCargaIndividualExport extends Controller
         \Log::info('funcion generarFactura clase EaCargaIndividualExport');
         $varcontrolsecuencia = (isset($request->carga_resp) ? strval($request->carga_resp) : null);
         $detalle_subproducto = ((new EaSubproductoController)->getSubproductoDetalle($request->cliente, $request->producto));
-
         $name_producto = str_replace("/", " ", $detalle_subproducto->desc_subproducto);
         return Excel::download(new EaGenCamExport($request->cliente, $detalle_subproducto->desc_subproducto, $varcontrolsecuencia, $request->producto, $detalle_subproducto->tipo_subproducto), $request->cliente . "-" . $name_producto . "-" . date("Y-m-d") . '.xlsx');
     }

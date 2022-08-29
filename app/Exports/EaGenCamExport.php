@@ -12,6 +12,7 @@ use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
+use App\Models\EaOpcionesCargaCliente;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -328,37 +329,108 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
 
     public function collection()
     {
+        //iniciaria aki un bloque de condiciones que permitiran consultar el json de validaciones aki antes de realizar la consulta.
+        // debido a que es nescesario cambiar o dar valor a los campos del export
+
+        //ejemplo de implementacion 
+        /*
+        $temporal = null;
+        if($this->tipo_subproducto=='CTAS'){
+            $temporal='ea_base_activa.cuenta';
+        }elseif($this->tipo_subproducto='TC'){
+            $temporal='ea_base_activa.tarjeta';
+        }
+
         $this->collection =  EaBaseActiva::join("ea_detalle_debito", "ea_detalle_debito.id_sec", "=", "ea_base_activa.id_sec")
             ->select(
                 'ea_base_activa.cedula_id',
                 'ea_base_activa.nombre',
-                EaBaseActiva::raw("'S/N' as 'Dirección Cliente'"),
-                EaBaseActiva::raw("'S/N' as 'Correo Cliente'"),
-                EaBaseActiva::raw("'0' as 'Cta / TC'"),
+                'ea_base_activa.direccion',
+                'ea_base_activa.mail',
+                
                 'ea_detalle_debito.fecha_actualizacion',
                 'ea_detalle_debito.valor_debitado'
             )
-            ->where('ea_detalle_debito.producto', $this->producto)
+            ->where('ea_detalle_debito.subproducto_id', $this->id_subproducto)
             ->where('ea_detalle_debito.id_carga', $this->cod_carga_corp)
             ->where('ea_base_activa.cliente', $this->cliente)
             ->where('ea_detalle_debito.estado', '1')
             ->orderby('ea_base_activa.cedula_id')
             ->get();
 
-        //$completo = $this->collection;
+         */
+        /**EaBaseActiva::raw("'S/N' as 'Dirección Cliente'"),
+                EaBaseActiva::raw("'S/N' as 'Correo Cliente'"),
+                EaBaseActiva::raw("'0' as 'Cta / TC'"), */
 
+        $temporal = null;
+        $temporal2 = null;
+        $temporal3 = null;
+        $op_client = EaOpcionesCargaCliente::where('cliente', $this->cliente)->where('subproducto', $this->producto)->first();
+
+        $opciones_factura = null;
+        if (isset($op_client->opciones_factura)) {
+            $opciones_factura = json_decode($op_client->campos_import, true);
+            if (isset($opciones_factura['direccion'])) {
+                $temporal = '';
+            } else {
+                $temporal = EaBaseActiva::raw("'S/N' as 'Dirección Cliente'");
+            }
+            if (isset($opciones_factura['correo'])) {
+                $temporal2 = 'ea_base_activa.mail';
+            } else {
+                $temporal2 = EaBaseActiva::raw("'S/N' as 'Correo Cliente'");
+            }
+            if (isset($opciones_factura['pagos'])) {
+
+                if ($this->tipo_subproducto == 'CTAS') {
+                    $temporal3 = 'ea_base_activa.cuenta';                    
+                } elseif ($this->tipo_subproducto = 'TC') {
+                    $temporal3 = 'ea_base_activa.tarjeta';
+                }
+            } else {
+                $temporal3 = EaBaseActiva::raw("'0' as 'Cta / TC'");
+            }
+        } else {
+            $temporal = EaBaseActiva::raw("'S/N' as 'Dirección Cliente'");
+            $temporal2 = EaBaseActiva::raw("'S/N' as 'Correo Cliente'");
+            $temporal3 = EaBaseActiva::raw("'0' as 'Cta / TC'");
+        }
+        //$temporal3 = 'ea_base_activa.cuenta';
+        //$this->tipo_subproducto = 'CTAS';
+    
+        //dd($temporal);
+        $this->collection =  EaBaseActiva::join("ea_detalle_debito", "ea_detalle_debito.id_sec", "=", "ea_base_activa.id_sec")
+            ->select(
+                'ea_base_activa.cedula_id',
+                'ea_base_activa.nombre',
+                $temporal,
+                $temporal2,
+                $temporal3,
+                'ea_detalle_debito.fecha_actualizacion',
+                'ea_detalle_debito.valor_debitado'
+            )
+            ->where('ea_detalle_debito.subproducto_id', $this->id_subproducto)
+            ->where('ea_detalle_debito.id_carga', $this->cod_carga_corp)
+            ->where('ea_base_activa.cliente', $this->cliente)
+            ->where('ea_detalle_debito.estado', '1')
+            ->orderby('ea_base_activa.cedula_id')
+            ->get();
+        $contenido = file_get_contents("../salsa.txt");
+        $clave = Key::loadFromAsciiSafeString($contenido);
         foreach ($this->collection as $individual) {
-
             $input =  $individual->fecha_actualizacion;
             $date = strtotime($input);
             $individual->fecha_actualizacion = date('Y-m-d', $date);
             //en caso de error al parsear la fecha
+           if ($temporal3 != EaBaseActiva::raw("'0' as 'Cta / TC'")) {
+                $value_field = Crypto::decrypt($individual[$this->tipo_subproducto == 'TC' ? 'tarjeta' : 'cuenta'], $clave);
+                $individual[$this->tipo_subproducto == 'TC' ? 'tarjeta' : 'cuenta'] = $value_field;
+           }
             if ($individual->fecha_actualizacion == '1970-01-01') {
                 $individual->fecha_actualizacion = 'Date Parse Error , fecha registrada = ' . $input;
             }
         }
-
-
         return $this->collection;
     }
 
