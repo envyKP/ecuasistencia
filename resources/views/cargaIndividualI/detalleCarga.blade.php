@@ -18,6 +18,7 @@
                         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
+
                     </div>
                 </div>
             @endif
@@ -37,6 +38,7 @@
                 </div>
             @endif
         </div>
+
 
 
 
@@ -61,8 +63,18 @@
 
                                 <form id="form-uploadArchivos" enctype="multipart/form-data" accept-charset="utf-8">
                                     @csrf
-                                    <td class="col-sm-2 col-md-10"> <input class="form-control pt-1" id="archivo"
-                                            type="file" name="archivo" required> </td>
+                                    <td class="col-sm-2 col-md-10">
+                                        <div class="custom-file">
+                                            <input type="file" id="archivo" name="archivo"
+                                                class="custom-file-input" onchange="javascript:updateList()" required />
+                                            <label class="custom-file-label">
+                                                <div id="fileList"></div>
+                                            </label>
+                                        </div>
+                                    </td>
+
+
+
                                     <input type="hidden" name="cod_carga" value="{{ $carga_resp }}">
                                     <input type="hidden" name="cliente" value="{{ $cliente }}">
                                     <input type="hidden" name="producto" value="{{ $producto }}">
@@ -74,7 +86,8 @@
                                         value="{{ \Auth::user()->username }}">
                                     <input type="hidden" name="row" value="{{ $row }}">
                                     <td> <button class="btn btn-info mx-1" title="Subir archivo XLS/XLSX/txt"
-                                            type="button" onclick="upload_function(this.form, '{{$row.$cliente.$producto}}')"
+                                            type="button"
+                                            onclick="upload_function(this.form, '{{ $row . $cliente . $producto }}')"
                                             enctype="multipart/form-data">
                                             <svg class="c-icon c-icon-1xl">
                                                 <use
@@ -84,7 +97,7 @@
                                         </button></td>
                                 </form>
                                 <td> <button class="btn btn-info mx-1" title="Guardar" type="button"
-                                        onclick="procesar_function('{{ $cod_carga }}','{{ $cliente }}','{{ $producto }}','{{ $desc_producto }}', '{{ $estado_cabecera }}', '{{$row.$cliente.$producto}}')">
+                                        onclick="procesar_function('{{ $cod_carga }}','{{ $cliente }}','{{ $producto }}','{{ $desc_producto }}', '{{ $estado_cabecera }}', '{{ $row . $cliente . $producto }}')">
                                         <svg class="c-icon c-icon-1xl">
                                             <use
                                                 xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-save') }} ">
@@ -119,7 +132,8 @@
                     </tbody>
                 </table>-->
                 <!--<div class="col-sm-12 form-group" id="processCarga" style="display:none"> -->
-                <div class="col-sm-12 form-group" id="processCargaDetalle{{$row.$cliente.$producto}}" style="display:none">
+                <div class="col-sm-12 form-group" id="processCargaDetalle{{ $row . $cliente . $producto }}"
+                    style="display:none">
                     <strong>{{ 'Procesando...' }}</strong>
                     <progress class="col-sm-12" max="100">100%</progress>
                 </div>
@@ -140,11 +154,13 @@
                             <input type="hidden" name="estado_cabecera" value="{{ $estado_cabecera }}">
                             <input type="hidden" name="registros_no_cumplen" value="{{ $registros_no_cumplen }}">
                             <input type="hidden" name="usuario_actualiza" value="{{ \Auth::user()->username }}">
-                           
+
                         </form>
                     </div>
                 @endif
-                <button class="btn btn-info" type="button" data-dismiss="modal">{{ 'Salir' }}</button>
+
+                <button class="btn btn-info" type="button"
+                    data-dismiss="modal"onclick="window.location='{{ route('EaCargaIndividualImport.index') }}'">{{ 'Salir' }}</button>
             </div>
         </div>
         <!-- /.modal-content-->

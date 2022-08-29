@@ -29,7 +29,7 @@ class EaCargaIndividualImport extends Controller
     {
         $clientes =  (new EaClienteController)->getAllCampanas();
 
-        $resumen_cabecera = EaCabeceraDetalleCarga::orderBydesc('fec_registro')->where('is_det_debito', '1')
+        $resumen_cabecera = EaCabeceraDetalleCarga::orderBydesc('fec_registro')->where('is_det_debito', '1')->where('estado', 'PENDIENTE')
             ->paginate(15);
         return view('cargaIndividualI.home')->with(compact('clientes'))
             ->with(isset($resumen_cabecera) ? compact('resumen_cabecera') : '');
@@ -87,31 +87,35 @@ class EaCargaIndividualImport extends Controller
      */
     public function uploadArchivos(Request  $request)
     {
-        $datosCab = $request->except('_token', 'filtro_cliente', 'filtro_producto', 'filtro_genera', 'estado_cabecera', 'registros_no_cumplen', 'row');
-
-        $fecha = Date('Y-m-d');
-        $productoDetalle = (new EaProductoController)->getProductoDetalle($request->cliente, $request->producto);
-        $extension = $request->file('archivo')->extension();
-
-        if (strtolower($extension) == 'xls' || strtolower($extension) == 'xlsx') {
-            $datosCab['fec_carga'] = Date('d/m/Y H:i:s');
-            if ($request->hasfile('archivo')) {
-                $nombre_archivo = $request->file('archivo')->getClientOriginalName();
-                $descripcion = preg_replace('([^A-Za-z0-9 ])', '', $request->desc_producto);
-                $datosCab['archivo'] = $request->file('archivo')->storeAs('lecturaDebito/' . $request->cliente . '/' . $descripcion . '/' . $request->cod_carga, $nombre_archivo, 'public');
-            }
-            $trx = EaCabeceraDetalleCarga::where('desc_producto', (isset($datosCab['desc_producto']) ? $datosCab['desc_producto'] : ''))
-                ->where('producto', (isset($datosCab['producto']) ? $datosCab['producto'] : ''))
-                ->where('cliente', (isset($datosCab['cliente']) ? $datosCab['cliente'] : ''))
-                ->where('cod_carga', (isset($datosCab['cod_carga']) ? $datosCab['cod_carga'] : ''))
-                ->update($datosCab);
-            if ($trx) {
-                $success = "Archivo: " . $nombre_archivo . ", del cliente: " . $request->cliente . " cargado en estado pendiente de guardar/procesar.";
+        if (isset($request->archivo)) {
+            $datosCab = $request->except('_token', 'filtro_cliente', 'filtro_producto', 'filtro_genera', 'estado_cabecera', 'registros_no_cumplen', 'row');
+            $fecha = Date('Y-m-d');
+            $productoDetalle = (new EaProductoController)->getProductoDetalle($request->cliente, $request->producto);
+            $extension = $request->file('archivo')->extension();
+            //dd($extension);
+            // añadir txt
+            if (strtolower($extension) == 'xls' || strtolower($extension) == 'xlsx') {
+                $datosCab['fec_carga'] = Date('d/m/Y H:i:s');
+                if ($request->hasfile('archivo')) {
+                    $nombre_archivo = $request->file('archivo')->getClientOriginalName();
+                    $descripcion = preg_replace('([^A-Za-z0-9 ])', '', $request->desc_producto);
+                    $datosCab['archivo'] = $request->file('archivo')->storeAs('lecturaDebito/' . $request->cliente . '/' . $descripcion . '/' . $request->cod_carga, $nombre_archivo, 'public');
+                }
+                $trx = EaCabeceraDetalleCarga::where('desc_producto', (isset($datosCab['desc_producto']) ? $datosCab['desc_producto'] : ''))
+                    ->where('producto', (isset($datosCab['producto']) ? $datosCab['producto'] : ''))
+                    ->where('cliente', (isset($datosCab['cliente']) ? $datosCab['cliente'] : ''))
+                    ->where('cod_carga', (isset($datosCab['cod_carga']) ? $datosCab['cod_carga'] : ''))
+                    ->update($datosCab);
+                if ($trx) {
+                    $success = "Archivo: " . $nombre_archivo . ", del cliente: " . $request->cliente . " cargado en estado pendiente de guardar/procesar.";
+                }
+            } else {
+                $error = "Archivos permitidos: xls o xlsx";
             }
         } else {
-            $error = "Archivos permitidos: xls o xlsx";
+            $detalle_proceso['mensaje'] = isset($success) ? $success : "por favor suba un archivo";
+            return response()->json($detalle_proceso);
         }
-
         $detalle_proceso['estado_cabecera'] = isset($request->estado) ? $request->estado : '';
         $detalle_proceso['desc_producto'] = isset($request->desc_producto) ? $request->desc_producto : '';
         $detalle_proceso['success'] = isset($success) ? $success : '';
@@ -140,14 +144,13 @@ class EaCargaIndividualImport extends Controller
             $cabecera_update['estado'] = 'ERROR';
             $errorTecnico = $import->detalle_proceso['errorTecnico'];
             $trx = $this->update_datos_cab_carga($registroCarga->cliente, $request->cod_carga, $request->producto, $cabecera_update);
-            return response()->json(['success' => $import->detalle_proceso['error_msg']]);
+            return response()->json(['success' => $import->detalle_proceso['msg']]);
         } else {
             try {
                 $cabecera_update['estado'] = 'PROCESADO';
                 $update_cab_carga =  $this->update_datos_cab_carga($registroCarga->cliente, $request->cod_carga, $request->producto, $cabecera_update);
-                if(isset($import->detalle_proceso['error_msg'])){
-                    return response()->json(['success' => $import->detalle_proceso['error_msg']]);
-                }
+
+                return response()->json($import->detalle_proceso);
             } catch (\Exception $e) {
 
                 $errorTecnico = $e->getMessage();

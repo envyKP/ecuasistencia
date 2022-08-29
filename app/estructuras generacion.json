@@ -237,11 +237,27 @@ NUM_ORDEN_BCO - "8775542"
 opciones_validacion
 {"validacion_campo_1":"Estado",
 "validacion_valor_1":"PROCESO OK","num_validacion":"1",
-"identificador_secuencia":"cedula_id"}
+"identificador_secuencia":"secuencia"}
 
 opciones_import
-{"cedula_id":"contrapartida","fecha_actualizacion":"","valor_debitado":"VALOR","detalle":"estado","validacion_campo_1":"Establecimiento",
-"validacion_valor_1":"873134","num_validacion":"1"}
+{"validacion_campo_1":"Establecimiento","validacion_valor_1":"876406","num_validacion":"1","identificador_secuencia":"cedula_id","fecha_actualizacion":"","valor_debitado":"total"}
+
+{"cedula_id":"contrapartida","fecha_actualizacion":"","valor_debitado":"VALOR","detalle":"estado","validacion_campo_1":"Establecimiento","validacion_valor_1":"873134","num_validacion":"1"}
+
+{"validacion_campo_1":"Establecimiento","validacion_valor_1":"876406","num_validacion":"1","identificador_secuencia":"secuencia","fecha_actualizacion":"","valor_debitado":"total"}
+
+{"secuencia":"vale","fecha_actualizacion":"","valor_debitado":"VALOR","detalle":"estado","validacion_campo_1":"Establecimiento","validacion_valor_1":"876406","num_validacion":"1"}
+
+{"validacion_campo_1":"Establecimiento","validacion_valor_1":"876406"}
+{"validacion_campo_1":"Establecimiento","validacion_valor_1":"888671"}
+{"validacion_campo_1":"Establecimiento","validacion_valor_1":"888669"}
+{"validacion_campo_1":"Establecimiento","validacion_valor_1":"888670"}
+{"validacion_campo_1":"Establecimiento","validacion_valor_1":"873134"}
+{"validacion_campo_1":"Establecimiento","validacion_valor_1":"872876"}
+{"validacion_campo_1":"Establecimiento","validacion_valor_1":"873130"}
+{"validacion_campo_1":"Establecimiento","validacion_valor_1":"873134"}
+
+
 
 
 opciones_validacion

@@ -7,7 +7,6 @@ $input = '2022-02-16';
 $date = strtotime($input);
 echo date('Y-m-d', $date);
 
-dd();
 //echo date('Ymd')."\n";
 //$float_val = "1";
 //echo "numero : ";
