@@ -64,17 +64,8 @@
                                 <form id="form-uploadArchivos" enctype="multipart/form-data" accept-charset="utf-8">
                                     @csrf
                                     <td class="col-sm-2 col-md-10">
-                                        <div class="custom-file">
-                                            <input type="file" id="archivo" name="archivo"
-                                                class="custom-file-input" onchange="javascript:updateList()" required />
-                                            <label class="custom-file-label">
-                                                <div id="fileList"></div>
-                                            </label>
-                                        </div>
+                                        <input class="form-control pt-1" id="archivo" type="file" name="archivo" >
                                     </td>
-
-
-
                                     <input type="hidden" name="cod_carga" value="{{ $carga_resp }}">
                                     <input type="hidden" name="cliente" value="{{ $cliente }}">
                                     <input type="hidden" name="producto" value="{{ $producto }}">
@@ -104,10 +95,8 @@
                                             </use>
                                         </svg>
                                     </button></td>
-
                             </tr>
                         @endif
-
                         <!--<tr>
                     <td><p><small>{{ 'Por favor asegurese que el nombre del archivo no tenga espacios o caracteres especiales' }}</small></p></td>
                 </tr>-->

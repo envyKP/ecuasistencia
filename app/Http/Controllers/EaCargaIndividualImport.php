@@ -167,11 +167,21 @@ class EaCargaIndividualImport extends Controller
 
         if (isset($opciones_validacion['formato'])) {
             //bloque para implementar metodos de formato distinto a xls o xlsx
+            //opciones_validacion {'formato':'txt'}
             if ('txt' == $opciones_validacion['formato']) {
                 /*
                 metodo de lectura de txt , por espaciado , como se implementaria ? existe limite se puede usar la misma estructura implementada en el collector()
                 
                 */
+
+                $fh = fopen($registroCarga->archivo, 'r');
+                while ($line = fgets($fh)) {
+                    
+                     echo($line);
+                }
+                dd($fh);
+                fclose($fh);
+
                 if (!empty($import->detalle_proceso['errorTecnico'])) {
                     $cabecera_update['estado'] = 'ERROR';
                     $errorTecnico = $import->detalle_proceso['errorTecnico'];
@@ -187,7 +197,6 @@ class EaCargaIndividualImport extends Controller
                         return response()->json($errorTecnico);
                     }
                 }
-          
             }
         } else {
             $import->import($registroCarga->archivo, 'public'); // metodo para EXCEL 
@@ -272,7 +281,7 @@ class EaCargaIndividualImport extends Controller
         $row_insert_detalle['cliente'] = $request->cliente;
         $row_insert_detalle['estado'] = "0";
         //dd($objEXPORT->is_carga_older());
-        if(isset(($objEXPORT->is_carga_older()->id_carga))){
+        if (isset(($objEXPORT->is_carga_older()->id_carga))) {
             if ($varcontrolsecuencia == ($objEXPORT->is_carga_older()->id_carga)) {
                 \Log::warning('se destruyo la carga :' . $row_insert_detalle['id_carga']);
                 $objEXPORT->destroy_cab_detalle($varcontrolsecuencia, $request->cliente, $request->producto);
@@ -281,12 +290,11 @@ class EaCargaIndividualImport extends Controller
                 \Log::info('No pudo destruirse la carga');
                 $errorTecnico = 'disculpe el inconveniente no pudo eliminarse el reguistro por favor compruebe que no existe una carga superior al registro que desea eliminar';
             }
-        }else{
+        } else {
             $objEXPORT->destroy_cab($varcontrolsecuencia, $request->cliente, $request->producto);
             return redirect()->route('EaCargaIndividualImport.index')->with([
                 'success' =>  'no existe registro en tabla detalle se elimino datos en cabezera'
             ]);
-
         }
 
 
