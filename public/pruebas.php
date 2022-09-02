@@ -3,7 +3,7 @@
 require __DIR__ . '/../vendor/autoload.php';
 
 
-$input = '2022-02-16';
+$input = '20220805';
 $date = strtotime($input);
 echo date('Y-m-d', $date);
 
@@ -23,8 +23,19 @@ echo date('Y-m-d', $date);
 //echo  "pruebas con float  : ".$individual[$mydata['campo_1']];
 //echo ((float) $float_val);
 
-
+echo 'final-';
 //bloque transformar texto cadena ordenar y sacar la primera pala de cada cadena
+$time = strtotime( date("Y-m-d"));
+$num = 75;
+//2016 04 20  - 2016-05-17
+$num2 = 13;
+// 2022 10 09  -  2022 07 23 
+$final = date("Y-m-d", strtotime("-".$num." month -".$num2." day", $time));
+//$final = date("Y-m-d", strtotime("- ".$num." month -".$num2." day", $time));
+echo $time.'-';
+echo $final;
+echo '-final';
+
 $str = 'Kevin / Johan ++ Perez *@ Macias'; // cadena nombre
 
 //$re = '/\b(\w)[^\s]*\s*/m'; // expresion regular 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\EaCabeceraDetalleCarga;
+use App\Models\EaOpcionesCargaCliente;
 use App\Models\EaDetalleDebito;
 use Illuminate\Http\Request;
 
@@ -77,6 +78,33 @@ class EaDetalleDebitoController extends Controller
             ->where('secuencia', $secuencia)
             ->update($row);
     }
+    public function getDetalleDebitoOpciones(Request  $request)
+    {
+// 2 tipos de validaciones uno con fecha y otro con esto puedo usar la misma opcion de for,
+// pero el espacio debe ser limitado , no puedo 
+//
+// parametro de consulta (campo nuevo . modifica lka base de datos)
+// el campo existente tambien modifica la base de datos.
+// el campo existente extrae el campo a modificar , y añade la opcion de crear un combo de hasta 4 elementos o items
+        //getDetalleDebitoOpciones
+        $html = '<option value="" selected>Seleccione una opcion</option>';
+        $subproductos = EaOpcionesCargaCliente::where('cliente', $request->cliente)->where('subproducto', $request->producto)
+            ->get();
+        $campo_opciones = json_decode($subproductos->opciones_data, true);
+        /* for ($i=0; $i < 4; $i++) { 
+                    $campo_opciones['campo_']
+                }*/
+                $cont=1;
+        foreach ($campo_opciones as $op) {
+            if (isset($campo_opciones[''])) {
+                //$base_op['var_val_' . $k]
+                $html .= '<option value="' . $campo_opciones['var_val_' .$cont ] . '">' .  $campo_opciones['var_val_' .$cont ] . '</option>';
+            }
+            $cont++;
+        }
+        return response()->json(['htmlProducto' => $html]);
+    }
+
 
     public function update_debit_detail($cod_carga, $cliente, $producto, $row)
     {
@@ -88,47 +116,11 @@ class EaDetalleDebitoController extends Controller
             ->update($row);
     }
 
-    public function update_debit_detail_join_BA($id_detalle,$row)
+    public function update_debit_detail_join_BA($id_detalle, $row)
     {
-        //::join("base_activa", "ea_detalle_debito.desc_subproducto", "=", "ea_base_activa.subproducto")
-        // condicion inicial prototipo
-        /*  $subquery = DB::table('catch-text')
-            ->select(DB::raw("user_id,MAX(created_at) as MaxDate"))
-            ->groupBy('user_id');
-            $query = User::joinSub($subquery,'MaxDates',function($join){
-            $join->on('users.id','=','MaxDates.user_id');
-            })->select(['users.*','MaxDates.*']);
-        
-        DB::table('attributes as a')
-        ->join('catalog as c', 'a.parent_id', '=', 'c.id')
-        ->update([ 'a.key' => DB::raw("`c`.`left_key`") ]);
-        */
 
-        //PROTOTIPO 2 TOMANDO EN CUENTA DIFERENCIA ENTRE TARJETA Y CUENTA 
-        /*
-        if ($row['secuencia'] == 'tarjeta') {
-            return   EaDetalleDebito::where('id_carga', $cod_carga)
-                ->where('cliente', $cliente)
-                ->where('subproducto_id', $producto)
-                ->join("ea_base_activa", "ea_base_activa.id_sec", "=", "ea_detalle_debito.id_sec")
-                ->update($row);
-        } elseif ($row['secuencia'] == 'cuenta') {
-            return   EaDetalleDebito::where('id_carga', $cod_carga)
-                ->where('cliente', $cliente)
-                ->where('subproducto_id', $producto)
-                ->where('secuencia', $secuencia)
-                ->update($row);
-        } else {
-            dd("Error en metodo update, no reconoce la entrada de dato id_sec");
-        }
-        */
-        //$id_detalle = $row['id_detalle'];
-        //dd($row);
         return   EaDetalleDebito::where('id_detalle', $id_detalle)
             ->update($row);
-
-        //$secuencia = $row['secuencia'];
-
     }
     /**
      * Remove the specified resource from storage.

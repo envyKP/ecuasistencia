@@ -17,6 +17,7 @@ use App\Exports\EaReporteCargaInicialExport;
 use App\Models\EaCliente;
 use App\Exports\EaGenCamExport;
 use PhpOffice\PhpSpreadsheet\Calculation\TextData\Search;
+use App\Models\EaOpcionesCargaCliente;
 
 class EaCargaIndividualImport extends Controller
 {
@@ -29,7 +30,7 @@ class EaCargaIndividualImport extends Controller
     {
         $clientes =  (new EaClienteController)->getAllCampanas();
 
-        $resumen_cabecera = EaCabeceraDetalleCarga::orderBydesc('fec_registro')->where('is_det_debito', '1')->where('estado', 'PENDIENTE')
+        $resumen_cabecera = EaCabeceraDetalleCarga::where('is_det_debito', '1')->where('estado', 'PENDIENTE')->orderBydesc('fec_registro')->orderBydesc('cod_carga')
             ->paginate(15);
         return view('cargaIndividualI.home')->with(compact('clientes'))
             ->with(isset($resumen_cabecera) ? compact('resumen_cabecera') : '');
@@ -87,14 +88,33 @@ class EaCargaIndividualImport extends Controller
      */
     public function uploadArchivos(Request  $request)
     {
+        $error = " Algo resulto mal";
         if (isset($request->archivo)) {
-            $datosCab = $request->except('_token', 'filtro_cliente', 'filtro_producto', 'filtro_genera', 'estado_cabecera', 'registros_no_cumplen', 'row');
-            $fecha = Date('Y-m-d');
-            $productoDetalle = (new EaProductoController)->getProductoDetalle($request->cliente, $request->producto);
+            $datosCab = $request->except('_token', 'filtro_cliente', 'filtro_producto', 'filtro_genera', 'estado_cabecera', 'registros_no_cumplen', 'row'); //$fecha = Date('Y-m-d');//$productoDetalle = (new EaProductoController)->getProductoDetalle($request->cliente, $request->producto);
             $extension = $request->file('archivo')->extension();
-            //dd($extension);
-            // añadir txt
-            if (strtolower($extension) == 'xls' || strtolower($extension) == 'xlsx') {
+            $op_client = EaOpcionesCargaCliente::where('cliente',  $request->cliente)->where('subproducto', $request->producto)->first();
+            $opciones_validacion = json_decode($op_client->opciones_validacion, true);
+            if (isset($opciones_validacion['formato'])) {
+                if (strtolower($extension) == $opciones_validacion['formato']) {
+                    //dd("llego dentro de la opocion personalizada de formato");
+                    $datosCab['fec_carga'] = Date('d/m/Y H:i:s');
+                    if ($request->hasfile('archivo')) {
+                        $nombre_archivo = $request->file('archivo')->getClientOriginalName();
+                        $descripcion = preg_replace('([^A-Za-z0-9 ])', '', $request->desc_producto);
+                        $datosCab['archivo'] = $request->file('archivo')->storeAs('lecturaDebito/' . $request->cliente . '/' . $descripcion . '/' . $request->cod_carga, $nombre_archivo, 'public');
+                    }
+                    $trx = EaCabeceraDetalleCarga::where('desc_producto', (isset($datosCab['desc_producto']) ? $datosCab['desc_producto'] : ''))
+                        ->where('producto', (isset($datosCab['producto']) ? $datosCab['producto'] : ''))
+                        ->where('cliente', (isset($datosCab['cliente']) ? $datosCab['cliente'] : ''))
+                        ->where('cod_carga', (isset($datosCab['cod_carga']) ? $datosCab['cod_carga'] : ''))
+                        ->update($datosCab);
+                    if ($trx) {
+                        $success = "Archivo: " . $nombre_archivo . ", del cliente: " . $request->cliente . " cargado en estado pendiente de guardar/procesar.";
+                    }
+                } else {
+                    $error = "Archivo permitido formato: " . $opciones_validacion['formato'];
+                }
+            } elseif (strtolower($extension) == 'xls' || strtolower($extension) == 'xlsx') {
                 $datosCab['fec_carga'] = Date('d/m/Y H:i:s');
                 if ($request->hasfile('archivo')) {
                     $nombre_archivo = $request->file('archivo')->getClientOriginalName();
@@ -134,30 +154,63 @@ class EaCargaIndividualImport extends Controller
     public function procesar(Request $request)
     {
 
+
         $cabecera_update = array();
         $registroCarga = EaCabeceraDetalleCarga::where('cod_carga', $request->cod_carga)
             ->where('cliente', $request->cliente)
             ->where('producto', $request->producto)->first();
+
         $import = (new EaGemCamImport($request->cod_carga, $request->cliente, $request->producto));
-        $import->import($registroCarga->archivo, 'public');
-        if (!empty($import->detalle_proceso['errorTecnico'])) {
-            $cabecera_update['estado'] = 'ERROR';
-            $errorTecnico = $import->detalle_proceso['errorTecnico'];
-            $trx = $this->update_datos_cab_carga($registroCarga->cliente, $request->cod_carga, $request->producto, $cabecera_update);
-            return response()->json(['success' => $import->detalle_proceso['msg']]);
-        } else {
-            try {
-                $cabecera_update['estado'] = 'PROCESADO';
-                $update_cab_carga =  $this->update_datos_cab_carga($registroCarga->cliente, $request->cod_carga, $request->producto, $cabecera_update);
 
-                return response()->json($import->detalle_proceso);
-            } catch (\Exception $e) {
+        $op_client = EaOpcionesCargaCliente::where('cliente',  $request->cliente)->where('subproducto', $request->producto)->first();
+        $opciones_validacion = json_decode($op_client->opciones_validacion, true);
 
-                $errorTecnico = $e->getMessage();
+        if (isset($opciones_validacion['formato'])) {
+            //bloque para implementar metodos de formato distinto a xls o xlsx
+            if ('txt' == $opciones_validacion['formato']) {
+                /*
+                metodo de lectura de txt , por espaciado , como se implementaria ? existe limite se puede usar la misma estructura implementada en el collector()
+                
+                */
+                if (!empty($import->detalle_proceso['errorTecnico'])) {
+                    $cabecera_update['estado'] = 'ERROR';
+                    $errorTecnico = $import->detalle_proceso['errorTecnico'];
+                    $trx = $this->update_datos_cab_carga($registroCarga->cliente, $request->cod_carga, $request->producto, $cabecera_update);
+                    return response()->json(['success' => $import->detalle_proceso['msg']]);
+                } else {
+                    try {
+                        $cabecera_update['estado'] = 'PROCESADO';
+                        $update_cab_carga =  $this->update_datos_cab_carga($registroCarga->cliente, $request->cod_carga, $request->producto, $cabecera_update);
+                        return response()->json($import->detalle_proceso);
+                    } catch (\Exception $e) {
+                        $errorTecnico = $e->getMessage();
+                        return response()->json($errorTecnico);
+                    }
+                }
+          
             }
-        }
+        } else {
+            $import->import($registroCarga->archivo, 'public'); // metodo para EXCEL 
+            if (!empty($import->detalle_proceso['errorTecnico'])) {
+                $cabecera_update['estado'] = 'ERROR';
+                $errorTecnico = $import->detalle_proceso['errorTecnico'];
+                $trx = $this->update_datos_cab_carga($registroCarga->cliente, $request->cod_carga, $request->producto, $cabecera_update);
+                return response()->json(['success' => $import->detalle_proceso['msg']]);
+            } else {
+                try {
+                    $cabecera_update['estado'] = 'PROCESADO';
+                    $update_cab_carga =  $this->update_datos_cab_carga($registroCarga->cliente, $request->cod_carga, $request->producto, $cabecera_update);
 
-        return response()->json(['success' => 'Procesado Existosamente']);
+                    return response()->json($import->detalle_proceso);
+                } catch (\Exception $e) {
+
+                    $errorTecnico = $e->getMessage();
+                    return response()->json($errorTecnico);
+                }
+            }
+            return response()->json(['success' => 'Procesado Existosamente']);
+        }
+        return response()->json(['success' => 'Existe un inconveniente']);
     }
 
 
@@ -219,14 +272,23 @@ class EaCargaIndividualImport extends Controller
         $row_insert_detalle['cliente'] = $request->cliente;
         $row_insert_detalle['estado'] = "0";
         //dd($objEXPORT->is_carga_older());
-        if ($varcontrolsecuencia == ($objEXPORT->is_carga_older()->id_carga)) {
-            \Log::warning('se destruyo la carga :' . $row_insert_detalle['id_carga']);
-            $objEXPORT->destroy_cab_detalle($varcontrolsecuencia, $request->cliente, $request->producto);
-            $success = 'Borrado registros de : Id_carga' . $row_insert_detalle['id_carga'] . ' cliente-' . $row_insert_detalle['cliente'] . ' producto : ' . $detalle_subproducto->desc_subproducto;
-        } else {
-            \Log::info('No pudo destruirse la carga');
-            $errorTecnico = 'disculpe el inconveniente no pudo eliminarse el reguistro por favor compruebe que no existe una carga superior al registro que desea eliminar';
+        if(isset(($objEXPORT->is_carga_older()->id_carga))){
+            if ($varcontrolsecuencia == ($objEXPORT->is_carga_older()->id_carga)) {
+                \Log::warning('se destruyo la carga :' . $row_insert_detalle['id_carga']);
+                $objEXPORT->destroy_cab_detalle($varcontrolsecuencia, $request->cliente, $request->producto);
+                $success = 'Borrado registros de : Id_carga' . $row_insert_detalle['id_carga'] . ' cliente-' . $row_insert_detalle['cliente'] . ' producto : ' . $detalle_subproducto->desc_subproducto;
+            } else {
+                \Log::info('No pudo destruirse la carga');
+                $errorTecnico = 'disculpe el inconveniente no pudo eliminarse el reguistro por favor compruebe que no existe una carga superior al registro que desea eliminar';
+            }
+        }else{
+            $objEXPORT->destroy_cab($varcontrolsecuencia, $request->cliente, $request->producto);
+            return redirect()->route('EaCargaIndividualImport.index')->with([
+                'success' =>  'no existe registro en tabla detalle se elimino datos en cabezera'
+            ]);
+
         }
+
 
         return redirect()->route('EaCargaIndividualImport.index')->with([
             'success' => isset($success) ? $success : '',

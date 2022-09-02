@@ -71,11 +71,12 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow, Wi
                     for ($i = 0; $i < $opciones_import['num_validacion']; $i++) {
                         if ($row[$opciones_import['validacion_campo_' . ($i+1)]] != $opciones_import['validacion_valor_' . ($i+1)]) {
                             //dd("validacion invalida , class EaGemCamImport.php - linea 69 ");
-                            $this->detalle_proceso['msg'] = "No cumple la validacion configurada puede que el archivo subido no pertenezca a este producto o cliente";
+                            $this->detalle_proceso['msg'] = "No tiene los campos nescesarios para realizar la lectura del archivo de respuesta";
                             return $this->detalle_proceso;
                         }
                     }
                 }
+                
                 if (isset($opciones_validacion['identificador_secuencia'])) {
                     if ($opciones_validacion['identificador_secuencia'] == "cuenta" || $opciones_validacion['identificador_secuencia'] == "tarjeta") {
                         $id_detalle = null;
@@ -120,7 +121,6 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow, Wi
                         $updateRow['valor_debitado'] = isset($row[$opciones_import['valor_debitado']]) ? $row[$opciones_import['valor_debitado']] : $datos_subproductos->valortotal;
                         $updateRow['detalle'] = isset($row[$opciones_import['detalle']]) ? $row[$opciones_import['detalle']] : '';
                         $cont = 0;
-
                         for ($p = 0; $p < ($opciones_validacion['num_validacion']); $p++) {
                             if ($opciones_validacion['validacion_valor_' . ($p + 1)] == "") {
                                 if ($row[$opciones_validacion['validacion_campo_' . ($p + 1)]] != null) {

@@ -37,16 +37,28 @@
                     method: "get",
                     success: function(data) {
                         $("#producto").html(data.htmlProducto);
+                        $("#opciones_data").html(data.htmlProducto);
                     }
                 });
             });
+            /* $("#producto").change(function() {
+                 $.ajax({
+                     url: "{{ route('EaSubproductoController.getSubproducto') }}?cliente=" + $(
+                         "#cliente").val() + "&contrato_ama=" + $(this).val(),
+                     method: "get",
+                     success: function(data) {
+                         $("#subproducto").html(data.htmlSubproducto)
+                     }
+                 });
+             });*/
+
             $("#producto").change(function() {
                 $.ajax({
-                    url: "{{ route('EaSubproductoController.getSubproducto') }}?cliente=" + $(
-                        "#cliente").val() + "&contrato_ama=" + $(this).val(),
+                    url: "{{ route('EaDetalleDebitoController.getDetalleDebitoOpciones') }}?subproducto=" +
+                        $(this).val(),
                     method: "get",
                     success: function(data) {
-                        $("#subproducto").html(data.htmlSubproducto)
+                        $("#opciones_data").html(data.htmlProducto);
                     }
                 });
             });
@@ -80,8 +92,8 @@
             });
 
             /*document.getElementById("filtro_cliente").setCustomValidity(
-                    'Por favor seleccione este campo para continuar');
-    */
+                        'Por favor seleccione este campo para continuar');
+        */
             $("#filtro_cliente").click(function() {
                 if ($("#filtro_cliente").is(":checked")) {
                     $("#cliente").css('display', 'block');

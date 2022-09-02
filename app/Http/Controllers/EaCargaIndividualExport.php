@@ -137,7 +137,7 @@ class EaCargaIndividualExport extends Controller
                     \Log::info('    $request->cliente : ' . $request->cliente);
                     \Log::info('    $request->producto : ' . $request->producto);
                     \Log::info('    varcontrolsecuencia : ' . $varcontrolsecuencia);
-                    $recorrido = $objEXPORT->generar();
+                    $recorrido = $objEXPORT->generar($campoC);
                     $ultima_carga = $objEXPORT->is_carga_older();
                     $textoPlano = "";
                     $detallevalidacion = array();
@@ -151,9 +151,23 @@ class EaCargaIndividualExport extends Controller
                     $valido_reg_sec = $valido_total;
                     // EN GENERACION CAMPOS QUEMADOS
                     if (isset($campoC["frase"])) {
+                        // CAMPOS CALCULADOS.
+
+                        //{{date}} --> fecha actual
+                        //{{date-N}} -->fecha menos N mes
+                        //{{total_recaudado}}--> sumatoria del cobor del valor total en validacion con el campo del mes o date, tiene que tener ese disparador
+
+                        for ($i = 0; $i < strlen($campoC["frase"]); $i++) {
+                        }
                         switch ($request->cliente) {
                             case 'BGR':
-                                $textoPlano .= str_replace("{{date}}", date('Y/m/d'), $campoC["frase"]);
+                                //¿pregunta esto solo afecta principio de mes o afecta en cada generacion ?
+                                //si afecta en cada generacion se debe realizar 
+                                $time = strtotime( date("Y-m-d"));
+                                $num2 = 30;// añadir validacion a extraer 
+                                $final = date("Y-m-d", strtotime(" -".$num2. " day ", $time));
+                                $textoPlano .= str_replace("{{date}}", $final, $campoC["frase"]);
+                                dd($textoPlano);
                                 $textoPlano .= "     " . count($recorrido);
                                 $textoPlano .= "\n";
                                 break;
@@ -161,8 +175,11 @@ class EaCargaIndividualExport extends Controller
                                 if (isset($campoC["fraseF"])) {
                                 } else {
                                     //frase = TREC02210000000
+                                    // aki vienen calculos globales. pero como añadir la sumantoria tendria que recorrer todo una vez y luego sumarlo o si tengo el total de registros
+                                    // multiplicarlo por el subtotal total o impuestos y mostrar eso .....
+                                    $aproximado_calculo = count($recorrido) * $detalle_subproducto['valortotal'];
                                     $cont = 1;
-                                    $textoPlano .= $campoC["frase"] . $cont . "30850130850000000000000000033975300000000000000000000000000";
+                                    $textoPlano .= $campoC["frase"] . $cont . " ".$aproximado_calculo. " "; //CALCULO
                                     $textoPlano .= "\n";
                                 }
                                 break;
@@ -186,6 +203,9 @@ class EaCargaIndividualExport extends Controller
                                     if ((strlen($value_field) > 100)) {
                                         // echo $value_field;
                                         $value_field = Crypto::decrypt($value_field, $clave);
+                                        if (isset($campoC['bin_' . $i])) {
+                                            $value_field = substr($value_field, 0, 6);
+                                        }
                                         //dd($value_field);
                                     }
                                     if (isset($campos_export[$i])) {
@@ -207,6 +227,21 @@ class EaCargaIndividualExport extends Controller
                                                 }
                                             } else {
                                                 $value_field = $value_field . "00";
+                                            }
+                                        }
+                                        if (isset($campo0['tranF_' . $i])) {
+                                            if ($campos_export[$i] == 'tipcta' || $campo0['tranF_' . $i] == 'tipcta') {
+                                                switch ($value_field) {
+                                                    case 'AHO':
+                                                        $value_field = '03';
+                                                        break;
+                                                    case 'CTE':
+                                                        $value_field = '04';
+                                                        break;
+                                                    default:
+
+                                                        break;
+                                                }
                                             }
                                         }
                                     }
@@ -236,7 +271,8 @@ class EaCargaIndividualExport extends Controller
                                     }
                                     $value_field = $secuencia;
                                     $textoPlano .= $value_field;
-                                    if (isset($campoC["espacios"])) {
+                                    if (isset($campoC[$i])) {
+                                    } elseif (isset($campoC["espacios"])) {
                                         $textoPlano .= $campoC["espacios"];
                                     }
                                 }
@@ -305,6 +341,19 @@ class EaCargaIndividualExport extends Controller
                     $file_reg_carga['fec_carga'] = $fecha_generacion;
                     $file_reg_carga['usuario'] = \Auth::user()->username;
                     //$row_insert_sets['id_carga'] = $id_carga + 1;
+                    //$detallevalidacion variable que influye o ya esta declara , puedo usar con otro fin
+                    // existe tambien el problema con produbanco, los archivos de texto.
+                    //corregir los previamente echos, 2 validaciones aumentar un campo y que cambien otro dependiendo si es
+                    // aho 03 y si es ctas 04
+                    //prevision de bloque de informacion
+                    /*
+                    tengo la base de datos tengo que usar dentro de la consulta el parametro de un mes atras//-- adicion de campo consulta ?
+                    
+                    1 //-- validacion es rapida pero tengo que hacer un switch , se añade a campo0 , puede ser ya que esta toma el valor del campo.
+
+
+                    
+                    */
                     $validoacion_par = json_encode($detallevalidacion);
                     //$descripcion = preg_replace('([^A-Za-z0-9 ])', ' ', $detalle_subproducto->desc_subproducto);
                     $fileName = ($id_carga + 1) . $extension_file;
@@ -506,50 +555,3 @@ class EaCargaIndividualExport extends Controller
         return Excel::download(new EaGenCamExport($request->cliente, $detalle_subproducto->desc_subproducto, $varcontrolsecuencia, $request->producto, $detalle_subproducto->tipo_subproducto), $request->cliente . "-" . $name_producto . "-" . date("Y-m-d") . '.xlsx');
     }
 }
-
-
-
-
-
-                                     // ARMA LAS RESPUESTA QUE SE INSERTAN EN EL DOCUMENTO TXT , Y ADICIONAL LLAMA AL METODO QUE LO INSTERTA EN LA BASE DE DATOS.
-            //dd($recorrido);
-            // Ejemplo BGR CTAS
-            //{"campoF_1":"CO","campoF_2":"8020000304","campoF_6":"USD","campoF_7":"293","campoF_8":"CTA","campoF_9":"42","campoF_16":"","campoF_18":"ESTUDIANTE SEGURO_insert_date_18-P0","campoF_19":"0","campoF_20":"","campoF_21":"","campoF_22":"","campoF_23":"","campoF_24":"332","campoF_25":"","campoF_26":"","campoF_27":"","campoF_28":"31","campoF_29":"","campoF_30":"8"}
-            //{"campoB_5":"cedula_id","campoB_10":"tipcta","campoB_11":"cuenta","campoB_12":"tipide","campoB_13":"cedula_id","campoB_14":"nombre","campoB_15":"ciudadet","campoB_17":"ciudadet","campoB_22":"valortotal"}
-            //{"campoC_3":"contador_secuencia","campoC_4":"Ymd","espacios":"\t","insert_date_18":"M-Y"}
-
-            //ejemplo INTER CTAS
-            //{"campoF_1":"CO","campoF_2":"632575","campoF_6":"USD","campoF_8":"CTA","campoF_9":"32","campoF_15":"","campoF_16":"","campoF_17":"","campoF_18":"","campoF_19":"FAMILIA","campoF_20":"","campoF_21":"NA","campoF_22":"NA","campoF_25":"NA","campoF_26":"NA","campoF_27":"NA"}
-            //{"campoB_5":"cedula_id","campoB_7":"valortotal","campoB_10":"tipcta","campoB_11":"cuenta","campoB_12":"tipide","campoB_13":"cedula_id","campoB_14":"nombre","campoB_23":"subtotal","campoB_24":"deduccion_impuesto"}
-            //{"campoC_3":"contador_secuencia","campoC_4":"Ymd","espacios":"\t","identificador":"cedula_id"}
-
-            //ejemplo Produbanco CTAS
-            //{"campoF_1":"CO","campoF_2":"02005112032","campoF_6":"USD","campoF_8":"CTA","campoF_9":"32","campoF_15":"","campoF_16":"","campoF_17":"","campoF_18":"","campoF_19":"FAMILIA","campoF_20":"","campoF_21":"NA","campoF_22":"NA","campoF_25":"NA","campoF_26":"NA","campoF_27":"NA"}
-            //{"campoB_5":"cedula_id","campoB_7":"valortotal","campoB_10":"tipcta","campoB_11":"cuenta","campoB_12":"tipide","campoB_13":"cedula_id","campoB_14":"nombre","campoB_23":"subtotal","campoB_24":"deduccion_impuesto"}
-            //{"campoC_3":"contador_secuencia","campoC_4":"Ymd","espacios":"\t","identificador":"cedula_id"}
-
-
-            //CO	02005112032	0000007	00000000000000000000	          1706765052	USD	0000000000300	CTA	0036	CTE	02010000578	C	   1706765052	BELLAGAMBA STREUBEL GUILLERMO           	VICTOR EMILIO ESTRADA1208   LAURELES    	           GUAYAQUIL	           042888048	               QUITO	                                                                                                                                                                                     DEBITO DEL 20220118		0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	0000000000000
-            /* produbanco CTAS
-CO	02005112032	0000001	00000000000000000000	          0908851496	USD	0000000000300	CTA	0036	CTE	02010000522	C	   0908851496	CUESTA ASTUDILLO CARLO MAGNO            	MACHALA609    E/ CHAMBERS Y OCONNORS    	           GUAYAQUIL	           042338886	               QUITO	                                                                                                                                                                                     DEBITO DEL 20220118		0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	0000000000000
-CO	02005112032	0000002	00000000000000000000	          0918156639	USD	0000000000300	CTA	0036	CTE	02000000349	C	   0918156639	ALVAREZ PACHECO ROBERTO CARLOS          	ASUNCION28     MEXICO                   	           GUAYAQUIL	           042331377	               QUITO	                                                                                                                                                                                     DEBITO DEL 20220118		0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	0000000000000
-CO	02005112032	0000003	00000000000000000000	          0912799095	USD	0000000000300	CTA	0036	AHO	12010000865	C	   0912799095	ANCHUNDIA ESPINOZA OSCAR ALEXANDER      	SAN MARTIN5504   ENTRE 32AVA Y 33AVA    	           GUAYAQUIL	           042473695	               QUITO	                                                                                                                                                                                     DEBITO DEL 20220118		0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	0000000000000
-CO	02005112032	0000004	00000000000000000000	          0905147013	USD	0000000000300	CTA	0036	CTE	02220000926	C	   0905147013	BARAHONA INTRIAGO CECILIO ALFREDO       	PLAYAS, BARRIO ALEXANDER360    Y CARLOS 	           GUAYAQUIL	           042760742	               QUITO	                                                                                                                                                                                     DEBITO DEL 20220118		0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	0000000000000
-CO	02005112032	0000005	00000000000000000000	          0919253146	USD	0000000000300	CTA	0036	CTE	02000000127	C	   0919253146	ALVARADO AREVALO JOSE LUIS              	NULL                                    	           GUAYAQUIL	           042843571	               QUITO	                                                                                                                                                                                     DEBITO DEL 20220118		0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	0000000000000
-CO	02005112032	0000006	00000000000000000000	          1801463298	USD	0000000000300	CTA	0036	AHO	12080000243	C	   1801463298	BARRIGA IZURIETA NORI ALICIA            	AV.PASTEUR321    LUXEMBURGO             	              AMBATO	           032824535	               QUITO	                                                                                                                                                                                     DEBITO DEL 20220118		0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	0000000000000
-CO	02005112032	0000007	00000000000000000000	          1706765052	USD	0000000000300	CTA	0036	CTE	02010000578	C	   1706765052	BELLAGAMBA STREUBEL GUILLERMO           	VICTOR EMILIO ESTRADA1208   LAURELES    	           GUAYAQUIL	           042888048	               QUITO	                                                                                                                                                                                     DEBITO DEL 20220118		0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	0000000000000
-                */
-
-                            // 16-24-28-44-48-40-56-16
-                            //54-69-52-22-66-61-16
-                            //37-4 -9 -8 -32-16
-                            //66-79-33-27-16
-                            //53-65-27-16
-                            //84-28-16
-                            //27-16
-
-                            //16
-                            //09+21-1205
-                            //48-7-53
-                            //{"campoC_3":"contador_secuencia","campoC_4":"Ymd"}
-                            //{"campoC_3":"identificacion","campoC_4":"Ymd"}

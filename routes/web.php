@@ -24,7 +24,7 @@ use  Laravel\Fortify\Http\Controllers\AuthenticatedSessionController;
 use  App\Http\Controllers\EaUtilController;
 use  App\Http\Controllers\EaCargaIndividualExport;
 use  App\Http\Controllers\EaCargaIndividualImport;
-
+use  App\Http\Controllers\EaDetalleDebitoController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -192,8 +192,9 @@ Route::middleware(['auth', 'prevent-back-history', 'isAdmin'])->group(function (
     //Route::post('recepcion/archivo/cargaIndividual/subirArchivo/', [EaCargaIndividualImport::class, 'uploadArchivos'])->name('EaCargaIndividualImport.uploadArchivos');
     Route::post('recepcion/archivo/cargaIndividual/destroy/', [EaCargaIndividualImport::class, 'destroy'])->name('EaCargaIndividualImport.destroy');
     Route::post('recepcion/archivo/cargaIndividual/procesar/', [EaCargaIndividualImport::class, 'procesar'])->name('EaCargaIndividualImport.procesar');
-
     //////////////////////////////////////////////////////
+    Route::get('getDetalleDebitoOpciones/', [EaDetalleDebitoController::class, 'getDetalleDebitoOpciones'])->name('EaDetalleDebitoController.getDetalleDebitoOpciones');
+
 
 });
 
