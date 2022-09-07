@@ -25,6 +25,7 @@ use Maatwebsite\Excel\Concerns\Exportable;
 use App\Models\EaCliente;
 use App\Exports\EaGenCamExport;
 use App\Exports\UsersExport;
+use Carbon\Carbon;
 
 //use Illuminate\Http\Response;
 
@@ -58,6 +59,14 @@ class EaCargaIndividualExport extends Controller
      */
     public function exporta(Request $request)
     {
+        /*
+::raw("CONVERT(date,fec_registro, 105) as 'fec_registro2'")::select(
+            '*',
+            EaCabeceraDetalleCarga::raw("CONVERT(date,fec_registro, 105) as 'fec_registro2'"),
+        )
+
+*/
+
         if ($request->btn_genera == 'buscar') {
 
             $clientes =  (new EaClienteController)->getAllCampanas();
@@ -65,14 +74,20 @@ class EaCargaIndividualExport extends Controller
 
             if (isset($request->cliente)) {
                 \Log::info('1');
-                $resumen_cabecera = EaCabeceraDetalleCarga::orderBydesc('fec_registro')
+                $resumen_cabecera = EaCabeceraDetalleCarga::select(
+                    '*',
+                    EaCabeceraDetalleCarga::raw("CONVERT(date,fec_registro, 105) as 'fec_registro2'"),
+                )->orderBydesc('fec_registro2')
                     ->where('is_det_debito', '1')
                     ->where('cliente', $request->cliente)
                     ->paginate(15);
 
                 if (isset($request->producto)) {
                     \Log::info('2');
-                    $resumen_cabecera = EaCabeceraDetalleCarga::orderBydesc('fec_registro')
+                    $resumen_cabecera = EaCabeceraDetalleCarga::select(
+                        '*',
+                        EaCabeceraDetalleCarga::raw("CONVERT(date,fec_registro, 105) as 'fec_registro2'"),
+                    )->orderBydesc('fec_registro2')
                         ->where('is_det_debito', '1')
                         ->where('cliente', $request->cliente)
                         ->where('producto', $request->producto)
@@ -81,18 +96,27 @@ class EaCargaIndividualExport extends Controller
             }
 
             if (isset($request->state)) {
-                $resumen_cabecera = EaCabeceraDetalleCarga::orderBydesc('fec_registro')
+                $resumen_cabecera = EaCabeceraDetalleCarga::select(
+                    '*',
+                    EaCabeceraDetalleCarga::raw("CONVERT(date,fec_registro, 105) as 'fec_registro2'"),
+                )->orderBydesc('fec_registro2')
                     ->where('is_det_debito', '1')
                     ->where('estado', $request->state)
                     ->paginate(15);
                 if (isset($request->cliente)) {
-                    $resumen_cabecera = EaCabeceraDetalleCarga::orderBydesc('fec_registro')
+                    $resumen_cabecera = EaCabeceraDetalleCarga::select(
+                        '*',
+                        EaCabeceraDetalleCarga::raw("CONVERT(date,fec_registro, 105) as 'fec_registro2'"),
+                    )->orderBydesc('fec_registro2')
                         ->where('is_det_debito', '1')
                         ->where('estado', $request->state)
                         ->where('cliente', $request->cliente)
                         ->paginate(15);
                     if (isset($request->producto)) {
-                        $resumen_cabecera = EaCabeceraDetalleCarga::orderBydesc('fec_registro')
+                        $resumen_cabecera = EaCabeceraDetalleCarga::select(
+                            '*',
+                            EaCabeceraDetalleCarga::raw("CONVERT(date,fec_registro, 105) as 'fec_registro2'"),
+                        )->orderBydesc('fec_registro2')
                             ->where('is_det_debito', '1')
                             ->where('estado', $request->state)
                             ->where('cliente', $request->cliente)
@@ -100,7 +124,10 @@ class EaCargaIndividualExport extends Controller
                             ->paginate(15);
                     }
                 } elseif (isset($request->producto)) {
-                    $resumen_cabecera = EaCabeceraDetalleCarga::orderBydesc('fec_registro')
+                    $resumen_cabecera = EaCabeceraDetalleCarga::select(
+                        '*',
+                        EaCabeceraDetalleCarga::raw("CONVERT(date,fec_registro, 105) as 'fec_registro2'"),
+                    )->orderBydesc('fec_registro2')
                         ->where('is_det_debito', '1')
                         ->where('estado', $request->state)
                         ->where('producto', $request->producto)
@@ -138,8 +165,10 @@ class EaCargaIndividualExport extends Controller
                     \Log::info('    $request->producto : ' . $request->producto);
                     \Log::info('    varcontrolsecuencia : ' . $varcontrolsecuencia);
                     $recorrido = $objEXPORT->generar($campoC);
+
                     $ultima_carga = $objEXPORT->is_carga_older();
                     $textoPlano = "";
+                    $primera_linea = "";
                     $detallevalidacion = array();
                     $cont = 0;
                     $condicion = false;
@@ -163,13 +192,9 @@ class EaCargaIndividualExport extends Controller
                             case 'BGR':
                                 //¿pregunta esto solo afecta principio de mes o afecta en cada generacion ?
                                 //si afecta en cada generacion se debe realizar 
-                                $time = strtotime( date("Y-m-d"));
-                                $num2 = 30;// añadir validacion a extraer 
-                                $final = date("Y-m-d", strtotime(" -".$num2. " day ", $time));
-                                $textoPlano .= str_replace("{{date}}", $final, $campoC["frase"]);
-                                dd($textoPlano);
-                                $textoPlano .= "     " . count($recorrido);
-                                $textoPlano .= "\n";
+
+                                
+                                $contador_bgr = 1;
                                 break;
                             case 'PRODUBANCO':
                                 if (isset($campoC["fraseF"])) {
@@ -179,7 +204,7 @@ class EaCargaIndividualExport extends Controller
                                     // multiplicarlo por el subtotal total o impuestos y mostrar eso .....
                                     $aproximado_calculo = count($recorrido) * $detalle_subproducto['valortotal'];
                                     $cont = 1;
-                                    $textoPlano .= $campoC["frase"] . $cont . " ".$aproximado_calculo. " "; //CALCULO
+                                    $textoPlano .= $campoC["frase"] . $cont . " " . $aproximado_calculo . " "; //CALCULO
                                     $textoPlano .= "\n";
                                 }
                                 break;
@@ -191,6 +216,21 @@ class EaCargaIndividualExport extends Controller
                     $limit_insert = 150;
                     $row_insert_detalle = array();
                     foreach ($recorrido as $individual) {
+                        //echo " entro enforeach ";
+                        if (isset($contador_bgr)) {
+                            //echo " isset bgr ctas val";
+                            $time = strtotime(date("m/d/Y H:i:s"));
+                            $num2 = 30; // añadir validacion a extraer 
+                            $final = date("m/d/Y H:i:s", strtotime(" -" . $num2 . " day ", $time));
+                            $date_1 = Carbon::createFromFormat('m/d/Y H:i:s', ($individual['fecha'] . '00:00:00'));
+                            $date_2 = Carbon::createFromFormat('m/d/Y H:i:s', $final);
+                            if ($date_1->lt($date_2)) {
+                                $contador_bgr++;
+                            } else {
+                                continue;
+                            }
+                        }
+
                         if (isset($op_client->num_elem_export)) {
                             $cont++;
                             $secuencia = "";
@@ -239,7 +279,6 @@ class EaCargaIndividualExport extends Controller
                                                         $value_field = '04';
                                                         break;
                                                     default:
-
                                                         break;
                                                 }
                                             }
@@ -278,9 +317,12 @@ class EaCargaIndividualExport extends Controller
                                 }
                             }
                         } else {
+
                             \Log::error('Falta una configuracion , porfavor acceda a Ea_opciones_carga_cliente.');
                             dd("Falta una configuracion , porfavor acceda a Ea_opciones_carga_cliente");
                         }
+
+
                         $textoPlano .= "\n";
                         $condicion = true;
                         $row_insert_sets = array();
@@ -321,6 +363,20 @@ class EaCargaIndividualExport extends Controller
                         }
                         $valido_sec++;
                     }
+                    if (isset($contador_bgr)) {
+                        $time = strtotime(date("Y-m-d"));
+                        $num2 = 30; // añadir validacion a extraer 
+                        $final = date("Y-m-d", strtotime(" -" . $num2 . " day ", $time));
+                        $primera_linea .= str_replace("{{date}}", $final, $campoC["frase"]);
+                        //dd($textoPlano);
+                        $primera_linea .= "     " . $contador_bgr;
+
+                        $primera_linea .= "\n";
+
+                        $primera_linea = $primera_linea . $textoPlano;
+                        $textoPlano = $primera_linea;
+                    }
+
                     $tiempo_final = microtime(true);
                     \Log::info('tiempo que termina : ' . $tiempo_final);
 
@@ -359,9 +415,15 @@ class EaCargaIndividualExport extends Controller
                     $fileName = ($id_carga + 1) . $extension_file;
                     $success = 'se genero exitosamente , se procede a realizar la descarga ';
                     Storage::disk('public')->makeDirectory('generacion_debito/' . $request->cliente . '/' . $request->producto . '/' . date('Y'));
+
+
+
+
                     file_put_contents(public_path('storage/generacion_debito/' . $request->cliente . '/' . $request->producto . '/' . date('Y') . '/' . $fileName), $textoPlano);
                     $file_reg_carga['ruta_gen_debito'] = 'storage/generacion_debito/' . $request->cliente . '/' . $request->producto . '/' . date('Y') . '/' . $fileName;
                     $objEXPORT->registro_cargas($file_reg_carga, $validoacion_par);
+
+
                     return redirect()->route('EaCargaIndividualImport.index')->with([
                         'success' => isset($success) ? $success : '',
                         'generacionVal' => isset($success) ? '200' : '',

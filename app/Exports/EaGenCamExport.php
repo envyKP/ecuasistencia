@@ -59,7 +59,7 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
         $campo_1 = 'ea_detalle_debito.subproducto_id';
         $campo_2 = 'ea_detalle_debito.id_carga';
         $campo_3 = 'ea_base_activa.cliente';
-        
+
         $campo_4 = 'tipresp';
         $campo_5 = 'codresp';
         $campo_6 = 'detresp';
@@ -69,24 +69,17 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
 
         $valor_1 = $this->id_subproducto; //quemado
         $valor_2 = $carga_secuencia; // quemado
-        $valor_3 = $this->cliente;// quemado
-        
+        $valor_3 = $this->cliente; // quemado
+
         $valor_4 = '1';
         $valor_5 = '100';
-        $valor_6 = 'ACEPTA SERVICIO';// quemado ?
+        $valor_6 = 'ACEPTA SERVICIO'; // quemado ?
         $valor_7 = 'Z';
         $valor_8 = 'A';
         $valor_9 = '0';
 
-
-
-
-
-
-
         if (isset($campoC["existe"])) {
             //manejado por si existe desde el primer campo
-
             /*
                             'ea_detalle_debito.subproducto_id', $this->id_subproducto)
                             'ea_detalle_debito.id_carga', $carga_secuencia)
@@ -104,14 +97,13 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
             $campo_7 = 'ea_base_activa.estado';
             $campo_8 = 'ea_base_activa.codestado';
             $campo_9 = 'ea_detalle_debito.estado';
-            
+
             $valor_4 = '1';
             $valor_5 = '100';
-            $valor_6 = 'ACEPTA SERVICIO';// quemado ?
+            $valor_6 = 'ACEPTA SERVICIO'; // quemado ?
             $valor_7 = 'Z';
             $valor_8 = 'A';
             $valor_9 = '0';
-
             /*
                             'ea_detalle_debito.subproducto_id', $this->id_subproducto)
                             'ea_detalle_debito.id_carga', $carga_secuencia)
@@ -132,7 +124,7 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
 
             $valor_4 = '1';
             $valor_5 = '100';
-            $valor_6 = 'ACEPTA SERVICIO';// quemado ?
+            $valor_6 = 'ACEPTA SERVICIO'; // quemado ?
             $valor_7 = 'Z';
             $valor_8 = 'A';
             $valor_9 = '0';
@@ -154,10 +146,10 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
             $campo_7 = 'ea_base_activa.estado';
             $campo_8 = 'ea_base_activa.codestado';
             $campo_9 = 'ea_detalle_debito.estado';
-            
+
             $valor_4 = '1';
             $valor_5 = '100';
-            $valor_6 = 'ACEPTA SERVICIO';// quemado ?
+            $valor_6 = 'ACEPTA SERVICIO'; // quemado ?
             $valor_7 = 'Z';
             $valor_8 = 'A';
             $valor_9 = '0';
@@ -181,12 +173,10 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
 
             $valor_4 = '1';
             $valor_5 = '100';
-            $valor_6 = 'ACEPTA SERVICIO';// quemado ?
+            $valor_6 = 'ACEPTA SERVICIO'; // quemado ?
             $valor_7 = 'Z';
             $valor_8 = 'A';
             $valor_9 = '0';
-
-
         }
 
         switch ($this->cliente) {
@@ -199,7 +189,7 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
                 $fecha_generacion = (isset($detalles->fecha_generacion) ? $detalles->fecha_generacion : 0);
                 if (($fecha_generacion) == date('mY')) {
                     // echo ($detalles->fecha_generacion) . ($detalles->id_sec) . " se encuentra dentro del mes";
-                    
+
                     if (isset($this->cod_carga_corp)) {
                         $carga_secuencia = $this->cod_carga_corp;
                     } else {
@@ -235,6 +225,7 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
                                 'ea_base_activa.direccion',
                                 'ea_base_activa.ciudadet',
                                 'ea_subproductos.valortotal',
+                                'ea_base_activa.fecha',
                             )
                             ->where('ea_detalle_debito.subproducto_id', $this->id_subproducto)
                             ->where('ea_detalle_debito.id_carga', $carga_secuencia)
@@ -242,6 +233,7 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
                             ->where('tipresp', '1')
                             ->where('codresp', '100')
                             ->where('detresp', 'ACEPTA SERVICIO')
+                            
                             ->where('ea_base_activa.estado', 'Z')
                             ->where('ea_base_activa.codestado', 'A')
                             ->where('ea_detalle_debito.estado', '0')
@@ -268,6 +260,7 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
                                 'ea_base_activa.nombre',
                                 'ea_base_activa.ciudadet',
                                 'ea_subproductos.valortotal',
+                                'ea_base_activa.fecha',
                             )
                             ->where('ea_detalle_debito.subproducto_id', $this->id_subproducto)
                             ->where('ea_detalle_debito.id_carga', $carga_secuencia)
@@ -398,6 +391,7 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
                                 'ea_base_activa.nombre',
                                 'ea_base_activa.ciudadet',
                                 'ea_subproductos.valortotal',
+                                'ea_base_activa.fecha',
                             )
                             ->where('ea_subproductos.desc_subproducto', $this->producto)
                             ->where('ea_base_activa.subproducto', $this->producto)
@@ -427,6 +421,7 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
                                 'ea_base_activa.nombre',
                                 'ea_base_activa.ciudadet',
                                 'ea_subproductos.valortotal',
+                                'ea_base_activa.fecha',
                             )
                             ->where('ea_subproductos.desc_subproducto', $this->producto)
                             ->where('ea_base_activa.subproducto', $this->producto)

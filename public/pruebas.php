@@ -1,7 +1,28 @@
 <?php
 
 require __DIR__ . '/../vendor/autoload.php';
+//require 'vendor/autoload.php';
 
+use Carbon\Carbon;
+
+printf("Now: %s", Carbon::now());
+$date1 = Carbon::createFromFormat('m/d/Y H:i:s', '12/01/2019 10:20:00');
+        $date2 = Carbon::createFromFormat('m/d/Y H:i:s', '12/01/2020 10:20:00');
+  
+        $result = $date1->gt($date2);
+        var_dump($result);
+
+/** comparacion de fecha con carbon , existe por defecto en laravel*/
+
+
+/*$str = 'Kevin / Johan ++ Perez *@ Macias'; // cadena nombre
+$name = explode(' ', $str); // separar
+dd($name);*/
+$time = strtotime(date("Ym"));
+$num = 1;
+$final = date("Ym", strtotime("-" . $num . " month ", $time));
+
+dd($final);
 
 $input = '20220805';
 $date = strtotime($input);
@@ -25,16 +46,23 @@ echo date('Y-m-d', $date);
 
 echo 'final-';
 //bloque transformar texto cadena ordenar y sacar la primera pala de cada cadena
-$time = strtotime( date("Y-m-d"));
+$time = strtotime(date("Y-m-d"));
 $num = 75;
 //2016 04 20  - 2016-05-17
 $num2 = 13;
 // 2022 10 09  -  2022 07 23 
-$final = date("Y-m-d", strtotime("-".$num." month -".$num2." day", $time));
+$final = date("Y-m-d", strtotime("-" . $num . " month -" . $num2 . " day", $time));
 //$final = date("Y-m-d", strtotime("- ".$num." month -".$num2." day", $time));
-echo $time.'-';
+echo $time . '-';
 echo $final;
 echo '-final';
+
+
+$time = strtotime(date("Ym"));
+$num = 1;
+$final = date("Y-m-d", strtotime("-" . $num . " month ", $time));
+
+
 
 $str = 'Kevin / Johan ++ Perez *@ Macias'; // cadena nombre
 
@@ -56,8 +84,8 @@ print_r($pila);
 
 // experimental
 $data = [
-    ['user_id'=>'Coder 1', 'subject_id'=> 4096],
-    ['user_id'=>'Coder 2', 'subject_id'=> 2048],
+    ['user_id' => 'Coder 1', 'subject_id' => 4096],
+    ['user_id' => 'Coder 2', 'subject_id' => 2048],
 ];
 
 //Model::insert($data); // Eloquent approach
@@ -88,5 +116,3 @@ for ($i = 1; $i <= $total; $i++) {
 
 echo date('Y-m-d h i s', '1660838482.5864');
 echo date('Y-m-d h i s', '1660834793.0605');
-
-

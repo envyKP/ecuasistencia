@@ -39,7 +39,7 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow, Wi
      */
     public function collection(Collection $rows)
     {
-        
+
         \Log::info('inside colleccion IMPORT class EaGemCamImport');
         $obj_detalle_debito = (new EaDetalleDebitoController);
         $obj_subproducto = (new EaSubproductoController);
@@ -69,14 +69,14 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow, Wi
                 $updateRow = array();
                 if (isset($opciones_import['num_validacion'])) {
                     for ($i = 0; $i < $opciones_import['num_validacion']; $i++) {
-                        if ($row[$opciones_import['validacion_campo_' . ($i+1)]] != $opciones_import['validacion_valor_' . ($i+1)]) {
+                        if ($row[$opciones_import['validacion_campo_' . ($i + 1)]] != $opciones_import['validacion_valor_' . ($i + 1)]) {
                             //dd("validacion invalida , class EaGemCamImport.php - linea 69 ");
                             $this->detalle_proceso['msg'] = "No tiene los campos nescesarios para realizar la lectura del archivo de respuesta";
                             return $this->detalle_proceso;
                         }
                     }
                 }
-                
+
                 if (isset($opciones_validacion['identificador_secuencia'])) {
                     if ($opciones_validacion['identificador_secuencia'] == "cuenta" || $opciones_validacion['identificador_secuencia'] == "tarjeta") {
                         $id_detalle = null;
@@ -136,11 +136,11 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow, Wi
                             $updateRow['estado'] = '0';
                         }
                         $updateRow['secuencia'] = ltrim($row[$opciones_import[$opciones_validacion['identificador_secuencia']]], '0');
-                        
+
                         $existe =  $obj_detalle_debito->update_debit_detail($this->cod_carga, $this->cliente, $this->producto, $updateRow);
                         $this->msg = "completado exitosamente";
                     } else {
-                       // dd("error validando el indentificador o no se encuentra base");
+                        // dd("error validando el indentificador o no se encuentra base");
                         $this->detalle_proceso['msg'] = "error validando el indentificador o no se encuentra base";
                         return $this->detalle_proceso;
                     }
@@ -215,8 +215,6 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow, Wi
             $value_field = Crypto::decrypt($row[$datos_subproductos], $clave);
             $row[$datos_subproductos] = $value_field;
         }
-
-
         /*   foreach ($merge_inner_import as $row) {
             if ($datos_subproductos->tipo_subproducto == "TC") {
                 if (count($row['tarjeta']) <= 20) {
@@ -235,8 +233,23 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow, Wi
             }
         }
         */
-
-
         return $merge_inner_import;
     }
+    
+    //metodo provicional para transformacion de texto,// descartado por consulta recurrentes
+    /*
+    function importTXT(){
+        $op_client = EaOpcionesCargaCliente::where('cliente', $this->cliente)->where('subproducto', $this->producto)->first();
+        $opciones_validacion = null;
+        $opciones_import = null;
+        if (isset($op_client->opciones_validacion) && isset($op_client->campos_import)) {
+            $opciones_import = json_decode($op_client->campos_import, true);
+            //opcion que viene de la base , valida si existe el campo y en caso que no no pertenece al archivo
+            $opciones_validacion = json_decode($op_client->opciones_validacion, true);
+            //opciones de identificador secuencia influye en el import , y validacion en caso de cumplirse cambia estado debitado de 0 a 1
+        } else {
+            dd("Error no existe configuracion en base para realizar esta operacion ");
+        }
+    }
+    */
 }
