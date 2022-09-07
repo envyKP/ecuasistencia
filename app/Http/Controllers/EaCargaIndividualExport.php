@@ -140,301 +140,30 @@ class EaCargaIndividualExport extends Controller
         } else {
 
             if (isset($request->cliente) || isset($request->desc_subproducto)) {
-
-
-
                 \Log::info('funcion exporta clase EaCargaIndividualExport');
                 \Log::warning('usuario que realiza la orden: ' . \Auth::user()->username);
                 // \Log::warning('Something could be going wrong.');
                 // \Log::error('Something is really going wrong.');
-
                 $varcontrolsecuencia = (isset($request->carga_resp) ? strval($request->carga_resp) : null);
                 $detalle_subproducto = ((new EaSubproductoController)->getSubproductoDetalle($request->cliente, $request->producto));
                 $objEXPORT = new EaGenCamExport($request->cliente, $detalle_subproducto->desc_subproducto, $varcontrolsecuencia, $request->producto, $detalle_subproducto->tipo_subproducto);
-                $op_client = EaOpcionesCargaCliente::where('cliente', $request->cliente)->where('subproducto', $request->producto)->first();
-                $opciones_fijas = json_decode($op_client->opciones_fijas, true);
-                $campos_export = json_decode($op_client->campos_export, true);
-                $campoC = json_decode($op_client->campoc, true);
-                $campo0 = json_decode($op_client->campo0, true);
-                $this->campo0 = $campo0;
+                //
                 if (!isset($request->carga_resp)) {
-                    $contenido = file_get_contents("../salsa.txt");
-                    $clave = Key::loadFromAsciiSafeString($contenido);
-                    \Log::info('Request : ');
-                    \Log::info('    $request->cliente : ' . $request->cliente);
-                    \Log::info('    $request->producto : ' . $request->producto);
-                    \Log::info('    varcontrolsecuencia : ' . $varcontrolsecuencia);
-                    $recorrido = $objEXPORT->generar($campoC);
-
-                    $ultima_carga = $objEXPORT->is_carga_older();
-                    $textoPlano = "";
-                    $primera_linea = "";
-                    $detallevalidacion = array();
-                    $cont = 0;
-                    $condicion = false;
-
-                    $tiempo_inicial = microtime(true);
-                    \Log::info('tiempo que inicia : ' . $tiempo_inicial);
-                    $valido_sec = 1;
-                    $valido_total = count($recorrido);
-                    $valido_reg_sec = $valido_total;
-                    // EN GENERACION CAMPOS QUEMADOS
-                    if (isset($campoC["frase"])) {
-                        // CAMPOS CALCULADOS.
-
-                        //{{date}} --> fecha actual
-                        //{{date-N}} -->fecha menos N mes
-                        //{{total_recaudado}}--> sumatoria del cobor del valor total en validacion con el campo del mes o date, tiene que tener ese disparador
-
-                        for ($i = 0; $i < strlen($campoC["frase"]); $i++) {
-                        }
-                        switch ($request->cliente) {
-                            case 'BGR':
-                                //¿pregunta esto solo afecta principio de mes o afecta en cada generacion ?
-                                //si afecta en cada generacion se debe realizar 
-
-                                
-                                $contador_bgr = 1;
-                                break;
-                            case 'PRODUBANCO':
-                                if (isset($campoC["fraseF"])) {
-                                } else {
-                                    //frase = TREC02210000000
-                                    // aki vienen calculos globales. pero como añadir la sumantoria tendria que recorrer todo una vez y luego sumarlo o si tengo el total de registros
-                                    // multiplicarlo por el subtotal total o impuestos y mostrar eso .....
-                                    $aproximado_calculo = count($recorrido) * $detalle_subproducto['valortotal'];
-                                    $cont = 1;
-                                    $textoPlano .= $campoC["frase"] . $cont . " " . $aproximado_calculo . " "; //CALCULO
-                                    $textoPlano .= "\n";
-                                }
-                                break;
-                            default:
-                                $textoPlano .= $campoC["frase"];
-                                break;
-                        }
-                    }
-                    $limit_insert = 150;
-                    $row_insert_detalle = array();
-                    foreach ($recorrido as $individual) {
-                        //echo " entro enforeach ";
-                        if (isset($contador_bgr)) {
-                            //echo " isset bgr ctas val";
-                            $time = strtotime(date("m/d/Y H:i:s"));
-                            $num2 = 30; // añadir validacion a extraer 
-                            $final = date("m/d/Y H:i:s", strtotime(" -" . $num2 . " day ", $time));
-                            $date_1 = Carbon::createFromFormat('m/d/Y H:i:s', ($individual['fecha'] . '00:00:00'));
-                            $date_2 = Carbon::createFromFormat('m/d/Y H:i:s', $final);
-                            if ($date_1->lt($date_2)) {
-                                $contador_bgr++;
-                            } else {
-                                continue;
-                            }
-                        }
-
-                        if (isset($op_client->num_elem_export)) {
-                            $cont++;
-                            $secuencia = "";
-                            for ($i = 1; $i <= $op_client->num_elem_export; $i++) {
-                                // variable temporal que tendra el texto
-                                $value_field = "";
-                                if (isset($campos_export[$i]) || isset($opciones_fijas[$i])) {
-                                    $value_field =  isset($campos_export[$i]) ? $individual[$campos_export[$i]] : $opciones_fijas[$i];
-                                    //$text_temp = strlen($value_field);
-                                    if ((strlen($value_field) > 100)) {
-                                        // echo $value_field;
-                                        $value_field = Crypto::decrypt($value_field, $clave);
-                                        if (isset($campoC['bin_' . $i])) {
-                                            $value_field = substr($value_field, 0, 6);
-                                        }
-                                        //dd($value_field);
-                                    }
-                                    if (isset($campos_export[$i])) {
-                                        // dd("esta en campos_export");
-                                        if (
-                                            $campos_export[$i] == 'deduccion_impuesto'  ||
-                                            ($campos_export[$i]) == 'subtotal' ||
-                                            ($campos_export[$i]) == 'valortotal'
-                                        ) {
-                                            //dd($campos_export[$i]);
-                                            if (str_contains($value_field, ".")) {
-                                                $validateLen = explode('.', $value_field);
-                                                //dd(strlen($validateLen[count($validateLen)-1]));
-                                                if (strlen($validateLen[count($validateLen) - 1]) == 2) {
-                                                    $value_field =   str_replace(".", "", $value_field);
-                                                } else {
-                                                    $value_field =   str_replace(".", "", $value_field);
-                                                    $value_field .= "0";
-                                                }
-                                            } else {
-                                                $value_field = $value_field . "00";
-                                            }
-                                        }
-                                        if (isset($campo0['tranF_' . $i])) {
-                                            if ($campos_export[$i] == 'tipcta' || $campo0['tranF_' . $i] == 'tipcta') {
-                                                switch ($value_field) {
-                                                    case 'AHO':
-                                                        $value_field = '03';
-                                                        break;
-                                                    case 'CTE':
-                                                        $value_field = '04';
-                                                        break;
-                                                    default:
-                                                        break;
-                                                }
-                                            }
-                                        }
-                                    }
-                                    if (isset($campo0['campo0_' . $i]) || isset($campo0['campo0D_' . $i]) || isset($campo0['campoE_' . $i]) || isset($campo0['campoED_' . $i])) { //iria al final o al comienzo ?    
-                                        // METODO 
-                                        //  dd("esta en campo0");
-                                        $value_field = $this->validate_0_E($value_field, $i);
-                                    } else {
-                                        if (isset($campoC['insert_date_' . $i])) {
-                                            $value_field = str_replace('insert_date_' . $i, strtoupper(date($campoC['insert_date_' . $i])), $value_field);
-                                        }
-                                    }
-                                    $textoPlano .= $value_field;
-                                    //echo  $textoPlano;
-                                    //dd($value_field);
-                                    if (isset($campoC["espacios"])) {
-                                        $textoPlano .= $campoC["espacios"];
-                                    }
-                                } elseif (isset($campoC['campoC_' . $i])) {
-                                    if ($campoC['campoC_' . $i] == "contador_secuencia") {
-                                        $secuencia = $cont;
-                                    } else {
-                                        $secuencia = date($campoC['campoC_' . $i]);
-                                    }
-                                    if (isset($campo0['campo0_' . $i]) || isset($campo0['campo0D_' . $i]) || isset($campo0['campoE_' . $i]) || isset($campo0['campoED_' . $i])) { //iria al final o al comienzo ?    
-                                        $secuencia = $this->validate_0_E($secuencia, $i);
-                                    }
-                                    $value_field = $secuencia;
-                                    $textoPlano .= $value_field;
-                                    if (isset($campoC[$i])) {
-                                    } elseif (isset($campoC["espacios"])) {
-                                        $textoPlano .= $campoC["espacios"];
-                                    }
-                                }
-                            }
-                        } else {
-
-                            \Log::error('Falta una configuracion , porfavor acceda a Ea_opciones_carga_cliente.');
-                            dd("Falta una configuracion , porfavor acceda a Ea_opciones_carga_cliente");
-                        }
-
-
-                        $textoPlano .= "\n";
-                        $condicion = true;
-                        $row_insert_sets = array();
-                        $id_carga = (isset($individual->id_carga) ? $individual->id_carga : 1);
-                        $fecha_generacion = (isset($ultima_carga->fecha_generacion) ? $ultima_carga->fecha_generacion : 0);
-                        if ($fecha_generacion != date('mY')) {
-                            $id_carga = (isset($ultima_carga->id_carga) ? $ultima_carga->id_carga : 0);
-                        }
-                        $row_insert_sets['id_sec'] = isset($individual->id_sec) ? trim($individual->id_sec) : null; // ok
-                        $row_insert_sets['id_carga'] = $id_carga + 1; // ok
-                        if (isset($campoC['identificador'])) {
-                            if ($campoC['identificador'] == 'secuencia') {
-                                $row_insert_sets['secuencia'] = ltrim($secuencia, '0');
-                            } elseif ($campoC['identificador'] == 'cedula_id') {
-                                //cuentas , cedula por defecto
-                                $row_insert_sets['secuencia'] = $individual->cedula_id;
-                            } else {
-                                \Log::error('Error Fatal , no esta bien configurado el identificador de forma correcta , porfavor especifique si es el campo cedula_id o es una secuencia');
-                                dd("Error Fatal , no esta bien configurado el identificador de forma correcta , porfavor especifique si es el campo cedula_id o es una secuencia");
-                            }
-                        } else {
-                            $row_insert_sets['secuencia'] = $individual->cedula_id;
-                        }
-                        $row_insert_sets['fecha_registro'] = date('d/m/Y H:i:s'); //ok
-                        $row_insert_sets['subproducto_id'] = $request->producto; //ok
-                        $row_insert_sets['cliente'] = $request->cliente; //ok
-                        $row_insert_sets['estado'] = "0"; //sing
-                        $row_insert_sets['fecha_generacion'] =  date('mY'); //ok
-                        array_push($row_insert_detalle, $row_insert_sets);
-                        $row_insert_sets = array();
-                        if ($valido_sec == $limit_insert) {
-                            $valido_sec = 0;
-                            $valido_reg_sec = $valido_reg_sec - $limit_insert;
-                            $objEXPORT->view_reg_state($row_insert_detalle);
-                            $row_insert_detalle = array();
-                        } elseif ($valido_sec == $valido_reg_sec) {
-                            $objEXPORT->view_reg_state($row_insert_detalle);
-                        }
-                        $valido_sec++;
-                    }
-                    if (isset($contador_bgr)) {
-                        $time = strtotime(date("Y-m-d"));
-                        $num2 = 30; // añadir validacion a extraer 
-                        $final = date("Y-m-d", strtotime(" -" . $num2 . " day ", $time));
-                        $primera_linea .= str_replace("{{date}}", $final, $campoC["frase"]);
-                        //dd($textoPlano);
-                        $primera_linea .= "     " . $contador_bgr;
-
-                        $primera_linea .= "\n";
-
-                        $primera_linea = $primera_linea . $textoPlano;
-                        $textoPlano = $primera_linea;
-                    }
-
-                    $tiempo_final = microtime(true);
-                    \Log::info('tiempo que termina : ' . $tiempo_final);
-
-                    $textoPlano =  str_replace("{{secuencia}}", $cont,  $textoPlano);
-                    $extension_file = ".";
-                    if (isset($campoC["extension"])) {
-                        $extension_file .= $campoC["extension"];
-                    } else {
-                        $extension_file .= "txt";
-                    }
-                    $id_carga = (isset($ultima_carga->id_carga) ? $ultima_carga->id_carga : 0);
-                    $fecha_generacion = (isset($ultima_carga->fecha_generacion) ? $ultima_carga->fecha_generacion : 0);
-                    $file_reg_carga = array();
-                    $file_reg_carga['cod_carga'] = $id_carga;
-                    $file_reg_carga['cliente'] = $request->clinte;
-                    $file_reg_carga['producto'] = $request->producto;
-                    $file_reg_carga['fecha_registro'] = date('d/m/Y H:i:s');
-                    $file_reg_carga['fec_carga'] = $fecha_generacion;
-                    $file_reg_carga['usuario'] = \Auth::user()->username;
-                    //$row_insert_sets['id_carga'] = $id_carga + 1;
-                    //$detallevalidacion variable que influye o ya esta declara , puedo usar con otro fin
-                    // existe tambien el problema con produbanco, los archivos de texto.
-                    //corregir los previamente echos, 2 validaciones aumentar un campo y que cambien otro dependiendo si es
-                    // aho 03 y si es ctas 04
-                    //prevision de bloque de informacion
-                    /*
-                    tengo la base de datos tengo que usar dentro de la consulta el parametro de un mes atras//-- adicion de campo consulta ?
-                    
-                    1 //-- validacion es rapida pero tengo que hacer un switch , se añade a campo0 , puede ser ya que esta toma el valor del campo.
-
-
-                    
-                    */
-                    $validoacion_par = json_encode($detallevalidacion);
-                    //$descripcion = preg_replace('([^A-Za-z0-9 ])', ' ', $detalle_subproducto->desc_subproducto);
-                    $fileName = ($id_carga + 1) . $extension_file;
-                    $success = 'se genero exitosamente , se procede a realizar la descarga ';
-                    Storage::disk('public')->makeDirectory('generacion_debito/' . $request->cliente . '/' . $request->producto . '/' . date('Y'));
-
-
-
-
-                    file_put_contents(public_path('storage/generacion_debito/' . $request->cliente . '/' . $request->producto . '/' . date('Y') . '/' . $fileName), $textoPlano);
-                    $file_reg_carga['ruta_gen_debito'] = 'storage/generacion_debito/' . $request->cliente . '/' . $request->producto . '/' . date('Y') . '/' . $fileName;
-                    $objEXPORT->registro_cargas($file_reg_carga, $validoacion_par);
-
+                   // $objEXPORT = new EaGenCamExport($request->cliente, $detalle_subproducto->desc_subproducto, $varcontrolsecuencia, $request->producto, $detalle_subproducto->tipo_subproducto);
+                    //bloque para posibilitar creacion de archivo plano 
+                    $generacion_txt = $this->genera_cadena_subproducto($objEXPORT,$request, $detalle_subproducto, $varcontrolsecuencia);
 
                     return redirect()->route('EaCargaIndividualImport.index')->with([
-                        'success' => isset($success) ? $success : '',
-                        'generacionVal' => isset($success) ? '200' : '',
-                        'carga_resp' => ($id_carga + 1),
+                        'success' => isset($generacion_txt['success']) ? $generacion_txt['success'] : '',
+                        'generacionVal' => isset($generacion_txt['success']) ? '200' : '',
+                        'carga_resp' => ($generacion_txt['id_carga'] + 1),
                         'producto' => isset($request->producto) ? $request->producto : '',
                         'cliente' => isset($request->cliente) ? $request->cliente : '',
                         'errorTecnico' => isset($errorTecnico) ?  $errorTecnico  : '',
                         'registros_no_cumplen' => isset($registros_no_cumplen) ? $registros_no_cumplen : ''
                     ]);
                 } else {
-
+                    //$objEXPORT = new EaGenCamExport($request->cliente, $detalle_subproducto->desc_subproducto, $varcontrolsecuencia, $request->producto, $detalle_subproducto->tipo_subproducto);
                     $file_reg_carga = array();
                     $file_reg_carga['cod_carga'] = $varcontrolsecuencia;
                     $file_reg_carga['cliente'] = $request->clinte;
@@ -475,11 +204,271 @@ class EaCargaIndividualExport extends Controller
     }
 
 
-    /**
-     * 
-     * 
-     * 
-     */
+    private function genera_cadena_subproducto($objEXPORT,$request, $detalle_subproducto, $varcontrolsecuencia)
+    {
+        
+        $op_client = EaOpcionesCargaCliente::where('cliente', $request->cliente)->where('subproducto', $request->producto)->first();
+        $opciones_fijas = json_decode($op_client->opciones_fijas, true);
+        $campos_export = json_decode($op_client->campos_export, true);
+        $campoC = json_decode($op_client->campoc, true);
+        $campo0 = json_decode($op_client->campo0, true);
+        $this->campo0 = $campo0;
+
+        $contenido = file_get_contents("../salsa.txt");
+        $clave = Key::loadFromAsciiSafeString($contenido);
+        \Log::info('Request : ');
+        \Log::info('    $request->cliente : ' . $request->cliente);
+        \Log::info('    $request->producto : ' . $request->producto);
+        \Log::info('    varcontrolsecuencia : ' . $varcontrolsecuencia);
+        $recorrido = $objEXPORT->generar($campoC);
+
+        $ultima_carga = $objEXPORT->is_carga_older();
+        $textoPlano = "";
+        $primera_linea = "";
+        //$detallevalidacion = array();
+        $cont = 0;
+        //$condicion = false;
+
+        $tiempo_inicial = microtime(true);
+        \Log::info('tiempo que inicia : ' . $tiempo_inicial);
+        $valido_sec = 1;
+        $valido_total = count($recorrido);
+        $valido_reg_sec = $valido_total;
+        // EN GENERACION CAMPOS QUEMADOS
+        if (isset($campoC["frase"])) {
+            // CAMPOS CALCULADOS.
+            //{{date}} --> fecha actual
+            //{{date-N}} -->fecha menos N mes
+            //{{total_recaudado}}--> sumatoria del cobor del valor total en validacion con el campo del mes o date, tiene que tener ese disparador
+            // en caso de llamar a a json de validacion en base
+            /*for ($i = 0; $i < strlen($campoC["frase"]); $i++) {
+            }*/
+
+            switch ($request->cliente) {
+                case 'BGR':
+                    // toda esta seccion debe intentar implementarse antes que este metodo interno
+
+                    $contador_bgr = 1;
+                    break;
+                case 'PRODUBANCO':
+                    if (isset($campoC["fraseF"])) {
+                    } else {
+                        //frase = TREC02210000000
+                        // aki vienen calculos globales. pero como añadir la sumantoria tendria que recorrer todo una vez y luego sumarlo o si tengo el total de registros
+                        // multiplicarlo por el subtotal total o impuestos y mostrar eso .....
+                        $aproximado_calculo = count($recorrido) * $detalle_subproducto['valortotal'];
+                        $cont = 1;
+                        $textoPlano .= $campoC["frase"] . $cont . " " . $aproximado_calculo . " "; //CALCULO
+                        $textoPlano .= "\n";
+                    }
+                    break;
+                default:
+                    $textoPlano .= $campoC["frase"];
+                    break;
+            }
+        }
+        $limit_insert = 150;
+        $row_insert_detalle = array();
+        foreach ($recorrido as $individual) {
+            //echo " entro enforeach ";
+            if (isset($contador_bgr)) {
+                //echo " isset bgr ctas val";
+                $time = strtotime(date("m/d/Y H:i:s"));
+                $num2 = 30; // añadir validacion a extraer 
+                $final = date("m/d/Y H:i:s", strtotime(" -" . $num2 . " day ", $time));
+                $date_1 = Carbon::createFromFormat('m/d/Y H:i:s', ($individual['fecha'] . '00:00:00'));
+                $date_2 = Carbon::createFromFormat('m/d/Y H:i:s', $final);
+                if ($date_1->lt($date_2)) {
+                    $contador_bgr++;
+                } else {
+                    continue;
+                }
+            }
+
+            if (isset($op_client->num_elem_export)) {
+                $cont++;
+                $secuencia = "";
+                for ($i = 1; $i <= $op_client->num_elem_export; $i++) {
+                    // variable temporal que tendra el texto
+                    $value_field = "";
+                    if (isset($campos_export[$i]) || isset($opciones_fijas[$i])) {
+                        $value_field =  isset($campos_export[$i]) ? $individual[$campos_export[$i]] : $opciones_fijas[$i];
+                        //$text_temp = strlen($value_field);
+                        if ((strlen($value_field) > 100)) {
+                            // echo $value_field;
+                            $value_field = Crypto::decrypt($value_field, $clave);
+                            if (isset($campoC['bin_' . $i])) {
+                                $value_field = substr($value_field, 0, 6);
+                            }
+                            //dd($value_field);
+                        }
+                        if (isset($campos_export[$i])) {
+                            // dd("esta en campos_export");
+                            if (
+                                $campos_export[$i] == 'deduccion_impuesto'  ||
+                                ($campos_export[$i]) == 'subtotal' ||
+                                ($campos_export[$i]) == 'valortotal'
+                            ) {
+                                //dd($campos_export[$i]);
+                                if (str_contains($value_field, ".")) {
+                                    $validateLen = explode('.', $value_field);
+                                    //dd(strlen($validateLen[count($validateLen)-1]));
+                                    if (strlen($validateLen[count($validateLen) - 1]) == 2) {
+                                        $value_field =   str_replace(".", "", $value_field);
+                                    } else {
+                                        $value_field =   str_replace(".", "", $value_field);
+                                        $value_field .= "0";
+                                    }
+                                } else {
+                                    $value_field = $value_field . "00";
+                                }
+                            }
+                            if (isset($campo0['tranF_' . $i])) {
+                                if ($campos_export[$i] == 'tipcta' || $campo0['tranF_' . $i] == 'tipcta') {
+                                    switch ($value_field) {
+                                        case 'AHO':
+                                            $value_field = '03';
+                                            break;
+                                        case 'CTE':
+                                            $value_field = '04';
+                                            break;
+                                        default:
+                                            break;
+                                    }
+                                }
+                            }
+                        }
+                        if (isset($campo0['campo0_' . $i]) || isset($campo0['campo0D_' . $i]) || isset($campo0['campoE_' . $i]) || isset($campo0['campoED_' . $i])) { //iria al final o al comienzo ?    
+                            // METODO 
+                            //  dd("esta en campo0");
+                            $value_field = $this->validate_0_E($value_field, $i);
+                        } else {
+                            if (isset($campoC['insert_date_' . $i])) {
+                                $value_field = str_replace('insert_date_' . $i, strtoupper(date($campoC['insert_date_' . $i])), $value_field);
+                            }
+                        }
+                        $textoPlano .= $value_field;
+                        //echo  $textoPlano;
+                        //dd($value_field);
+                        if (isset($campoC["espacios"])) {
+                            $textoPlano .= $campoC["espacios"];
+                        }
+                    } elseif (isset($campoC['campoC_' . $i])) {
+                        if ($campoC['campoC_' . $i] == "contador_secuencia") {
+                            $secuencia = $cont;
+                        } else {
+                            $secuencia = date($campoC['campoC_' . $i]);
+                        }
+                        if (isset($campo0['campo0_' . $i]) || isset($campo0['campo0D_' . $i]) || isset($campo0['campoE_' . $i]) || isset($campo0['campoED_' . $i])) { //iria al final o al comienzo ?    
+                            $secuencia = $this->validate_0_E($secuencia, $i);
+                        }
+                        $value_field = $secuencia;
+                        $textoPlano .= $value_field;
+                        if (isset($campoC[$i])) {
+                        } elseif (isset($campoC["espacios"])) {
+                            $textoPlano .= $campoC["espacios"];
+                        }
+                    }
+                }
+            } else {
+
+                \Log::error('Falta una configuracion , porfavor acceda a Ea_opciones_carga_cliente.');
+                dd("Falta una configuracion , porfavor acceda a Ea_opciones_carga_cliente");
+            }
+
+
+            $textoPlano .= "\n";
+            //$condicion = true;
+            $row_insert_sets = array();
+            $id_carga = (isset($individual->id_carga) ? $individual->id_carga : 1);
+            $fecha_generacion = (isset($ultima_carga->fecha_generacion) ? $ultima_carga->fecha_generacion : 0);
+            if ($fecha_generacion != date('mY')) {
+                $id_carga = (isset($ultima_carga->id_carga) ? $ultima_carga->id_carga : 0);
+            }
+            $row_insert_sets['id_sec'] = isset($individual->id_sec) ? trim($individual->id_sec) : null; // ok
+            $row_insert_sets['id_carga'] = $id_carga + 1; // ok
+            if (isset($campoC['identificador'])) {
+                if ($campoC['identificador'] == 'secuencia') {
+                    $row_insert_sets['secuencia'] = ltrim($secuencia, '0');
+                } elseif ($campoC['identificador'] == 'cedula_id') {
+                    //cuentas , cedula por defecto
+                    $row_insert_sets['secuencia'] = $individual->cedula_id;
+                } else {
+                    \Log::error('Error Fatal , no esta bien configurado el identificador de forma correcta , porfavor especifique si es el campo cedula_id o es una secuencia');
+                    dd("Error Fatal , no esta bien configurado el identificador de forma correcta , porfavor especifique si es el campo cedula_id o es una secuencia");
+                }
+            } else {
+                $row_insert_sets['secuencia'] = $individual->cedula_id;
+            }
+            $row_insert_sets['fecha_registro'] = date('d/m/Y H:i:s'); //ok
+            $row_insert_sets['subproducto_id'] = $request->producto; //ok
+            $row_insert_sets['cliente'] = $request->cliente; //ok
+            $row_insert_sets['estado'] = "0"; //sing
+            $row_insert_sets['fecha_generacion'] =  date('mY'); //ok
+            array_push($row_insert_detalle, $row_insert_sets);
+            $row_insert_sets = array();
+            if ($valido_sec == $limit_insert) {
+                $valido_sec = 0;
+                $valido_reg_sec = $valido_reg_sec - $limit_insert;
+                $objEXPORT->view_reg_state($row_insert_detalle);
+                $row_insert_detalle = array();
+            } elseif ($valido_sec == $valido_reg_sec) {
+                $objEXPORT->view_reg_state($row_insert_detalle);
+            }
+            $valido_sec++;
+        }
+
+        // debe ir fuera del metodo
+        if (isset($contador_bgr)) {
+            $time = strtotime(date("Y-m-d"));
+            $num2 = 30; // añadir validacion a extraer 
+            $final = date("Y-m-d", strtotime(" -" . $num2 . " day ", $time));
+            $primera_linea .= str_replace("{{date}}", $final, $campoC["frase"]);
+            //dd($textoPlano);
+            $primera_linea .= "     " . $contador_bgr;
+            $primera_linea .= "\n";
+            $primera_linea = $primera_linea . $textoPlano;
+            $textoPlano = $primera_linea;
+        }
+
+        $tiempo_final = microtime(true);
+        \Log::info('tiempo que termina : ' . $tiempo_final);
+        //$textoPlano =  str_replace("{{secuencia}}", $cont,  $textoPlano);
+        $extension_file = ".";
+        if (isset($campoC["extension"])) {
+            $extension_file .= $campoC["extension"];
+        } else {
+            $extension_file .= "txt";
+        }
+        $id_carga = (isset($ultima_carga->id_carga) ? $ultima_carga->id_carga : 0);
+        $fecha_generacion = (isset($ultima_carga->fecha_generacion) ? $ultima_carga->fecha_generacion : 0);
+        $file_reg_carga = array();
+        $file_reg_carga['cod_carga'] = $id_carga;
+        $file_reg_carga['cliente'] = $request->clinte;
+        $file_reg_carga['producto'] = $request->producto;
+        $file_reg_carga['fecha_registro'] = date('d/m/Y H:i:s');
+        $file_reg_carga['fec_carga'] = $fecha_generacion;
+        $file_reg_carga['usuario'] = \Auth::user()->username;
+
+        //$validoacion_par = json_encode($detallevalidacion);
+        $fileName = ($id_carga + 1) . $extension_file;
+        $success = 'se genero exitosamente , se procede a realizar la descarga ';
+        // almacena el texto plano , esto no puede ser dentro del metodo
+        Storage::disk('public')->makeDirectory('generacion_debito/' . $request->cliente . '/' . $request->producto . '/' . date('Y'));
+
+        file_put_contents(public_path('storage/generacion_debito/' . $request->cliente . '/' . $request->producto . '/' . date('Y') . '/' . $fileName), $textoPlano);
+        $file_reg_carga['ruta_gen_debito'] = 'storage/generacion_debito/' . $request->cliente . '/' . $request->producto . '/' . date('Y') . '/' . $fileName;
+        $objEXPORT->registro_cargas($file_reg_carga);
+
+        $resumen = array();
+        $resumen['id_carga'] = $id_carga;
+        $resumen['success'] = $success;
+        $resumen['secuencia'] = $secuencia;
+        $resumen['textoPlano'] = $textoPlano;
+        return $resumen;
+    }
+
+
     public function returnRoute()
     {
         $rutas_debito = EaCabeceraCargaCorp::where('estado', 'PENDIENTE')

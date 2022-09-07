@@ -511,8 +511,9 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
         }
     }
 
-    public function registro_cargas(array $rows, $validoacion_par)
+    public function registro_cargas(array $rows)
     {
+        //$validoacion_par
         try {
 
             EaCabeceraDetalleCarga::create([
@@ -527,9 +528,10 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
                 'usuario_registra' => isset($rows['usuario']) ? trim($rows['usuario']) : null,
                 'estado' => 'PENDIENTE',
                 'is_det_debito' => '1',
-                'opciones_validacion' => $validoacion_par,
+                
                 'ruta_gen_debito' => isset($rows['ruta_gen_debito']) ? trim($rows['ruta_gen_debito']) : null,
             ]);
+            //'opciones_validacion' => $validoacion_par,
         } catch (\Exception $e) {
             // $obj_det_carga_corp->truncate($this->cod_carga, $this->cliente );
             $this->errorTecnico = $e->getMessage();
