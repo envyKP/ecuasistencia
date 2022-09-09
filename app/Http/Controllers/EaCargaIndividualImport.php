@@ -206,6 +206,8 @@ class EaCargaIndividualImport extends Controller
         if (isset($opciones_validacion['formato'])) {
             //bloque para implementar metodos de formato distinto a xls o xlsx
             //opciones_validacion {'formato':'txt'}
+
+            //produbanco, 
             if ('txt' == $opciones_validacion['formato']) {
                 /*
                 metodo de lectura de txt , por espaciado , como se implementaria ? existe limite se puede usar la misma estructura implementada en el collector()
@@ -243,7 +245,7 @@ class EaCargaIndividualImport extends Controller
                     // solo nescesitaria esto en cualquier lectura de archivo
                     // if () isset si no existe , salta y quema algo 
                     //inacceciu
-                    
+
                     // no es posible crear un bucle dentro del mismo while para manejar las validadciones en base 
                     /*
                     for ($i = 0; $i < $opciones_validacion['limite']; $i++) {
@@ -348,8 +350,20 @@ class EaCargaIndividualImport extends Controller
             if (!empty($import->detalle_proceso['errorTecnico'])) {
                 $cabecera_update['estado'] = 'ERROR';
                 $errorTecnico = $import->detalle_proceso['errorTecnico'];
-                $this->update_datos_cab_carga($registroCarga->cliente, $request->cod_carga, $request->producto, $cabecera_update);
-                return response()->json(['success' => $import->detalle_proceso['msg']]);
+                //puedo simplemente invocar la cabezera en caso que cordine o un isset con el campo y un else ok 
+                if (isset($opciones_validacion['union_subproductos'])) {
+
+                    $producto = explode('', $opciones_validacion['union_subproductos']);
+                    foreach ($producto as $prod_id) {
+                        //probar el dato de $prod_id , de esto depende si existe la lectura de varior archivos
+                        $this->update_datos_cab_carga($registroCarga->cliente, $request->cod_carga, $prod_id, $cabecera_update);
+                    }
+                    return response()->json(['success' => $import->detalle_proceso['msg']]);
+                } else {
+
+                    $this->update_datos_cab_carga($registroCarga->cliente, $request->cod_carga, $request->producto, $cabecera_update);
+                    return response()->json(['success' => $import->detalle_proceso['msg']]);
+                }
             } else {
                 try {
                     $cabecera_update['estado'] = 'PROCESADO';

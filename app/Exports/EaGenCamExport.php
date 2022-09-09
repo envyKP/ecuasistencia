@@ -515,7 +515,6 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
     {
         //$validoacion_par
         try {
-
             EaCabeceraDetalleCarga::create([
                 'cod_carga' => isset($rows['cod_carga']) ? $rows['cod_carga'] + 1 : null,
                 'fecha_actualizacion' => isset($row['fecha_actualizacion']) ? $rows['fecha_actualizacion'] : '',
@@ -528,7 +527,6 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
                 'usuario_registra' => isset($rows['usuario']) ? trim($rows['usuario']) : null,
                 'estado' => 'PENDIENTE',
                 'is_det_debito' => '1',
-                
                 'ruta_gen_debito' => isset($rows['ruta_gen_debito']) ? trim($rows['ruta_gen_debito']) : null,
             ]);
             //'opciones_validacion' => $validoacion_par,
