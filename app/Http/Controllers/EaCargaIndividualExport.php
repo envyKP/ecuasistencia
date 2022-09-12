@@ -161,58 +161,94 @@ class EaCargaIndividualExport extends Controller
                 //como puedo manejarla en pares la peticion , otra cosa o traba es al momento de la lectura como puedo manejar la lectura de todo el subproducto?
                 //no deberia tener problema ya que usa una version en base para los pagos
                 //en el export no deberia existir 
-                
-                $objEXPORT = new EaGenCamExport($request->cliente, $this->detalle_subproducto->desc_subproducto, (isset($request->carga_resp) ? strval($request->carga_resp) : null), $request->producto, $this->detalle_subproducto->tipo_subproducto);
+
+
                 // campo o similar todavia no se si usar id que este anidado al campo de EaOpcionesCargaCliente
                 if (!isset($request->carga_resp)) {
-                
-                    
+
+
                     //bloque para posibilitar creacion de archivo plano 
                     $this->op_client = EaOpcionesCargaCliente::where('cliente', $request->cliente)->where('subproducto', $request->producto)->first();
                     $this->opciones_fijas = json_decode($this->op_client->opciones_fijas, true);
                     $this->campos_export = json_decode($this->op_client->campos_export, true);
                     $this->campoC = json_decode($this->op_client->campoc, true);
                     $this->campo0 = json_decode($this->op_client->campo0, true);
-                    $this->ultima_carga = $objEXPORT->is_carga_older();
                     //en este nivel deberia habitar la opcion para los subproductos , por agurpacion o tipo de subproducto
                     $textoPlano = "";
                     $this->cont = 0;
-                    // es nesesaria aki el $opciones_validacion['union_subproductos'] ??? puedo omitirlo y que todo entre dentro del for y dentro lo valido ?
+                    // es nesesaria aki el $op_client['subproducto'] ??? puedo omitirlo y que todo entre dentro del for y dentro lo valido ?
                     // de echo si existe 2 id es hasta nescesario validarlo 
-                    if (isset($opciones_validacion['union_subproductos'])) {
-                        $prod_id = explode(',', $opciones_validacion['union_subproductos']);
+                    if (isset($op_client['subproducto'])) {
+                        $prod_id = explode(',', $op_client['subproducto']);
                         //-- el texto plano inicializa, tal vez?
-
                         foreach ($prod_id as $producto) {
-                            // dentro vendria directamente el proceso que repite los elementos de lo que deja el explodde
-                            // -- averiguar si el explode funciona si no el indicaador para particionar -- 
+
+                            $objEXPORT = new EaGenCamExport($request->cliente, $this->detalle_subproducto->desc_subproducto, (isset($request->carga_resp) ? strval($request->carga_resp) : null), $producto, $this->detalle_subproducto->tipo_subproducto);
                             $generacion_txt = $this->genera_cadena_subproducto($objEXPORT, $request,  $textoPlano);
+                            //$textoPlano = $textoPlano . $generacion_txt['textoPlano'];
+                            $textoPlano = $generacion_txt['textoPlano'];
                         }
                         //-- se arma lo que es el texto plano o se almacena el resultado de texto plano 
                         //$contador_bgr, -- alguna variable que permita entrar en la condicion de bgr o de secuencia,({{secuencia_unida}})
-                        if (isset($secuencia_unida)) {
+                        if (isset($campoC["frase"])) {
+                            // CAMPOS CALCULADOS.
+                            //{{date}} --> fecha actual
+                            //{{date-N}} -->fecha menos N mes
+                            //{{total_recaudado}}--> sumatoria del cobor del valor total en validacion con el campo del mes o date, tiene que tener ese disparador
+                            // en caso de llamar a a json de validacion en base
+                            /*for ($i = 0; $i < strlen($campoC["frase"]); $i++) {
+                            }*/
                             switch ($request->cliente) {
                                 case 'BGR':
-                                    $time = strtotime(date("Y-m-d"));
+                                    // toda esta seccion debe intentar implementarse antes que este metodo interno
+                                    $contador_bgr = 1;
+                                     $time = strtotime(date("Y-m-d"));
                                     $num2 = 30; // añadir validacion a extraer 
                                     $final = date("Y-m-d", strtotime(" -" . $num2 . " day ", $time));
                                     $primera_linea = str_replace("{{date}}", $final, $this->campoC["frase"]);
-                                    $primera_linea .= "     " . $secuencia_unida;
+                                    //$primera_linea .= "     " . $secuencia_unida; // probablemente para una validacion , reemplazado con el foreach, no existe nescesidad 
+                                    // de que exista ya la variable se la deja por la estructura que respresenta dentro de el codigo
                                     $primera_linea .= "\n";
-                                    $primera_linea = $primera_linea . $generacion_txt['textoPlano'];
+                                    $primera_linea = $primera_linea . $textoPlano;
                                     $textoPlano = $primera_linea;
                                     break;
-                                case 'BBOLIVARIANO':
+                                case 'PRODUBANCO':
+                                    if (isset($campoC["fraseF"])) {
+                                    } else {
+                                        //frase = TREC02210000000
+                                        // aki vienen calculos globales. pero como añadir la sumantoria tendria que recorrer todo una vez y luego sumarlo o si tengo el total de registros
+                                        // multiplicarlo por el subtotal total o impuestos y mostrar eso .....
+                                        $aproximado_calculo = $generacion_txt['count_recorrido'] * $this->detalle_subproducto['valortotal'];
+                                        //$cont = 1;
+                                        $textoPlano .= $campoC["frase"] . $cont . " " . $aproximado_calculo . " "; //CALCULO
+                                        $textoPlano .= "\n";
+                                    }
+                                    break;
+                                default:
+                                    $textoPlano .= $campoC["frase"];
+                                    break;
+                            }
+                        }
 
+                        // probablemente para una validacion , reemplazado con el foreach, no existe nescesidad 
+                        // de que exista ya la variable se la deja por la estructura que respresenta dentro de el codigo
+                        /*
+                        if (isset($secuencia_unida)) {
+                            switch ($request->cliente) {
+                                case 'BGR':
+                                   
+                                    break;
+                                case 'BBOLIVARIANO':
                                     break;
                                 case 'PRODUBANCO':
-
                                     break;
                                 default:
                                     dd("no implementado , no deberia haber llegado a esta condicion -9432 ");
                                     break;
                             }
-                        }
+                        }*/ 
+
+
                         $tiempo_final = microtime(true);
                         //\Log::info('tiempo que termina : ' . $tiempo_final);
                         //$textoPlano =  str_replace("{{secuencia}}", $cont,  $textoPlano);
@@ -223,6 +259,9 @@ class EaCargaIndividualExport extends Controller
                             $extension_file .= "txt";
                         }
                         //posible conflicto con this->ultima_carga , posibilidad de manejar esto fuera del bucle 
+                        $this->ultima_carga = $objEXPORT->is_carga_older(); //agarrara el ultimo objExport que genere ,
+                        //puedo usar el producto como un campo tipo id que me maneje las id de la opciones_cabezera entonces el id que se use para lo que es la carga pertenesera a al campo producto
+                        // anidado al campo nuevo de id personalizados dentro de cabezera_detalle
                         $id_carga = (isset($this->ultima_carga->id_carga) ? $this->ultima_carga->id_carga : 0);
                         $fecha_generacion = (isset($this->ultima_carga->fecha_generacion) ? $this->ultima_carga->fecha_generacion : 0);
                         $file_reg_carga = array();
@@ -282,13 +321,11 @@ class EaCargaIndividualExport extends Controller
                                                                     id de subproducto que viene , esto hara que el proceso sea mas lento posiblemente. 
                                     #(el produbanco solo tiene tarjeta) realiza un join a la base activa con el id_secuencia , pero usa el producto tambien con un filtro (where)
                              */
-
                     //bloque para renombrar las variables //
                     // debe ir fuera del metodo
                     //armar el documento 
-
                 } else {
-                    //$objEXPORT = new EaGenCamExport($request->cliente, $detalle_subproducto->desc_subproducto, $varcontrolsecuencia, $request->producto, $detalle_subproducto->tipo_subproducto);
+                    $objEXPORT = new EaGenCamExport($request->cliente, $this->detalle_subproducto->desc_subproducto, (isset($request->carga_resp) ? strval($request->carga_resp) : null), $request->producto, $this->detalle_subproducto->tipo_subproducto);
                     $file_reg_carga = array();
                     $file_reg_carga['cod_carga'] = strval($request->carga_resp);
                     $file_reg_carga['cliente'] = $request->clinte;
@@ -350,36 +387,6 @@ class EaCargaIndividualExport extends Controller
         $valido_sec = 1;
         $valido_total = count($recorrido);
         $valido_reg_sec = $valido_total;
-        if (isset($campoC["frase"])) {
-            // CAMPOS CALCULADOS.
-            //{{date}} --> fecha actual
-            //{{date-N}} -->fecha menos N mes
-            //{{total_recaudado}}--> sumatoria del cobor del valor total en validacion con el campo del mes o date, tiene que tener ese disparador
-            // en caso de llamar a a json de validacion en base
-            /*for ($i = 0; $i < strlen($campoC["frase"]); $i++) {
-            }*/
-            switch ($request->cliente) {
-                case 'BGR':
-                    // toda esta seccion debe intentar implementarse antes que este metodo interno
-                    $contador_bgr = 1;
-                    break;
-                case 'PRODUBANCO':
-                    if (isset($campoC["fraseF"])) {
-                    } else {
-                        //frase = TREC02210000000
-                        // aki vienen calculos globales. pero como añadir la sumantoria tendria que recorrer todo una vez y luego sumarlo o si tengo el total de registros
-                        // multiplicarlo por el subtotal total o impuestos y mostrar eso .....
-                        $aproximado_calculo = count($recorrido) * $detalle_subproducto['valortotal'];
-                        $cont = 1;
-                        $textoPlano .= $campoC["frase"] . $cont . " " . $aproximado_calculo . " "; //CALCULO
-                        $textoPlano .= "\n";
-                    }
-                    break;
-                default:
-                    $textoPlano .= $campoC["frase"];
-                    break;
-            }
-        }
         $limit_insert = 150;
         $row_insert_detalle = array();
         foreach ($recorrido as $individual) {
@@ -534,6 +541,7 @@ class EaCargaIndividualExport extends Controller
         $resumen['textoPlano'] = $textoPlano;
         $resumen['fusion_condicion'] = isset($contador_bgr) ? 'true' : 'false';
         $resumen['secuencia_cont'] = $cont;
+        $resumen['count_recorrido'] = count($recorrido);
         $this->cont = $cont;
 
         return $resumen;

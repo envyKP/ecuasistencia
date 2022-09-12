@@ -2,7 +2,7 @@
 
 use  Illuminate\Support\Facades\Route;
 use  App\Http\Controllers\EausuarioController;
-use  App\Http\Controllers\EaBaDeleteImportController;
+use  App\Http\Controllers\EaCancelacionMasivaController;
 use  App\Http\Controllers\EaClienteController;
 use  App\Http\Controllers\EaBaseActivaController;
 use  App\Http\Controllers\EaProductoController;
@@ -154,11 +154,11 @@ Route::middleware(['auth', 'prevent-back-history', 'isAdmin'])->group(function (
 
 
 Route::middleware(['auth', 'prevent-back-history', 'isAdmin'])->group(function () {
-    Route::get('cargarBA/inicial/index/', [EaBaDeleteImportController::class, 'index'])->name('EaBaDeleteImportController.index');
-    Route::post('cargarBA/inicial/destroy/', [EaBaDeleteImportController::class, 'destroy'])->name('EaBaDeleteImportController.destroy');
-    Route::post('cargarBA/inicial/procesar/', [EaBaDeleteImportController::class, 'procesar'])->name('EaBaDeleteImportController.procesar');
-    Route::post('cargarBA/inicial/subirArchivos/', [EaBaDeleteImportController::class, 'uploadArchivos'])->name('EaBaDeleteImportController.uploadArchivos');
-    Route::post('cargarBA/inicial/borrar/baseActiva/', [EaBaDeleteImportController::class, 'storeBaseActiva'])->name('EaBaDeleteImportController.storeBaseActiva');
+    Route::get('CancelacionMasiva/inicial/index/', [EaCancelacionMasivaController::class, 'index'])->name('EaCancelacionMasivaController.index');
+    Route::post('CancelacionMasiva/inicial/destroy/', [EaCancelacionMasivaController::class, 'destroy'])->name('EaCancelacionMasivaController.destroy');
+    Route::post('CancelacionMasiva/inicial/procesar/', [EaCancelacionMasivaController::class, 'procesar'])->name('EaCancelacionMasivaController.procesar');
+    Route::post('CancelacionMasiva/inicial/subirArchivos/', [EaCancelacionMasivaController::class, 'uploadArchivos'])->name('EaCancelacionMasivaController.uploadArchivos');
+    Route::post('CancelacionMasiva/inicial/borrar/baseActiva/', [EaCancelacionMasivaController::class, 'storeBaseActiva'])->name('EaCancelacionMasivaController.storeBaseActiva');
 });
 
 

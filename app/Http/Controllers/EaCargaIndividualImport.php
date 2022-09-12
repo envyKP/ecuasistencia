@@ -448,8 +448,8 @@ class EaCargaIndividualImport extends Controller
         $row_insert_detalle['cliente'] = $request->cliente;
         $row_insert_detalle['estado'] = "0";
         //dd($objEXPORT->is_carga_older());
-        if (isset(($objEXPORT->is_carga_older()->id_carga))) {
-            if ($varcontrolsecuencia == ($objEXPORT->is_carga_older()->id_carga)) {
+        if (isset(($objEXPORT->is_carga_older($request->cliente,$request->producto)->id_carga))) {
+            if ($varcontrolsecuencia == ($objEXPORT->is_carga_older($request->cliente,$request->producto)->id_carga)) {
                 \Log::warning('se destruyo la carga :' . $row_insert_detalle['id_carga']);
                 $objEXPORT->destroy_cab_detalle($varcontrolsecuencia, $request->cliente, $request->producto);
                 $success = 'Borrado registros de : Id_carga =' . $row_insert_detalle['id_carga'] . ' - cliente -' . $row_insert_detalle['cliente'] . ' - producto  : ' . $detalle_subproducto->desc_subproducto;

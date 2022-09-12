@@ -138,7 +138,7 @@ class EaCabCargaInicialController extends Controller
             $datosCab['usuario_registra'] = $request->usuario_registra;
             $datosCab['fec_registro'] = Date('d/m/Y H:i:s');
             $datosCab['estado'] = 'PENDIENTE';
-
+            dd($datosCab);
             $existe_visible = $this->valida_proceso_visible('carga_inicial');
             !$existe_visible ? $datosCab['visible'] = 'S' : '';
 

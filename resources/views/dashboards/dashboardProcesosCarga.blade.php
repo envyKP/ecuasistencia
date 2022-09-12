@@ -166,7 +166,7 @@
         <div class="col-sm-3 col-md-3">
             <div class="card text-black bg-secondary">
                 <div class="card-body">
-                    <a href="{{ route('EaBaDeleteImportController.index') }}">
+                    <a href="{{ route('EaCancelacionMasivaController.index') }}">
                         <div class="text-muted text-right mb-4">
                             <svg class="c-icon c-icon-2xl">
                                 <use

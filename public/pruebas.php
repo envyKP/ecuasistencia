@@ -6,7 +6,7 @@ require __DIR__ . '/../vendor/autoload.php';
 use Carbon\Carbon;
 
 printf("Now: %s", Carbon::now());
-$date1 = Carbon::createFromFormat('m/d/Y H:i:s', '12/01/2019 10:20:00');
+$date1 = Carbon::createFromFormat('m/d/Y H:i:s', '12/01/2019 00:00:00');
         $date2 = Carbon::createFromFormat('m/d/Y H:i:s', '12/01/2020 10:20:00');
   
         $result = $date1->gt($date2);
@@ -116,3 +116,8 @@ for ($i = 1; $i <= $total; $i++) {
 
 echo date('Y-m-d h i s', '1660838482.5864');
 echo date('Y-m-d h i s', '1660834793.0605');
+
+
+
+
+// pri
