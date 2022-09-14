@@ -3,8 +3,9 @@
 namespace App\Imports;
 
 use App\Models\EaDetalleCargaCorp;
-use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use App\Models\EaOpcionesCargaCliente;
 use Maatwebsite\Excel\Concerns\Importable;
+use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\SkipsErrors;
 use Maatwebsite\Excel\Concerns\WithValidation;
 use Illuminate\Http\Request;
@@ -12,21 +13,34 @@ use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use App\Http\Controllers\EaBaseActivaController;
 use App\Http\Controllers\EaDetalleCargaCorpController;
+use App\Http\Controllers\EaDetalleDebitoController;
+use App\Models\EaDetalleDebito;
+use Defuse\Crypto\Crypto;
+use Defuse\Crypto\Key;
+use Maatwebsite\Excel\Concerns\WithStartRow;
 
-
-class EaDetCargaCorpImport implements ToCollection, WithHeadingRow, WithValidation
+class EaCancelacionMasivaImport implements ToCollection, WithValidation, WithHeadingRow, WithStartRow
 {
-
     use Importable, SkipsErrors;
+
+    /**
+     * @return int
+     */
+    public function startRow(): int
+    {
+        return 2;
+    }
+
+
     /**
      * @param array $row
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Database\Eloquent\Model|null
      */
-
-
     public function collection(Collection $rows)
     {
+
+        \Log::info('inside colleccion IMPORT class EaGemCamImport');
         $obj_base_activa = (new EaBaseActivaController);
         $obj_det_carga_corp = (new EaDetalleCargaCorpController);
         $registros_duplicados = array();
@@ -40,7 +54,10 @@ class EaDetCargaCorpImport implements ToCollection, WithHeadingRow, WithValidati
                 if (isset($existe)) {
                     $disponible_gestion = 'S';
                     $this->total_registros_disponibles_gestion++;
+                    //esto es en la version de la tabla temporal 
                     $reg_duplicado = $obj_det_carga_corp->existe_registro($this->cod_carga, $this->cliente, $row['cedula']);
+                    // en caso de existir eliminar
+
                     if (!$reg_duplicado) {
                         # code...
                         try {
@@ -70,6 +87,7 @@ class EaDetCargaCorpImport implements ToCollection, WithHeadingRow, WithValidati
                             $this->errorTecnico = $e->getMessage();
                         }
                     } else {
+                        
                         $this->total_registros_duplicados++;
                     }
                 } else {
@@ -117,7 +135,6 @@ class EaDetCargaCorpImport implements ToCollection, WithHeadingRow, WithValidati
             '*.0' => ['ordinal', 'unique:ea_detalle_carga_corp,ordinal']
         ];
     }
-
 
     public function __construct(int $cod_carga, string $cliente, string $producto)
     {

@@ -52,14 +52,14 @@
         <div class="card">
             <!-- <div class="card-header"><strong>Credit Card</strong> <small>Form</small></div> -->
             <div class="card-body">
-                <form action="{{ route('EaCabCargaInicialController.uploadArchivos') }}" method="post"
+                <form action="{{ route('EaCancelacionMasivaController.uploadArchivos') }}" method="post"
                     enctype="multipart/form-data" accept-charset="utf-8">
                     @csrf
                     <div class="row">
                         <input type="hidden" name="usuario_registra" value="{{ Auth::user()->username }}">
                         <div class="col-sm-3 col-md-3">
                             <div class="form-group">
-                                <input class="form-control pt-1" id="archivo" type="file" name="archivo" required>
+                                <input class="form-control pt-1" id="archivo" type="file" name="archivo" >
                                 <!-- <span class="help-block">{{ 'Archivo debe ser de extensión .xlsx' }}</span> -->
                             </div>
                         </div>
@@ -69,14 +69,14 @@
                                     <span class="input-group-text form-control">
                                         <!-- form-control: ajusta el span(sombreado) al texto y al check-->
                                         <label class="c-switch c-switch-label c-switch-success mt-2">
-                                            <input class="c-switch-input" required type="checkbox" name="filtro_cliente"
+                                            <input class="c-switch-input"  type="checkbox" name="filtro_cliente"
                                                 id="filtro_cliente" value="cliente"><span class="c-switch-slider"
                                                 data-checked="On" data-unchecked="Off"></span>
                                         </label>
                                         <strong class="ml-1"> {{ 'Por cliente: ' }} </strong>
                                     </span>
                                 </div>
-                                <select class="form-control" name="cliente" id="cliente" required
+                                <select class="form-control" name="cliente" id="cliente" 
                                     style="display:none">
                                     <option value="" selected>{{ 'Seleccione un cliente' }}</option>
                                     @foreach ($clientes as $cliente)

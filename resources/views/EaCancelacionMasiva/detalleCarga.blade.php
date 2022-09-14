@@ -14,7 +14,7 @@
                     <div class="row col">
                         <div class="form-group">
                             <form id="form-EnviarBaseActiva"
-                                action="{{ route('EaCabCargaInicialController.storeBaseActiva') }}" method="post">
+                                action="{{ route('EaCancelacionMasivaController.borrarEnBaseActiva') }}" method="post">
                                 @csrf
                                 <input type="hidden" name="cod_carga" value="{{ $data->cod_carga }}">
                                 <button class="btn btn-success" type="submit" title="Enviar carga a la base Activa">

@@ -25,6 +25,7 @@ use  App\Http\Controllers\EaUtilController;
 use  App\Http\Controllers\EaCargaIndividualExport;
 use  App\Http\Controllers\EaCargaIndividualImport;
 use  App\Http\Controllers\EaDetalleDebitoController;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -158,7 +159,7 @@ Route::middleware(['auth', 'prevent-back-history', 'isAdmin'])->group(function (
     Route::post('CancelacionMasiva/inicial/destroy/', [EaCancelacionMasivaController::class, 'destroy'])->name('EaCancelacionMasivaController.destroy');
     Route::post('CancelacionMasiva/inicial/procesar/', [EaCancelacionMasivaController::class, 'procesar'])->name('EaCancelacionMasivaController.procesar');
     Route::post('CancelacionMasiva/inicial/subirArchivos/', [EaCancelacionMasivaController::class, 'uploadArchivos'])->name('EaCancelacionMasivaController.uploadArchivos');
-    Route::post('CancelacionMasiva/inicial/borrar/baseActiva/', [EaCancelacionMasivaController::class, 'storeBaseActiva'])->name('EaCancelacionMasivaController.storeBaseActiva');
+    Route::post('CancelacionMasiva/inicial/borrar/baseActiva/', [EaCancelacionMasivaController::class, 'borrarEnBaseActiva'])->name('EaCancelacionMasivaController.borrarEnBaseActiva');
 });
 
 
@@ -194,8 +195,6 @@ Route::middleware(['auth', 'prevent-back-history', 'isAdmin'])->group(function (
     Route::post('recepcion/archivo/cargaIndividual/procesar/', [EaCargaIndividualImport::class, 'procesar'])->name('EaCargaIndividualImport.procesar');
     //////////////////////////////////////////////////////
     Route::get('getDetalleDebitoOpciones/', [EaDetalleDebitoController::class, 'getDetalleDebitoOpciones'])->name('EaDetalleDebitoController.getDetalleDebitoOpciones');
-
-
 });
 
 

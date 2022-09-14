@@ -9,7 +9,7 @@ use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
-
+//kpe , buscar en la base importada si existe algo como esto 
 class EaFactSegurViajeImport implements ToCollection
 {
 
@@ -62,8 +62,6 @@ class EaFactSegurViajeImport implements ToCollection
                 'Obli_llevar_contab' => "SI",
                 'Precio_Unitario2' =>  $row[ ${'Precio Unitario'}],
                 'Nombre_SGVIA2' =>  $row[ ${'Nombre Producto'}],
-
-
             ]);
         }
 
