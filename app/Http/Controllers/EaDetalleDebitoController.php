@@ -18,7 +18,28 @@ class EaDetalleDebitoController extends Controller
     {
         //
     }
-
+    //KPE metodo para limpiar tabla temporal
+    public function clear_temp($token)
+    {
+        //cambios KPE
+        if (isset($token)) {
+            if($token==='todos'){
+                /// ejecutar comando para realizar la limpieza de datos, posiblemente usar este metodo tambien 
+            
+                echo 'procegir a realizar la limpieza';
+            
+            
+            }else{
+                echo 'servicio denegado ';
+            
+            }
+            
+            
+            dd($token);
+            echo 'dentro de condicion ';
+        }
+        echo 'final ';
+    }
     /**
      * Store a newly created resource in storage.
      *
@@ -80,12 +101,12 @@ class EaDetalleDebitoController extends Controller
     }
     public function getDetalleDebitoOpciones(Request  $request)
     {
-// 2 tipos de validaciones uno con fecha y otro con esto puedo usar la misma opcion de for,
-// pero el espacio debe ser limitado , no puedo 
-//
-// parametro de consulta (campo nuevo . modifica lka base de datos)
-// el campo existente tambien modifica la base de datos.
-// el campo existente extrae el campo a modificar , y añade la opcion de crear un combo de hasta 4 elementos o items
+        // 2 tipos de validaciones uno con fecha y otro con esto puedo usar la misma opcion de for,
+        // pero el espacio debe ser limitado , no puedo 
+        //
+        // parametro de consulta (campo nuevo . modifica lka base de datos)
+        // el campo existente tambien modifica la base de datos.
+        // el campo existente extrae el campo a modificar , y añade la opcion de crear un combo de hasta 4 elementos o items
         //getDetalleDebitoOpciones
         $html = '<option value="" selected>Seleccione una opcion</option>';
         $subproductos = EaOpcionesCargaCliente::where('cliente', $request->cliente)->where('subproducto', $request->producto)
@@ -94,11 +115,11 @@ class EaDetalleDebitoController extends Controller
         /* for ($i=0; $i < 4; $i++) { 
                     $campo_opciones['campo_']
                 }*/
-                $cont=1;
+        $cont = 1;
         foreach ($campo_opciones as $op) {
             if (isset($campo_opciones[''])) {
                 //$base_op['var_val_' . $k]
-                $html .= '<option value="' . $campo_opciones['var_val_' .$cont ] . '">' .  $campo_opciones['var_val_' .$cont ] . '</option>';
+                $html .= '<option value="' . $campo_opciones['var_val_' . $cont] . '">' .  $campo_opciones['var_val_' . $cont] . '</option>';
             }
             $cont++;
         }

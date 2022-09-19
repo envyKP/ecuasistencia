@@ -69,7 +69,7 @@
                                     <span class="input-group-text form-control">
                                         <!-- form-control: ajusta el span(sombreado) al texto y al check-->
                                         <label class="c-switch c-switch-label c-switch-success mt-2">
-                                            <input class="c-switch-input"  type="checkbox" name="filtro_cliente"
+                                            <input class="c-switch-input" required type="checkbox" name="filtro_cliente"
                                                 id="filtro_cliente" value="cliente"><span class="c-switch-slider"
                                                 data-checked="On" data-unchecked="Off"></span>
                                         </label>
@@ -77,7 +77,7 @@
                                     </span>
                                 </div>
                                 <select class="form-control" name="cliente" id="cliente" 
-                                    style="display:none">
+                                required style="display:none" >
                                     <option value="" selected>{{ 'Seleccione un cliente' }}</option>
                                     @foreach ($clientes as $cliente)
                                         <option value="{{ $cliente->cliente }}">{{ $cliente->desc_cliente }}</option>

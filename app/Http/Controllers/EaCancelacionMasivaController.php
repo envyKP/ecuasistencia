@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\EaCabeceraCargaCorp;
 use App\Models\EaBaseActiva;
 use Illuminate\Http\Request;
-use App\Imports\EaDetCargaCorpImport;
+use App\Imports\EaCancelacionMasivaImport;
 use App\Models\EaDetalleCargaCorp;
 use App\Exports\EaReporteCargaInicialExport;
 use App\Models\EaCabeceraDetalleCarga;
@@ -97,6 +97,16 @@ class EaCancelacionMasivaController extends Controller
     {
         $fecha = Date('Ymd');
         $obj_base_activa = (new EaBaseActivaController);
+        // añadir el campo observacion aki o directamente en el request
+        // -> se añadio en el request
+
+        if (!isset($request->observaciones)) {
+            return redirect()->route('EaCancelacionMasivaController.index')->with(['success' => 'No existe Motivo de cancelacion']);
+         //   echo 'pruebas de isset 1 ' . $request->observaciones;
+        }
+
+       // echo 'pruebas de isset 2 ' . $request->observaciones;
+        //dd($request);
         $cabecera = EaCabeceraCargaCorp::where('cod_carga', $request->cod_carga)->first();
         $registro = array();
         $registro['filein_banco_info'] = explode('/', substr($cabecera->archivo, stripos($cabecera->archivo, $cabecera->cliente)))[1];
@@ -128,10 +138,8 @@ class EaCancelacionMasivaController extends Controller
             // reunir todo y borrar 
             $registro['cedula_id'] = trim($cancelacion_masiva->cedula_id);
             //en este punto 
-
             //bloque comentado posiblemente innceseario
-            /*
-            $registro['cliente'] = $cancelacion_masiva->cliente;
+            /*$registro['cliente'] = $cancelacion_masiva->cliente;
             $registro['nombre'] = $cancelacion_masiva->nombre_completo;
             $registro['tipide'] = 'C';
             $registro['dettipide'] = 'CEDULA';
@@ -145,33 +153,25 @@ class EaCancelacionMasivaController extends Controller
             } else if (!empty($cancelacion_masiva->tipo_de_tarjeta) &&  strtolower(trim($cancelacion_masiva->tipo_de_tarjeta)) === 'adicional') {
                 $registro['tiptar'] = 'A';
                 $registro['dettiptar'] =  strtoupper($cancelacion_masiva->tipo_de_tarjeta);
-            }
-            */
-
+            }*/
             //borrar en base activa 
             /**
              * puedo usar la cedula_id , y datos de cliente y producto
              * puedo usar la cedula_id , y solo eso 
              */
-
             $this->borrarRegistroBaseActiva($registro);
-            /*
-            public function storeArchivo($data)
+            /*public function storeArchivo($data)
             {
                 $id_sec = EaBaseActiva::max('id_sec');
-        
                 if (isset($id_sec) && $id_sec !== 1) {
                     $id_sec++;
                 } else {
                     $id_sec = 1;
                 }
-        
                 $data['id_sec'] = $id_sec;
                 $data['fecha_reg']  = Date('d/m/Y H:i:s');
-        
                 EaBaseActiva::insert($data);
-            }
-            */
+            }*/
         }
         $cambio_estado = EaDetalleCargaCorp::where('cod_carga', $request->cod_carga)
             ->where('estado', 'PROCESADO')
@@ -197,18 +197,24 @@ class EaCancelacionMasivaController extends Controller
         //contrato_AMA, tiene nombre producto en cabezera , esto se esta usando 
         // como esta en la cabezera debo cambiar la condicion de el producto  , puede existir un registro sin clienten
         // en este caso si por que lo que se quiere eliminar es el registro de todos lados 
-        if ($condicion2 === 'cedula_id' && $condicion1 === 'cedula_id') {
-            
-            
+
+        //->update(['detresp' => 'cancelado', 'detestado' => 'cancelado', 'codestado' => 'C']);"fec_carga" => $datos_carga->fec_carga,
+
+        /*if ($condicion2 === 'cedula_id' && $condicion1 === 'cedula_id') {
             EaBaseActiva::where('cedula_id', $data['cedula_id'])->delete();;
-        } elseif ($condicion2 === 'cliente') {
-            
-            
+        } else
+        */
+        $observaciones = isset($data['observaciones']) ? $data['observaciones'] : 'Utilizo cancelacion masiva, No observacion';
+        if ($condicion2 === 'cliente') {
             if ($condicion1 === 'producto') {
-                EaBaseActiva::where('cedula_id', $data['cedula_id'])->where('cliente', $data['cliente'])->where('producto', $data['producto'])->delete();
+                EaBaseActiva::where('cedula_id', $data['cedula_id'])->where('cliente', $data['cliente'])->where('producto', $data['producto'])
+                    ->update(['detresp' => 'cancelado', 'detestado' => 'cancelado', 'codestado' => 'C', 'observaciones' => $observaciones]);
             } else {
-                EaBaseActiva::where('cedula_id', $data['cedula_id'])->where('cliente', $data['cliente'])->delete();
+                EaBaseActiva::where('cedula_id', $data['cedula_id'])->where('cliente', $data['cliente'])
+                    ->update(['detresp' => 'cancelado', 'detestado' => 'cancelado', 'codestado' => 'C', 'observaciones' => $observaciones]);
             }
+        } else {
+            $this->registroNoBorrado++;
         }
     }
 
@@ -260,7 +266,7 @@ class EaCancelacionMasivaController extends Controller
 
         //Excel::import(new EaDetCargaCorpImport($cod_carga), $registroCarga->archivo, 'public');
 
-        $import = (new EaDetCargaCorpImport($request->cod_carga, $registroCarga->cliente, $registroCarga->producto));
+        $import = (new EaCancelacionMasivaImport($request->cod_carga, $registroCarga->cliente, $registroCarga->producto));
         $import->import($registroCarga->archivo, 'public');
         if (!empty($import->detalle_proceso['errorTecnico'])) {
             $cabecera_update['estado'] = 'ERROR';

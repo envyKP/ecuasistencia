@@ -53,6 +53,7 @@ use  App\Http\Controllers\EaDetalleDebitoController;
 //route::get('getEstadoCliente', [EaCamposBaController::class, 'get_data_estado_Cliente']);
 
 Route::get('encryptBase/', [EaUtilController::class, 'encryptBaseActiva']);
+Route::get('clear_temp/{token}', [EaDetalleDebitoController::class, 'clear_temp']);
 
 /*########################################################################################################################*/
 //                                                      vistas

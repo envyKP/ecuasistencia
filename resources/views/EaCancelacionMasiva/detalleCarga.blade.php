@@ -10,28 +10,7 @@
             </div>
             <div class="modal-body">
                 <strong>{{ 'Detalle del archivo procesado' }}</strong>
-                @if ($estado_cabecera == 'PROCESADO')
-                    <div class="row col">
-                        <div class="form-group">
-                            <form id="form-EnviarBaseActiva"
-                                action="{{ route('EaCancelacionMasivaController.borrarEnBaseActiva') }}" method="post">
-                                @csrf
-                                <input type="hidden" name="cod_carga" value="{{ $data->cod_carga }}">
-                                <button class="btn btn-success" type="submit" title="Enviar carga a la base Activa">
-                                    <svg class="c-icon c-icon-1xl mr-2">
-                                        <use
-                                            xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-cursor') }} ">
-                                        </use>
-                                    </svg> {{ 'Enviar data a base activa' }}
-                                </button>
-                            </form>
-                        </div>
-                        <div class="col-sm-12 form-group" id="processCargarBaseActiva" style="display:none">
-                            <strong>{{ 'Procesando...' }}</strong>
-                            <progress class="col-sm-12" max="100">100%</progress>
-                        </div>
-                    </div>
-                @endif
+
                 <table class="table table-responsive-sm table-hover table-outline">
                     <thead class="thead-light">
                         <tr>
@@ -92,22 +71,47 @@
             </div>
             <div class="modal-footer">
                 @if ($estado_cabecera == 'PROCESADO')
-                    <div class="col-sm-2 col-md-2">
-                        <form action="{{ route('EaCabCargaInicialController.exportar_reporte') }}" method="post">
-                            @csrf
-                            @method('post')
-                            <input type="hidden" name="cod_carga" value="{{ $data->cod_carga }}">
-                            <input type="hidden" name="proceso" value="{{ $data->proceso }}">
-                            <button class="btn btn-success" id="btn-generar_reporte" title="Subir Archivo"
-                                type="submit">
-                                <svg class="c-icon c-icon-1xl">
-                                    <use
-                                        xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-cloud-download') }} ">
-                                    </use>
-                                </svg> {{ 'Descargar reporte' }}
-                            </button>
-                        </form>
-                    </div>
+                    <table class="table table-responsive-sm table-hover table-outline">
+
+                        <div class="row col">
+
+                            <div class="form-group">
+                                <form id="form-EnviarBaseActiva"
+                                    action="{{ route('EaCancelacionMasivaController.borrarEnBaseActiva') }}"
+                                    method="post">
+                                    @csrf
+                                    <td>
+                                        <input type="hidden" name="cod_carga" value="{{ $data->cod_carga }}">
+                                    </td>
+                                    <td>
+                                        <strong class="col-sm-2 col-md-2">{{ 'Motivo de cancelacion: ' }}</strong>
+                                    </td>
+
+                                    <td>
+                                        <textarea class="col-sm-2 col-md-12" id="observaciones" name="observaciones" maxlength="500" required></textarea>
+                                        <!--<textarea class="col-sm-2 col-md-12" id="obsercaciones" name="obsercaciones" maxlength="600"></textarea> tambien aplicable , con el limite maximo de caracteres-->
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-success" type="submit" title=" base Activa">
+                                            <svg class="c-icon c-icon-1xl mr-2">
+                                                <use
+                                                    xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-cursor') }} ">
+                                                </use>
+                                            </svg> {{ 'Cancelar registros en base activa' }}
+                                        </button>
+                                    </td>
+
+
+
+                                </form>
+                            </div>
+                            <div class="col-sm-12 form-group" id="processCargarBaseActiva" style="display:none">
+                                <strong>{{ 'Procesando...' }}</strong>
+                                <progress class="col-sm-12" max="100">100%</progress>
+                            </div>
+                        </div>
+
+                    </table>
                 @endif
                 <button class="btn btn-info" type="button" data-dismiss="modal">{{ 'Salir' }}</button>
             </div>

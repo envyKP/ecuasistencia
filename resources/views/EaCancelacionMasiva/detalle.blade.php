@@ -100,7 +100,6 @@
                                         </button>
                                     </form>
                                 @endif
-
                                 <button class="btn btn-danger mx-1" title="Eliminar Carga" type="button"
                                     data-toggle="modal" data-target="{{ '#eliminar' . $registro->cod_carga }}">
                                     <svg class="c-icon c-icon-1xl">

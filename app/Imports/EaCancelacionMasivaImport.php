@@ -47,7 +47,7 @@ class EaCancelacionMasivaImport implements ToCollection, WithValidation, WithHea
         $registros_archivos = array();
         foreach ($rows as $row) {
             !empty($row['nombre_completo']) ? $this->total_registros_archivo++ : '';
-            if (!empty($row['nombre_completo']) && !empty($row['cedula']) && (!empty($row['telf1']) || !empty($row['telf2']) || !empty($row['telf3']) || !empty($row['telf4']) || !empty($row['telf5']) || !empty($row['telf6']) || !empty($row['telf7']))) {
+            if (!empty($row['nombre_completo']) && !empty($row['cedula']) ) {
                 $registros_archivos['cedula'] = $row['cedula'];
                 array_push($registros_duplicados,  $registros_archivos);
                 $existe =  $obj_base_activa->valida_resgistro_base_activa($this->cliente, $row['cedula'], $this->producto);
@@ -57,9 +57,7 @@ class EaCancelacionMasivaImport implements ToCollection, WithValidation, WithHea
                     //esto es en la version de la tabla temporal 
                     $reg_duplicado = $obj_det_carga_corp->existe_registro($this->cod_carga, $this->cliente, $row['cedula']);
                     // en caso de existir eliminar
-
                     if (!$reg_duplicado) {
-                        # code...
                         try {
                             EaDetalleCargaCorp::create([
                                 'cod_carga' => isset($this->cod_carga)  ? $this->cod_carga : '',

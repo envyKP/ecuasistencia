@@ -32,7 +32,7 @@ class EaCabCargaInicialController extends Controller
 
         $clientes =  (new EaClienteController)->getAllCampanas();
         $resumen_cabecera = EaCabeceraCargaCorp::orderBy('cod_carga')
-        ->where('proceso', 'cancelacion_masiva')
+        ->where('proceso', 'carga_inicial')
             ->paginate(5);
 
         return view('cargaInicial.home')->with(compact('clientes'))

@@ -107,6 +107,7 @@ class EaDetCargaCorpImport implements ToCollection, WithHeadingRow, WithValidati
         $this->detalle_proceso['total_registros_sin_infor'] = $this->total_registros_sin_infor;
         // correcciones para SGV , aumentar un campo que inserte los valores que retorna esta colleccion, o en su defecto donde llama validar
         // que se este realizando el insert 
+
         return $this->detalle_proceso;
     }
 
