@@ -23,5 +23,6 @@ class EaOpcionesCargaCliente extends Model
         'campos_import',
         'campoc',
         'campo0',
+        'op_caracteristica_ba',
     ];
 }

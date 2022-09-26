@@ -34,21 +34,20 @@
             
             $("#cliente").change(function() {
                 $.ajax({
-                    url: "{{ route('EaSubproductoController.getSubproductoNoAMA') }}?cliente=" +
+                    url: "{{route('EaDetalleDebitoController.getMenuSubproductoOpciones')  }}?cliente=" +
                         $(this).val(),
                     method: "get",
                     success: function(data) {
                         $("#producto").html(data.htmlProducto);
-                        $("#opciones_data").html(data.htmlProducto);
+                        //$("#opciones_data").html(data.htmlProducto);
                     }
                 });
             });
             
            
-
             $("#producto").change(function() {
                 $.ajax({
-                    url: "{{ route('EaDetalleDebitoController.getDetalleDebitoOpciones') }}?subproducto=" +
+                    url: "{{ route('EaDetalleDebitoController.getDetalleDebitoOpciones') }}?producto=" +
                         $(this).val(),
                     method: "get",
                     success: function(data) {
@@ -56,10 +55,8 @@
                     }
                 });
             });
-
-
+            
             $("#btn_genera").change(function() {
-
                 $.ajax({
                     success: function(data) {
                         alert("okay");

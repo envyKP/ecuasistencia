@@ -113,6 +113,44 @@
 
                     </table>
                 @endif
+
+                @if ($estado_cabecera == 'CANCELACION')
+                    <table class="table table-responsive-sm table-hover table-outline">
+                        <thead class="thead-light">
+                            <tr>
+                                <th class="text-center">{{ 'Total de registros no procesados' }}</th>
+
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (isset($data))
+                                <tr>
+                                    <td>{{ $data->total_registros_gestionados_otras_campanas }}</td>
+                                </tr>
+                            @endif
+                        </tbody>
+                    </table>
+
+
+                    <div class="col-sm-2 col-md-2">
+                        <form action="{{ route('EaCancelacionMasivaController.exportar_reporte') }}" method="post">
+                            @csrf
+                            @method('post')
+                            <input type="hidden" name="cod_carga" value="{{ $data->cod_carga }}">
+                            <input type="hidden" name="proceso" value="{{ $data->proceso }}">
+                            <button class="btn btn-success" id="btn-generar_reporte" title="Subir Archivo"
+                                type="submit">
+                                <svg class="c-icon c-icon-1xl">
+                                    <use
+                                        xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-cloud-download') }} ">
+                                    </use>
+                                </svg> {{ 'Descargar reporte' }}
+                            </button>
+                        </form>
+                    </div>
+                @endif
+
+
                 <button class="btn btn-info" type="button" data-dismiss="modal">{{ 'Salir' }}</button>
             </div>
         </div>

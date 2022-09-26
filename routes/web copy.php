@@ -13,6 +13,7 @@ use  App\Http\Controllers\EaCamposBaController;
 use  App\Http\Controllers\EaMigracionBaseActivaController;
 use  App\Http\Controllers\EaMotivoDesactivacionController;
 use  App\Http\Controllers\EaCabCargaInicialController;
+use  App\Http\Controllers\EaCancelacionMasivaController;
 use  App\Http\Controllers\EaProcesoController;
 use  App\Http\Controllers\EaGenArchiProveTmkController;
 use  App\Http\Controllers\EaRecepArchiProveTmkController;

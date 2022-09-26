@@ -136,7 +136,7 @@
                                     </div>
                                     <select class="form-control" name="opciones_data" id="opciones_data"
                                         style="display:block">
-                                        <option value="" selected>{{ 'Seleccione Opcion adicional' }}</option>
+                                        <option value="" selected>{{ 'Seleccione Opcional' }}</option>
                                     </select>
                                 </div>
                             </div>

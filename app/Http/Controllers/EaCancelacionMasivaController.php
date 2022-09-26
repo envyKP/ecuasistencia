@@ -7,8 +7,9 @@ use App\Models\EaBaseActiva;
 use Illuminate\Http\Request;
 use App\Imports\EaCancelacionMasivaImport;
 use App\Models\EaDetalleCargaCorp;
-use App\Exports\EaReporteCargaInicialExport;
+use App\Exports\EaReporteCancelacionMasiva;
 use App\Models\EaCabeceraDetalleCarga;
+use Maatwebsite\Excel\Facades\Excel;
 
 class EaCancelacionMasivaController extends Controller
 {
@@ -41,9 +42,6 @@ class EaCancelacionMasivaController extends Controller
         //$proceso_valor = isset($datosCab['cancelacion_masiva']) ?  'cancelacion_masiva' : 'carga_inicial';
         $proceso_valor = 'cancelacion_masiva';
         //$fecha = Date('Ymd');
-
-
-
         $extension = $request->file('archivo')->extension();
         if (strtolower($extension) == 'xls' || strtolower($extension) == 'xlsx') {
             if (isset($request->cliente) && $request->cliente != null) {
@@ -64,14 +62,12 @@ class EaCancelacionMasivaController extends Controller
                 $datosCab['producto'] = 'TODO';
                 $datosCab['desc_producto'] = 'TODO';
             }
-
             $datosCab['cod_carga'] = (new EaCabCargaInicialBitacoraController)->get_max_cod_carga_bita();
             $datosCab['proceso'] = $proceso_valor;
             $datosCab['usuario_registra'] = $request->usuario_registra;
             $datosCab['fec_registro'] = Date('d/m/Y H:i:s');
             $datosCab['estado'] = 'PENDIENTE';
             $datosCab['visible'] = '';
-
             if ($request->hasfile('archivo')) {
                 $nombre_archivo = $request->file('archivo')->getClientOriginalName();
                 //$nombre_archivo = "BASE_COLOCACION_".$request->cliente.'_'.$fecha.'.xlsx';
@@ -95,17 +91,16 @@ class EaCancelacionMasivaController extends Controller
     //borrar : storeBaseActiva
     public function borrarEnBaseActiva(Request $request)
     {
+        $this->contador_interrupcion = 0;
         $fecha = Date('Ymd');
         $obj_base_activa = (new EaBaseActivaController);
         // añadir el campo observacion aki o directamente en el request
         // -> se añadio en el request
-
         if (!isset($request->observaciones)) {
             return redirect()->route('EaCancelacionMasivaController.index')->with(['success' => 'No existe Motivo de cancelacion']);
-         //   echo 'pruebas de isset 1 ' . $request->observaciones;
+            //   echo 'pruebas de isset 1 ' . $request->observaciones;
         }
-
-       // echo 'pruebas de isset 2 ' . $request->observaciones;
+        // echo 'pruebas de isset 2 ' . $request->observaciones;
         //dd($request);
         $cabecera = EaCabeceraCargaCorp::where('cod_carga', $request->cod_carga)->first();
         $registro = array();
@@ -113,8 +108,8 @@ class EaCancelacionMasivaController extends Controller
         $registro['usuario_reg'] = \Auth::user()->username;
         $registro['fec_carga'] = $fecha;
         $registro['cod_carga_corp'] = $cabecera->cod_carga;
-
-        if (($cabecera->cliente) == 'TODO') {
+        if (!empty($cabecera->cliente)) {
+            $registro['cliente'] = $cabecera->cliente;
         } elseif (!empty($cabecera->producto)) {
             $productoDet = (new EaProductoController)->getProductoDetalle($cabecera->cliente, $cabecera->producto);
             $registro['producto'] = $productoDet->contrato_ama;
@@ -128,94 +123,75 @@ class EaCancelacionMasivaController extends Controller
         $data = EaDetalleCargaCorp::where('cod_carga', $request->cod_carga)
             ->where('estado', 'PROCESADO')
             ->get();
-        // si pero no aki deberia ir el metodo para eliminar de la BASE ACTIVA
         foreach ($data as $cancelacion_masiva) {
-            //dd($data);
-            // solo nescesitaria la id_sec , 
-            // existe una consulta en la tabla temporal pero es nesesario realizar una tambien en la tabla de la base activa 
-            // esto puede demorar , no es un insert por lo que tiene que buscarlo en base
-            // pero existe un ID_SEC , lo que practicamente seria buscar el dato y extraer el ID_SEc
-            // reunir todo y borrar 
             $registro['cedula_id'] = trim($cancelacion_masiva->cedula_id);
-            //en este punto 
-            //bloque comentado posiblemente innceseario
-            /*$registro['cliente'] = $cancelacion_masiva->cliente;
-            $registro['nombre'] = $cancelacion_masiva->nombre_completo;
-            $registro['tipide'] = 'C';
-            $registro['dettipide'] = 'CEDULA';
-            $registro['cedula_id'] = trim($cancelacion_masiva->cedula_id);
-            $registro['genero'] = $cancelacion_masiva->genero;
-            $registro['mail'] = $cancelacion_masiva->email;
-            $registro['estado_proceso'] = 1;
-            if (!empty($cancelacion_masiva->tipo_de_tarjeta) &&  strtolower(trim($cancelacion_masiva->tipo_de_tarjeta)) === 'principal') {
-                $registro['tiptar'] = 'P';
-                $registro['dettiptar'] = strtoupper($cancelacion_masiva->tipo_de_tarjeta);
-            } else if (!empty($cancelacion_masiva->tipo_de_tarjeta) &&  strtolower(trim($cancelacion_masiva->tipo_de_tarjeta)) === 'adicional') {
-                $registro['tiptar'] = 'A';
-                $registro['dettiptar'] =  strtoupper($cancelacion_masiva->tipo_de_tarjeta);
-            }*/
-            //borrar en base activa 
-            /**
-             * puedo usar la cedula_id , y datos de cliente y producto
-             * puedo usar la cedula_id , y solo eso 
-             */
-            $this->borrarRegistroBaseActiva($registro);
-            /*public function storeArchivo($data)
-            {
-                $id_sec = EaBaseActiva::max('id_sec');
-                if (isset($id_sec) && $id_sec !== 1) {
-                    $id_sec++;
-                } else {
-                    $id_sec = 1;
-                }
-                $data['id_sec'] = $id_sec;
-                $data['fecha_reg']  = Date('d/m/Y H:i:s');
-                EaBaseActiva::insert($data);
-            }*/
+            $this->borrarRegistroBaseActiva($registro, $request['observaciones']);
         }
+        // mientras 1 registro si exista disponible para el cambio de gestion , no cambia de estado
         $cambio_estado = EaDetalleCargaCorp::where('cod_carga', $request->cod_carga)
-            ->where('estado', 'PROCESADO')
+            ->where('estado', 'CANCELACION')
             ->where('disponible_gestion', 'S')
             ->exists();
         if ($cambio_estado) {
-            EaDetalleCargaCorp::where('cod_carga', $request->cod_carga)
-                ->where('estado', 'PROCESADO')
-                ->update(['estado' => 'BORRADO', 'fec_carga' => $fecha]);
             EaCabeceraCargaCorp::where('proceso', 'cancelacion_masiva')
                 ->where('cod_carga', $request->cod_carga)
-                ->update(['estado' => 'BORRADO', 'fec_carga' => $fecha]);
+                ->update(['estado' => 'CANCELACION', 'fec_carga' => $fecha, 'total_registros_gestionados_otras_campanas' => $this->contador_interrupcion]);
         }
-        return redirect()->route('EaCancelacionMasivaController.index')->with(['success' => 'Datos borrados en la base activa']);
+        //deberia ser pop up
+        // pero si lo hago asi deberia cambiar a ajax
+        if ($this->contador_interrupcion > 0) {
+            return redirect()->route('EaCancelacionMasivaController.index')->with(['error' => 'exiten :' . $this->contador_interrupcion . ' que no pertenecen al cliente y no pudieron borrarse mas informacion de click en la lupa.']);
+        }
+        return redirect()->route('EaCancelacionMasivaController.index')->with(['success' => 'Datos Cancelados en base activa']);
     }
 
 
-    public function borrarRegistroBaseActiva($data)
+    public function borrarRegistroBaseActiva($data, $observaciones)
     {
-        //$condicion1 = isset($data['cedula_id']) ? 'cedula_id' : 'cedula_id';
-        $condicion2 = isset($data['cliente']) ? 'cliente' : 'cedula_id';
-        $condicion1 = isset($data['producto']) ? 'producto' : 'cedula_id';
-        //contrato_AMA, tiene nombre producto en cabezera , esto se esta usando 
-        // como esta en la cabezera debo cambiar la condicion de el producto  , puede existir un registro sin clienten
-        // en este caso si por que lo que se quiere eliminar es el registro de todos lados 
-
-        //->update(['detresp' => 'cancelado', 'detestado' => 'cancelado', 'codestado' => 'C']);"fec_carga" => $datos_carga->fec_carga,
-
-        /*if ($condicion2 === 'cedula_id' && $condicion1 === 'cedula_id') {
-            EaBaseActiva::where('cedula_id', $data['cedula_id'])->delete();;
-        } else
-        */
-        $observaciones = isset($data['observaciones']) ? $data['observaciones'] : 'Utilizo cancelacion masiva, No observacion';
-        if ($condicion2 === 'cliente') {
-            if ($condicion1 === 'producto') {
-                EaBaseActiva::where('cedula_id', $data['cedula_id'])->where('cliente', $data['cliente'])->where('producto', $data['producto'])
-                    ->update(['detresp' => 'cancelado', 'detestado' => 'cancelado', 'codestado' => 'C', 'observaciones' => $observaciones]);
+        /*
+        array:6 [▼
+  "filein_banco_info" => "BASE activa BGR pruebas .xlsx"
+  "usuario_reg" => "sgavela"
+  "fec_carga" => "20220922"
+  "cod_carga_corp" => "21"
+  "cliente" => "BGR"
+  "cedula_id" => "1102127295"
+] */
+        $condicion2 = 'cliente';
+        $condicion1 = isset($data['producto']) ? 'producto' : 'cliente';
+        $exite_registro = null;
+        if ($condicion2 == 'cliente') {
+            if ($condicion1 == 'producto') {
+                // producto
+                $exite_registro = EaBaseActiva::where('cedula_id', $data['cedula_id'])->where('cliente', $data['cliente'])->where('producto', $data['producto'])->first();
             } else {
-                EaBaseActiva::where('cedula_id', $data['cedula_id'])->where('cliente', $data['cliente'])
-                    ->update(['detresp' => 'cancelado', 'detestado' => 'cancelado', 'codestado' => 'C', 'observaciones' => $observaciones]);
+                //solo cliente
+                $exite_registro = EaBaseActiva::where('cedula_id', $data['cedula_id'])->where('cliente', $data['cliente'])->first();
             }
-        } else {
-            $this->registroNoBorrado++;
         }
+        //$observaciones = isset($data['observaciones']) ? $data['observaciones'] : 'Utilizo cancelacion masiva, No observacion';
+        if (isset($exite_registro['id_sec'])) {
+            EaBaseActiva::where('id_sec', (int)$exite_registro['id_sec'])
+                ->update([
+                    'detresp' => 'CANCELADO',
+                    'usmod' => \Auth::user()->username,
+                    'fecmod' => date('d/m/Y'), 'hormod' => date('h:i:s'),
+                    'feccan' => date('d/m/Y'),
+                    'estado' => 'Z',
+                    'detestado' => 'CANCELADO',
+                    'codestado' => 'C',
+                    'observaciones' => $observaciones
+                ]);
+            EaDetalleCargaCorp::where('cod_carga', $data['cod_carga_corp'])
+                ->where('estado', 'PROCESADO')
+                ->where('cedula_id', $data['cedula_id'])
+                ->update(['estado' => 'CANCELACION', 'fec_carga' => $data['fec_carga']]);
+        } else {
+            EaDetalleCargaCorp::where('cod_carga', $data['cod_carga_corp'])->where('cedula_id', $data['cedula_id'])
+                ->update(['estado' => 'INTERRUPCION', 'disponible_gestion' => 'N', 'fec_carga' => $data['fec_carga']]);
+            $this->contador_interrupcion++;
+        }
+
     }
 
 
@@ -248,9 +224,24 @@ class EaCancelacionMasivaController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Request $request)
     {
-        //
+        $registroCarga = EaCabeceraCargaCorp::where('cod_carga', $request->cod_carga)->first();
+        $pos_nombre_archivo = strpos($registroCarga->archivo, $registroCarga->cliente);
+        $nombre_archivo = explode("/", substr($registroCarga->archivo, $pos_nombre_archivo))[1];
+        //Storage::disk('public')->delete($registroCarga->archivo);
+        $trx = EaCabeceraCargaCorp::where('cod_carga', $request->cod_carga)->delete();
+        if ($trx) {
+            (new EaDetalleCargaCorpController)->truncate($request->cod_carga, $registroCarga->cliente);
+        }
+        $cod_carga_b = EaCabeceraCargaCorp::where('estado', 'PENDIENTE')
+            ->where('proceso', 'carga_inicial')
+            ->min('cod_carga');
+        if ($cod_carga_b) {
+            EaCabeceraCargaCorp::where('cod_carga', $cod_carga_b)->update(['visible' => 'S']);
+        }
+        $error = 'Registros temporales del código de carga: ' . $request->cod_carga . '  eliminado del cliente: ' . $registroCarga->cliente;
+        return redirect()->route('EaCancelacionMasivaController.index')->with(compact('error'));
     }
 
     /**
@@ -263,9 +254,7 @@ class EaCancelacionMasivaController extends Controller
     {
         $cabecera_update = array();
         $registroCarga = EaCabeceraCargaCorp::where('cod_carga', $request->cod_carga)->first();
-
         //Excel::import(new EaDetCargaCorpImport($cod_carga), $registroCarga->archivo, 'public');
-
         $import = (new EaCancelacionMasivaImport($request->cod_carga, $registroCarga->cliente, $registroCarga->producto));
         $import->import($registroCarga->archivo, 'public');
         if (!empty($import->detalle_proceso['errorTecnico'])) {
@@ -304,7 +293,6 @@ class EaCancelacionMasivaController extends Controller
                 $success = "Carga realizada del archivo: " . $nombre_archivo . ' ver detalles';
             }
         }
-
         return redirect()->route('EaCancelacionMasivaController.index')->with([
             'success' => isset($success) ? $success : '',
             'errorTecnico' => isset($errorTecnico) ?  $errorTecnico  : '',
@@ -314,13 +302,20 @@ class EaCancelacionMasivaController extends Controller
 
     function exportar_reporte(Request $request)
     {
-
+        /*
         $archivo = 'Reporte_de_cancelacion_masiva_cod_carga_' . $request->cod_carga . '.xlsx';
-        $export = new EaReporteCargaInicialExport($request->cod_carga, $request->proceso);
-
+        $export = new EaReporteCancelacionMasiva($request->cod_carga, $request->proceso);
         $descarga = $export->download($archivo);
-
-        return $descarga;
+        */
+        return Excel::download(
+            new EaReporteCancelacionMasiva(
+                $request->cod_carga,
+                $request->proceso
+            ),
+            'Reporte_de_cancelacion_masiva_cod_carga_' . $request->cod_carga
+                . '.xlsx'
+        );
+        // return $descarga;
     }
 
     public function update_datos_cab_carga($cliente, $cod_carga, array $datos)
@@ -335,10 +330,8 @@ class EaCancelacionMasivaController extends Controller
 
 
 /**
-
     public function valida_proceso_visible($proceso)
-    {
-        $existe = EaCabeceraCargaCorp::where('visible', 'S')
+    {$existe = EaCabeceraCargaCorp::where('visible', 'S')
             ->where('proceso', $proceso) //carga_inicial
             ->exists();
         //echo "dentro de valida proceso visible"; o que exista una S en visible 
@@ -351,9 +344,6 @@ class EaCancelacionMasivaController extends Controller
         // igual comparte por el momento la misma tabla . 
         // preguntar si usan tablas distinta para que sea posible lo que es duplicar el controlador 
         //->exists();
-
-
         return $existe;
     } 
- 
  */

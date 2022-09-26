@@ -67,7 +67,7 @@ Route::middleware(['throttle:5,1'])->group(function () {
 Route::middleware(['prevent-back-history'])->group(function () {
     Route::view('/register', 'register')->name('register');
     Route::view('/', 'auth.login');
-    Route::get('facturacionMasiva/store/', [EaFactMasSeguviajeController::Class, 'store'])->name('EaFactMasSeguviajeController.store');
+    Route::get('facturacionMasiva/store/', [EaFactMasSeguviajeController::class, 'store'])->name('EaFactMasSeguviajeController.store');
 });
 
 
@@ -107,9 +107,9 @@ Route::middleware(['auth', 'prevent-back-history', 'isAdmin'])->group(function (
 
 Route::middleware(['auth', 'prevent-back-history', 'isAdmin'])->group(function () {
 
-    Route::get('inicio/facturacionMasiva/segurviaje/', [EaFactMasSeguviajeController::Class, 'index'])->name('EaFactMasSeguviajeController.index');
-    Route::get('getSubproductosSapHtml/', [EaFactMasSeguviajeController::Class, 'getSubproductoSap'])->name('EaFactMasSeguviajeController.getSubproductoSap');
-    Route::post('inicio/facturacionMasiva/uploadArchivos/', [EaFactMasSeguviajeController::Class, 'uploadArchivos'])->name('EaFactMasSeguviajeController.uploadArchivos');
+    Route::get('inicio/facturacionMasiva/segurviaje/', [EaFactMasSeguviajeController::class, 'index'])->name('EaFactMasSeguviajeController.index');
+    Route::get('getSubproductosSapHtml/', [EaFactMasSeguviajeController::class, 'getSubproductoSap'])->name('EaFactMasSeguviajeController.getSubproductoSap');
+    Route::post('inicio/facturacionMasiva/uploadArchivos/', [EaFactMasSeguviajeController::class, 'uploadArchivos'])->name('EaFactMasSeguviajeController.uploadArchivos');
 });
 
 
@@ -160,6 +160,7 @@ Route::middleware(['auth', 'prevent-back-history', 'isAdmin'])->group(function (
     Route::post('CancelacionMasiva/inicial/destroy/', [EaCancelacionMasivaController::class, 'destroy'])->name('EaCancelacionMasivaController.destroy');
     Route::post('CancelacionMasiva/inicial/procesar/', [EaCancelacionMasivaController::class, 'procesar'])->name('EaCancelacionMasivaController.procesar');
     Route::post('CancelacionMasiva/inicial/subirArchivos/', [EaCancelacionMasivaController::class, 'uploadArchivos'])->name('EaCancelacionMasivaController.uploadArchivos');
+    Route::post('reporte/CancelacionMasiva/', [EaCancelacionMasivaController::class, 'exportar_reporte'])->name('EaCancelacionMasivaController.exportar_reporte');
     Route::post('CancelacionMasiva/inicial/borrar/baseActiva/', [EaCancelacionMasivaController::class, 'borrarEnBaseActiva'])->name('EaCancelacionMasivaController.borrarEnBaseActiva');
 });
 
@@ -196,6 +197,7 @@ Route::middleware(['auth', 'prevent-back-history', 'isAdmin'])->group(function (
     Route::post('recepcion/archivo/cargaIndividual/procesar/', [EaCargaIndividualImport::class, 'procesar'])->name('EaCargaIndividualImport.procesar');
     //////////////////////////////////////////////////////
     Route::get('getDetalleDebitoOpciones/', [EaDetalleDebitoController::class, 'getDetalleDebitoOpciones'])->name('EaDetalleDebitoController.getDetalleDebitoOpciones');
+    Route::get('getMenuSubproductoOpciones/', [EaDetalleDebitoController::class, 'getMenuSubproductoOpciones'])->name('EaDetalleDebitoController.getMenuSubproductoOpciones');
 });
 
 
@@ -219,7 +221,6 @@ Route::middleware(['auth', 'prevent-back-history'])->group(function () {
     Route::get('getProducto/', [EaProductoController::class, 'getProducto'])->name('EaProductoController.getProducto');
     Route::get('getProductoModel/', [EaProductoController::class, 'getProductoModel'])->name('EaProductoController.getProductoModel');
     Route::get('getSubproducto/', [EaSubproductoController::class, 'getSubproducto'])->name('EaSubproductoController.getSubproducto');
-    Route::get('getSubproductoNoAMA/', [EaSubproductoController::class, 'getSubproductoNoAMA'])->name('EaSubproductoController.getSubproductoNoAMA');
     Route::get('getSubproducto/cliente', [EaSubproductoController::class, 'getSubproductoCli'])->name('EaSubproductoController.getSubproductoCli');
     Route::get('getSubproductoModel/', [EaSubproductoController::class, 'getSubproductoModel'])->name('EaSubproductoController.getSubproductoModel');
     Route::get('busqueda/baseActiva/index', [EaBaseActivaBusquedaController::class, 'index'])->name('EaBaseActivaBusquedaController.index');

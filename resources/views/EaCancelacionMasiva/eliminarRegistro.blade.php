@@ -2,7 +2,7 @@
     aria-hidden="true">
     <div class="modal-dialog modal-danger" role="document">
         <div class="modal-content">
-            <form action="{{ route('EaCabCargaInicialController.destroy', [$data->cod_carga]) }}" method="post">
+            <form action="{{ route('EaCancelacionMasivaController.destroy', [$data->cod_carga]) }}" method="post">
                 @csrf
                 <input type="hidden" name="cod_carga" value="{{ $data->cod_carga }}">
                 <div class="modal-header">

@@ -70,7 +70,7 @@
                         @endphp
                         <div class="row content-center">
                             @if (stripos($registro->proceso, 'CANCELACION_MASIVA') === 0)
-                                @if (stripos($registro->estado, 'PROCESADO') !== false)
+                                @if (stripos($registro->estado, 'PROCESADO') !== false   || stripos($registro->estado, 'CANCELACION') !== false  )
                                     <button class="btn btn-info mx-1" title="Ver detalles del registro" type="button"
                                         data-toggle="modal" data-target="{{ '#infoDetcarga' . $row }}">
                                         <svg class="c-icon c-icon-1xl">
@@ -110,7 +110,7 @@
                                 </button>
                             @endif
                         </div>
-                        @include('cargaInicial.eliminarRegistro', [
+                        @include('EaCancelacionMasiva.eliminarRegistro', [
                             'row' => $registro->cod_carga,
                             'data' => ${'data' . $registro->cod_carga},
                         ])
