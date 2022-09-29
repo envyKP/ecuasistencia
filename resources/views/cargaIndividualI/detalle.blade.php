@@ -4,6 +4,7 @@
             <th class="text-center">{{ 'Código de carga' }}</th>
             <th>{{ 'Cliente' }}</th>
             <th>{{ 'Producto' }}</th>
+            <th>{{ 'Opciones' }}</th>
             <th>{{ 'Usuario genera' }}</th>
             <th>{{ 'Fecha generacion' }}</th>
             <th>{{ 'Nombre Archivo' }}</th>
@@ -64,6 +65,15 @@
                         </div>
                     </td>
                     <td>{{ $registro->desc_producto }}</td>
+                    <!-- bloque para variable opciones -->
+                    <td>
+                        <div>
+                            <svg class="c-icon c-icon-1xl mr-1">
+                            </svg>{{ $registro->usuario_registra }}
+                        </div>
+                        
+                    </td>
+                    <!-- -->
                     <td>
                         <div>
                             <svg class="c-icon c-icon-1xl mr-1">
@@ -73,18 +83,18 @@
                             </svg>{{ $registro->usuario_registra }}
                         </div>
                     </td>
+
                     <td>
                         <svg class="c-icon c-icon-1xl">
                             <use
                                 xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-calendar') }} ">
                             </use>
-                        </svg> {{ $registro->fec_registro }}
+                        </svg> {{ \Carbon\Carbon::parse($registro->fec_registro)->format('d/m/Y H:m:s') }}
                     </td>
                     @php
                         $condicio_name = isset($registro->archivo) ? $registro->archivo : '';
                         $name_file = explode('/', $registro->archivo);
                         $value_name = isset($registro->archivo) ? $name_file[count($name_file) - 1] : '';
-                        
                     @endphp
                     <td>
                         {{ $value_name }}
@@ -177,7 +187,7 @@
                                     <input type="hidden" name="producto" value="{{ $registro->producto }}">
                                     @csrf
                                     <button class="btn btn-warning mx-1" title="Facturacion" name="Facturacion"
-                                        id="btn_Facturacion" type="submit" >
+                                        id="btn_Facturacion" type="submit">
                                         <svg class="c-icon c-icon-1xl">
                                             <use
                                                 xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-description') }} ">

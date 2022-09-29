@@ -14,6 +14,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\EaSubproductoController;
 use App\Models\EaOpcionesCargaCliente;
 use App\Models\EaCliente;
+use App\Models\EaDetalleDebito;
 use App\Exports\EaGenCamExport;
 use Carbon\Carbon;
 //use App\Models\EaProducto;
@@ -60,18 +61,29 @@ class EaCargaIndividualExport extends Controller
      */
     public function exporta(Request $request)
     {
+        abort(409);
 
-        //opciones_data
-        //dd($request);
+        /*
+      "_token" => "sYWUETKulRJZc76EU5FbdmYw3orUqhXk6PakbH4a"
+      "usuario_registra" => "sgavela"
+      "filtro_cliente" => "cliente"
+      "cliente" => "PRODUBANCO"
+      "filtro_producto" => "producto"
+      "producto" => "20"
+      "opciones_data" => "4" // el campo adicional , manejar incluso la creacion de detalle con esto 
+      "filtro_genera" => "filtroGenera"
+      "btn_genera" => "Generar"
+      "state" => "PENDIENTE"
+        */
         if ($request->btn_genera == 'buscar') {
             $clientes =  (new EaClienteController)->getAllCampanas();
-            \Log::info('funcion exporta clase EaCargaIndividualExport :' . $request->cliente . '    ???   ' . $request->producto);
+            //\Log::info('funcion exporta clase EaCargaIndividualExport :' . $request->cliente . '    ???   ' . $request->producto);
             if (isset($request->cliente)) {
-                \Log::info('Consulta a cliente :' . $request->cliente);
+                //\Log::info('Consulta a cliente :' . $request->cliente);
                 $resumen_cabecera = EaCabeceraDetalleCarga::select(
                     '*',
-                    EaCabeceraDetalleCarga::raw("CONVERT(date,fec_registro, 105) as 'fec_registro2'"),
-                )->orderBydesc('fec_registro2')
+                    //EaCabeceraDetalleCarga::raw("CONVERT(date,fec_registro, 105) as 'fec_registro2'"),
+                )->orderBydesc('fec_registro')
                     ->where('is_det_debito', '1')
                     ->where('cliente', $request->cliente)
                     ->paginate(15);
@@ -79,8 +91,8 @@ class EaCargaIndividualExport extends Controller
                     \Log::info('Consulta a cliente :' . $request->cliente . ' ' . $request->producto);
                     $resumen_cabecera = EaCabeceraDetalleCarga::select(
                         '*',
-                        EaCabeceraDetalleCarga::raw("CONVERT(date,fec_registro, 105) as 'fec_registro2'"),
-                    )->orderBydesc('fec_registro2')
+                        // EaCabeceraDetalleCarga::raw("CONVERT(date,fec_registro, 105) as 'fec_registro2'"),
+                    )->orderBydesc('fec_registro')
                         ->where('is_det_debito', '1')
                         ->where('cliente', $request->cliente)
                         ->where('producto', $request->producto)
@@ -90,16 +102,16 @@ class EaCargaIndividualExport extends Controller
             if (isset($request->state)) {
                 $resumen_cabecera = EaCabeceraDetalleCarga::select(
                     '*',
-                    EaCabeceraDetalleCarga::raw("CONVERT(date,fec_registro, 105) as 'fec_registro2'"),
-                )->orderBydesc('fec_registro2')
+                    //EaCabeceraDetalleCarga::raw("CONVERT(date,fec_registro, 105) as 'fec_registro2'"),
+                )->orderBydesc('fec_registro')
                     ->where('is_det_debito', '1')
                     ->where('estado', $request->state)
                     ->paginate(15);
                 if (isset($request->cliente)) {
                     $resumen_cabecera = EaCabeceraDetalleCarga::select(
                         '*',
-                        EaCabeceraDetalleCarga::raw("CONVERT(date,fec_registro, 105) as 'fec_registro2'"),
-                    )->orderBydesc('fec_registro2')
+                        // EaCabeceraDetalleCarga::raw("CONVERT(date,fec_registro, 105) as 'fec_registro2'"),
+                    )->orderBydesc('fec_registro')
                         ->where('is_det_debito', '1')
                         ->where('estado', $request->state)
                         ->where('cliente', $request->cliente)
@@ -107,8 +119,8 @@ class EaCargaIndividualExport extends Controller
                     if (isset($request->producto)) {
                         $resumen_cabecera = EaCabeceraDetalleCarga::select(
                             '*',
-                            EaCabeceraDetalleCarga::raw("CONVERT(date,fec_registro, 105) as 'fec_registro2'"),
-                        )->orderBydesc('fec_registro2')
+                            //     EaCabeceraDetalleCarga::raw("CONVERT(date,fec_registro, 105) as 'fec_registro2'"),
+                        )->orderBydesc('fec_registro')
                             ->where('is_det_debito', '1')
                             ->where('estado', $request->state)
                             ->where('cliente', $request->cliente)
@@ -118,8 +130,8 @@ class EaCargaIndividualExport extends Controller
                 } elseif (isset($request->producto)) {
                     $resumen_cabecera = EaCabeceraDetalleCarga::select(
                         '*',
-                        EaCabeceraDetalleCarga::raw("CONVERT(date,fec_registro, 105) as 'fec_registro2'"),
-                    )->orderBydesc('fec_registro2')
+                        //   EaCabeceraDetalleCarga::raw("CONVERT(date,fec_registro, 105) as 'fec_registro2'"),
+                    )->orderBydesc('fec_registro')
                         ->where('is_det_debito', '1')
                         ->where('estado', $request->state)
                         ->where('producto', $request->producto)
@@ -135,34 +147,46 @@ class EaCargaIndividualExport extends Controller
                 if (!isset($request->carga_resp)) {
                     //dd($request);
                     $this->op_client = EaOpcionesCargaCliente::where('codigo_id', $request->producto)->first();
-                    var_dump($this->op_client);
+                    //var_dump($this->op_client);
+                    //var_dump($this->opciones_fijas);
+                    //var_dump($this->campos_export);
+                    //var_dump($this->campoC);
+                    //var_dump($this->campo0);
+
+                    //var_dump($this->op_caracteristica_ba);
                     $this->opciones_fijas = json_decode($this->op_client->opciones_fijas, true);
-                    var_dump($this->opciones_fijas);
                     $this->campos_export = json_decode($this->op_client->campos_export, true);
-                    var_dump($this->campos_export);
                     $this->campoC = json_decode($this->op_client->campoc, true);
-                    var_dump($this->campoC);
                     $this->campo0 = json_decode($this->op_client->campo0, true);
-                    var_dump($this->campo0);
+                    $this->op_caracteristica_ba = json_decode($this->op_client->op_caracteristica_ba, true);
                     $textoPlano = "";
                     $this->cont = 0;
-                    echo "antes de isset op_client   :";
+                    //echo "antes de isset op_client   :";
                     //dd("se encuentra dentron de lo planeado");
                     //este if puede seguir con varios subproductos ?
                     if (isset($this->op_client['subproducto'])) {
-                        $prod_id = explode(',', $this->op_client['subproducto']);
                         ///bloque de repeticion
-                        //dd($prod_id);
-
+                        $prod_id = explode(',', $this->op_client['subproducto']);
+                        //ya no tiene realacion con el subproducto de prod si no el de la base en detalles_debitos
+                        $ultima_carga = $this->ultima_carga_subproducto($request);
+                        $ultima_carga = ($ultima_carga != null ? $ultima_carga : null);
+                        //$ultima_carga = $this->ultima_carga_subproducto($prod_id[0]);
+                        if (isset($ultima_carga['id_carga'])) {
+                            $ultima_carga['id_carga'] = $ultima_carga['id_carga'] + 1;
+                        } else {
+                            $ultima_carga['id_carga'] = 1;
+                        }
+                        $this->ultima_carga = ($ultima_carga != null ? $ultima_carga : null); // este seria el valor final de carga
+                        //dd($this->ultima_carga);
                         foreach ($prod_id as $producto) {
-                            echo $producto;
-                            echo "    ";
+                            //echo $producto;
+                            //echo "    ";
                             $this->detalle_subproducto = ((new EaSubproductoController)->getSubproductoDetalle($request->cliente, $producto));
-                            echo $request->cliente;
-                            echo $this->detalle_subproducto->desc_subproducto;
-                            echo (isset($request->carga_resp) ? strval($request->carga_resp) : null);
-                            echo $producto;
-                            echo $this->detalle_subproducto->tipo_subproducto;
+                            //echo $request->cliente;
+                            //echo $this->detalle_subproducto->desc_subproducto;
+                            //echo (isset($request->carga_resp) ? strval($request->carga_resp) : null);
+                            //echo $producto;
+                            //echo $this->detalle_subproducto->tipo_subproducto;
                             //continue;
                             //bloque apuntes 
                             /*
@@ -173,25 +197,26 @@ class EaCargaIndividualExport extends Controller
                                     "secuencia_cont" => 22052 // -> tiene que continuar
                                     "count_recorrido" => 22052  // -> es lo mismo 
                                     "textoPlano" // ->tambien mantener
-
                             */
-                            //para pruebas
                             $objEXPORT = new EaGenCamExport(
                                 $request->cliente,
                                 $this->detalle_subproducto->desc_subproducto,
                                 (isset($request->carga_resp) ? strval($request->carga_resp) : null),
                                 $producto,
-                                $this->detalle_subproducto->tipo_subproducto
+                                $this->detalle_subproducto->tipo_subproducto,
+                                $request->producto
                             );
                             $generacion_txt = $this->genera_cadena_subproducto($objEXPORT, $request,  $textoPlano);
                             $textoPlano = $textoPlano . $generacion_txt['textoPlano'];
                         }
+                        /*
                         echo "resultado contador :";
                         var_dump($this->cont);
                         echo "resultado textoPlano :";
                         dd($textoPlano);
                         //bloque de repeticion
                         dd("fin de bloque pruebas ");
+                        */
                         if (isset($campoC["frase"])) {
                             switch ($request->cliente) {
                                 case 'BGR':
@@ -226,26 +251,32 @@ class EaCargaIndividualExport extends Controller
                         } else {
                             $extension_file .= "txt";
                         }
+                        // bloque de carga
+                        /*
                         $this->ultima_carga = $objEXPORT->is_carga_older(); //agarrara el ultimo objExport que genere ,
-                        $id_carga = (isset($this->ultima_carga->id_carga) ? $this->ultima_carga->id_carga : 0);
+                        // incluido el +1 que se añade de la carga actual
+                        */
+
+                        $id_carga = (isset($this->ultima_carga['id_carga']) ? $this->ultima_carga['id_carga'] : 1);
                         $fecha_generacion = (isset($this->ultima_carga->fecha_generacion) ? $this->ultima_carga->fecha_generacion : 0);
                         $file_reg_carga = array();
                         $file_reg_carga['cod_carga'] = $id_carga;
-                        $file_reg_carga['cliente'] = $request->clinte;
+                        $file_reg_carga['cliente'] = $request->cliente;
                         $file_reg_carga['producto'] = $request->producto;
-                        $file_reg_carga['fecha_registro'] = date('d/m/Y H:i:s');
+                        //$file_reg_carga['fecha_registro'] = date('d/m/Y H:i:s');
                         $file_reg_carga['fec_carga'] = $fecha_generacion;
                         $file_reg_carga['usuario'] = \Auth::user()->username;
-                        $fileName = ($id_carga + 1) . $extension_file;
+                        $fileName = ($id_carga) . $extension_file;
                         $success = 'se genero exitosamente , se procede a realizar la descarga ';
                         Storage::disk('public')->makeDirectory('generacion_debito/' . $request->cliente . '/' . $request->producto . '/' . date('Y'));
                         file_put_contents(public_path('storage/generacion_debito/' . $request->cliente . '/' . $request->producto . '/' . date('Y') . '/' . $fileName), $textoPlano);
                         $file_reg_carga['ruta_gen_debito'] = 'storage/generacion_debito/' . $request->cliente . '/' . $request->producto . '/' . date('Y') . '/' . $fileName;
                         $objEXPORT->registro_cargas($file_reg_carga);
+
                         return redirect()->route('EaCargaIndividualImport.index')->with([
                             'success' => isset($generacion_txt['success']) ? $generacion_txt['success'] : '',
                             'generacionVal' => isset($generacion_txt['success']) ? '200' : '',
-                            'carga_resp' => ($generacion_txt['id_carga'] + 1),
+                            'carga_resp' => ($id_carga),
                             'producto' => isset($request->producto) ? $request->producto : '',
                             'cliente' => isset($request->cliente) ? $request->cliente : '',
                             'errorTecnico' => isset($errorTecnico) ?  $errorTecnico  : '',
@@ -256,7 +287,24 @@ class EaCargaIndividualExport extends Controller
                         dd("KPE MARCADOR INCOMPLETO 1");
                     }
                 } else {
-                    $objEXPORT = new EaGenCamExport($request->cliente, $this->detalle_subproducto->desc_subproducto, (isset($request->carga_resp) ? strval($request->carga_resp) : null), $request->producto, $this->detalle_subproducto->tipo_subproducto);
+                    // lo creo con el codigo id de opciones ?????
+                    // deberia adaptarlo para que unicamente los codigos de ssubproductos de consulta sean de la base de de subproducto
+                    // toda la vista de echo puede salir de opciones , y un distict 
+                    $this->op_client = EaOpcionesCargaCliente::where('codigo_id', $request->producto)->first();
+                    $prod_id = explode(',', $this->op_client['subproducto']);
+                    //$this->ultima_carga
+                    //$ultima_carga = $this->ultima_carga_subproducto($request->producto); // last_carga  = 1
+
+                    //dd($this->op_client) ;
+                    //$this->detalle_subproducto = ((new EaSubproductoController)->getSubproductoDetalle($request->cliente, $producto));
+                    $objEXPORT = new EaGenCamExport(
+                        $request->cliente,
+                        "null",
+                        (isset($request->carga_resp) ? strval($request->carga_resp) : null),
+                        $request->producto,
+                        $this->op_client->tipo_subproducto,
+                        $request->producto
+                    ); // temp modificar
                     $file_reg_carga = array();
                     $file_reg_carga['cod_carga'] = strval($request->carga_resp);
                     $file_reg_carga['cliente'] = $request->clinte;
@@ -269,7 +317,7 @@ class EaCargaIndividualExport extends Controller
                     }
                     $ruta =  $objEXPORT->ruta_carga();
                     //$this->detalle_subproducto cambiar al campo personalizado que proviene directamente de opciones, opciones debe ser gol
-                    $res = preg_replace('([^A-Za-z0-9 ])', ' ', $this->detalle_subproducto->desc_subproducto);
+                    $res = preg_replace('([^A-Za-z0-9 ])', ' ', $this->op_client->desc_producto);
                     //$detalle_subproducto->desc_subproducto
                     $fileName = $request->cliente . "-" . $res . "-" . date("d-m-Y") . "-" . strval($request->carga_resp) . $extension_file;
                     $headers = [
@@ -309,7 +357,11 @@ class EaCargaIndividualExport extends Controller
         \Log::info('    $request->cliente : ' . $request->cliente);
         \Log::info('    $request->producto : ' . $request->producto);
         //\Log::info('    varcontrolsecuencia : ' . $varcontrolsecuencia);
+        if (isset($this->op_caracteristica_ba) && $this->op_caracteristica_ba != null) {
+            $request['op_caracteristica_ba'] = $this->op_caracteristica_ba;
+        }
         $recorrido = $objEXPORT->generar($request);
+        //dd($recorrido);
         $cont = $this->cont;
         $tiempo_inicial = microtime(true);
         \Log::info('tiempo que inicia : ' . $tiempo_inicial);
@@ -364,12 +416,11 @@ class EaCargaIndividualExport extends Controller
                 $request['opcional']; // el id que viene del campo ciclo(3,4,9) dettipcic(corte 12..., etc)
                 if ($individual['ciclo'] == $request['opcional']) {
                     //$produbanco_validacion;// dificil saber si va 
-                    //$contador_bgr++;// antes descomentado -> probar
+                    $contador_bgr++; // antes descomentado -> probar
                 } else {
                     continue;
                 }
             }
-
             if (isset($op_client->num_elem_export)) {
                 $cont++;
                 $secuencia = "";
@@ -453,13 +504,14 @@ class EaCargaIndividualExport extends Controller
             $textoPlano .= "\n";
             //$condicion = true;
             $row_insert_sets = array();
-            $id_carga = (isset($individual->id_carga) ? $individual->id_carga : 1);
-            $fecha_generacion = (isset($this->ultima_carga->fecha_generacion) ? $this->ultima_carga->fecha_generacion : 0);
-            if ($fecha_generacion != date('mY')) {
-                $id_carga = (isset($this->ultima_carga->id_carga) ? $this->ultima_carga->id_carga : 0);
-            }
+            // conflicto con el id carga 
+            // es un elemento que debe ser constante en toda la generacion ,
+            // lo tengo que definir antes o despues de toda la ejecucion
+            // manejo esto para la ejecucion y cabezera tiene que ser antes
+            $id_carga =  isset($this->ultima_carga['id_carga']) ?  $this->ultima_carga['id_carga'] : 1;
             $row_insert_sets['id_sec'] = isset($individual->id_sec) ? trim($individual->id_sec) : null; // ok
-            $row_insert_sets['id_carga'] = $id_carga + 1; // ok
+            $row_insert_sets['id_carga'] = $id_carga;
+            //$row_insert_sets['id_carga'] = $id_carga + 1; // ok
             if (isset($campoC['identificador'])) {
                 if ($campoC['identificador'] == 'secuencia') {
                     $row_insert_sets['secuencia'] = ltrim($secuencia, '0');
@@ -480,7 +532,7 @@ class EaCargaIndividualExport extends Controller
             $row_insert_sets['fecha_generacion'] =  date('mY'); //ok
 
             //bloque que inserta registros dentro de la base
-            /*
+
             array_push($row_insert_detalle, $row_insert_sets);
             $row_insert_sets = array();
             if ($valido_sec == $limit_insert) {
@@ -492,10 +544,9 @@ class EaCargaIndividualExport extends Controller
                 $objEXPORT->view_reg_state($row_insert_detalle);
             }
             $valido_sec++;
-            */
         }
         $resumen = array();
-        $resumen['id_carga'] = $id_carga;
+        //$resumen['id_carga'] = $row_insert_sets['id_carga'];
         $resumen['success'] = isset($success) ? $success : '';
         //$resumen['secuencia'] = $secuencia;
         $resumen['textoPlano'] = $textoPlano;
@@ -630,6 +681,26 @@ class EaCargaIndividualExport extends Controller
     public function destroy($id)
     {
         //
+    }
+
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function ultima_carga_subproducto($request)
+    {
+        if(isset($request->op_caracteristica_ba)){
+            return EaDetalleDebito::where('subproducto_id', $request->producto)
+            ->where('opciones', $request->op_caracteristica_ba)
+            ->orderbydesc('id_carga')
+            ->first();
+        }
+        return EaDetalleDebito::where('subproducto_id', $request->producto)
+            ->orderbydesc('id_carga')
+            ->first();
     }
 
     /**

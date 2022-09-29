@@ -47,6 +47,7 @@ class EaDetalleDebitoController extends Controller
     {
         //
     }
+    //flowdesk 
     ///KPE bloque de metodos usados para metodos de vista por dertras.
     // existe el contratoAMA que puede ser similar a la ID pero puede usarse con mas de un subproducto
     // que exista dentro del mismo cliente
@@ -69,7 +70,8 @@ class EaDetalleDebitoController extends Controller
     }
 
     public function getDetalleDebitoOpciones(Request  $request)
-    {   // 2 tipos de validaciones uno con fecha y otro con esto puedo usar la misma opcion de for,
+    {   
+        // 2 tipos de validaciones uno con fecha y otro con esto puedo usar la misma opcion de for,
         // pero el espacio debe ser limitado , no puedo 
         // parametro de consulta (campo nuevo . modifica lka base de datos)
         // el campo existente tambien modifica la base de datos.

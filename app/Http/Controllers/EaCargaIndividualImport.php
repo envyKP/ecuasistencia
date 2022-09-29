@@ -33,13 +33,12 @@ class EaCargaIndividualImport extends Controller
 
         $resumen_cabecera = EaCabeceraDetalleCarga::select(
             '*',
-            EaCabeceraDetalleCarga::raw("CONVERT(date,fec_registro, 105) as 'fec_registro2'"),
+            ///EaCabeceraDetalleCarga::raw("CONVERT(date,fec_registro, 105) as 'fec_registro2'"),
         )
             ->where('is_det_debito', '1')
             ->where('estado', 'PENDIENTE')
-            ->orderBydesc('fec_registro2')
+            ->orderBydesc('fec_registro')
             ->paginate(15);
-
         /*
         $resumen_cabecera = EaCabeceraDetalleCarga::select(
             'cod_carga',
@@ -61,73 +60,42 @@ class EaCargaIndividualImport extends Controller
             ->where('is_det_debito', '1')
             ->where('estado', 'PENDIENTE')
             ->orderBydesc('fec_registro2')
-
             ->paginate(15);
-*/
-
-
+        */
         /*
         $resumen_cabecera = EaCabeceraDetalleCarga::where('is_det_debito', '1')
             ->where('estado', 'PENDIENTE')
             ->orderBydesc('fec_registro')
             ->orderBydesc('cod_carga')
             ->paginate(15);
-*/
-
+        */
         return view('cargaIndividualI.home')->with(compact('clientes'))
             ->with(isset($resumen_cabecera) ? compact('resumen_cabecera') : '');
     }
 
     public function detalleCarga()
     {
-
         return view('cargaIndividualI.detalleCarga');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function store(Request $request)
     {
-
         return redirect()->route('EaClienteController.index')->with([
             'cliente' => $request->cliente,
             'trxcliente' => 'store'
         ]);
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function show($id)
     {
         //
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function update(Request $request, $id)
     {
         //
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function uploadArchivos(Request  $request)
     {
         $error = " Algo resulto mal";
@@ -187,12 +155,6 @@ class EaCargaIndividualImport extends Controller
         return response()->json($detalle_proceso);
     }
 
-
-    /**
-     * Display the specified resource.
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function procesar(Request $request)
     {
         $cabecera_update = array();
@@ -206,7 +168,6 @@ class EaCargaIndividualImport extends Controller
         if (isset($opciones_validacion['formato'])) {
             //bloque para implementar metodos de formato distinto a xls o xlsx
             //opciones_validacion {'formato':'txt'}
-
             //produbanco, 
             if ('txt' == $opciones_validacion['formato']) {
                 /*
@@ -214,7 +175,6 @@ class EaCargaIndividualImport extends Controller
                 */
                 $opciones_validacion = null;
                 $opciones_import = null;
-
                 if (isset($op_client->opciones_validacion) && isset($op_client->campos_import)) {
                     $opciones_import = json_decode($op_client->campos_import, true);
                     $opciones_validacion = json_decode($op_client->opciones_validacion, true);
@@ -225,8 +185,6 @@ class EaCargaIndividualImport extends Controller
                     $this->update_datos_cab_carga($registroCarga->cliente, $request->cod_carga, $request->producto, $cabecera_update);
                     return response()->json(['success' => $import->detalle_proceso['msg']]);
                 }
-
-
                 $fh = fopen(public_path('storage\\' . $this->getFilePath($registroCarga->archivo)), 'r');
                 $count1 = 0;
                 while ($line = fgets($fh)) {
@@ -245,7 +203,6 @@ class EaCargaIndividualImport extends Controller
                     // solo nescesitaria esto en cualquier lectura de archivo
                     // if () isset si no existe , salta y quema algo 
                     //inacceciu
-
                     // no es posible crear un bucle dentro del mismo while para manejar las validadciones en base 
                     /*
                     for ($i = 0; $i < $opciones_validacion['limite']; $i++) {
@@ -277,58 +234,24 @@ class EaCargaIndividualImport extends Controller
                         $updateRow['fecha_actualizacion'] =  $date;
                     } else {
                     }
-
                     if (isset($opciones_import['detalle'])) {
                         $limite_secuencia = explode(",", $opciones_import['detalle']); // deberia separalos con el , volviendo array la variable
                         $detalle =  substr($line, $limite_secuencia[0], $limite_secuencia[1]);
                     } else {
                     }
-
                     /**nop lo que venga en el txt significara que es un valor debitado
                      * // generar una condicion que solo valide que cambie de estado si existe el identificador
                      */
                     // distincion entre tarjeta y cuenta , para el insert , el inser deberia ser el mismo que el que se usa en el collection()
                     // de verdad lo implementare de esta forma , es toda una estructura nueva practicamente , 
                     // unicamente para el texto haciendo inviable o mas dificil el almacenamiento en formulario para base 
-
-
                     /*
-                    if(tarjeta || cuenta){
-                    }elseif(secuencia || cedula){
-                    }
+                    if(tarjeta || cuenta){}elseif(secuencia || cedula){}if (isset($opciones_validacion['secuencia'])) {echo "\n" . (substr($line, 0, 6)); // secuencia}
+                    if (isset($opciones_validacion['secuencia'])) {    echo "\n" . (substr($line, 0, 6)); // secuencia}if (isset($opciones_validacion['secuencia'])) {    echo "\n" . (substr($line, 0, 6)); // secuencia}if (isset($opciones_validacion['secuencia'])) {    echo "\n" . (substr($line, 0, 6)); // secuencia}echo "\n" . (substr($line, 0, 6)); // secuenciaecho "<===>"; // limboecho "\n" . (substr($line, 6, 16)); // tarjetaecho "<===>"; // limboecho "\n" . (substr($line, 22, 4)); // 0000echo "<===>"; // limboecho "\n" . (substr($line, 26, 6)); //fecha y mes talvez ?echo "<===>";echo "\n" . (substr($line, 32, 8)); //02320101 //descripcion o aprovacion $count1++;
                     */
-
-                    /*
-                    if (isset($opciones_validacion['secuencia'])) {
-                        echo "\n" . (substr($line, 0, 6)); // secuencia
-                    }
-                    if (isset($opciones_validacion['secuencia'])) {
-                        echo "\n" . (substr($line, 0, 6)); // secuencia
-                    }
-                    if (isset($opciones_validacion['secuencia'])) {
-                        echo "\n" . (substr($line, 0, 6)); // secuencia
-                    }
-                    if (isset($opciones_validacion['secuencia'])) {
-                        echo "\n" . (substr($line, 0, 6)); // secuencia
-                    }
-                    echo "\n" . (substr($line, 0, 6)); // secuencia
-                    echo "<===>"; // limbo
-                    echo "\n" . (substr($line, 6, 16)); // tarjeta
-                    echo "<===>"; // limbo
-                    echo "\n" . (substr($line, 22, 4)); // 0000
-                    echo "<===>"; // limbo
-                    echo "\n" . (substr($line, 26, 6)); //fecha y mes talvez ?
-                    echo "<===>";
-                    echo "\n" . (substr($line, 32, 8)); //02320101 //descripcion o aprovacion 
-                    $count1++;
-                    */
-
                     //poner una condicion con breack y adicional llenar el campo $detalle_proceso['errorTecnico'] = 
-
                 }
                 fclose($fh);
-                //dd($fh);
-
                 if (!empty($detalle_proceso['errorTecnico'])) {
                     $cabecera_update['estado'] = 'ERROR';
                     $import->detalle_proceso['msg'] = "error tecnico : " . $detalle_proceso['errorTecnico'];
@@ -352,7 +275,6 @@ class EaCargaIndividualImport extends Controller
                 $errorTecnico = $import->detalle_proceso['errorTecnico'];
                 //puedo simplemente invocar la cabezera en caso que cordine o un isset con el campo y un else ok 
                 if (isset($opciones_validacion['union_subproductos'])) {
-
                     $producto = explode('', $opciones_validacion['union_subproductos']);
                     foreach ($producto as $prod_id) {
                         //probar el dato de $prod_id , de esto depende si existe la lectura de varior archivos
@@ -360,7 +282,6 @@ class EaCargaIndividualImport extends Controller
                     }
                     return response()->json(['success' => $import->detalle_proceso['msg']]);
                 } else {
-
                     $this->update_datos_cab_carga($registroCarga->cliente, $request->cod_carga, $request->producto, $cabecera_update);
                     return response()->json(['success' => $import->detalle_proceso['msg']]);
                 }
@@ -368,10 +289,8 @@ class EaCargaIndividualImport extends Controller
                 try {
                     $cabecera_update['estado'] = 'PROCESADO';
                     $this->update_datos_cab_carga($registroCarga->cliente, $request->cod_carga, $request->producto, $cabecera_update);
-
                     return response()->json($import->detalle_proceso);
                 } catch (\Exception $e) {
-
                     $errorTecnico = $e->getMessage();
                     return response()->json($errorTecnico);
                 }
@@ -381,12 +300,6 @@ class EaCargaIndividualImport extends Controller
         return response()->json(['success' => 'Existe un inconveniente']);
     }
 
-
-    /**
-     * Remove the specified resource from storage.
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function update_datos_cab_carga($cliente, $cod_carga, $producto, array $datos)
     {
 
@@ -398,14 +311,8 @@ class EaCargaIndividualImport extends Controller
     }
 
 
-    /**
-     * Remove the specified resource from storage.
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function existe_duplicado($cliente, $cod_carga, $producto, array $datos)
     {
-
         $trx =  EaCabeceraDetalleCarga::where('cliente', $cliente)
             ->where('cod_carga', $cod_carga)
             ->where('producto', $producto)
@@ -422,7 +329,6 @@ class EaCargaIndividualImport extends Controller
         return response()->json(['success' => $detalle_proceso['msg']]);
     }
 
-
     /**
      * Remove the specified resource from storage.
      * @param  \Illuminate\Http\Request  $request
@@ -431,13 +337,27 @@ class EaCargaIndividualImport extends Controller
 
     public function destroy(Request $request)
     {
+        dd($request);
         \Log::info('FUNCION DESTROY: ');
         \Log::warning('usuario que realiza la orden DESTROY: ' . \Auth::user()->username);
         // \Log::warning('Something could be going wrong.');
         // \Log::error('Something is really going wrong.');
         $varcontrolsecuencia = (isset($request->carga_resp) ? strval($request->carga_resp) : null);
         $detalle_subproducto = ((new EaSubproductoController)->getSubproductoDetalle($request->cliente, $request->producto));
-        $objEXPORT = new EaGenCamExport($request->cliente, $detalle_subproducto->desc_subproducto, $varcontrolsecuencia, $request->producto, $detalle_subproducto->tipo_subproducto);
+        /*
+         $request->cliente,"null",(isset($request->carga_resp) ? strval($request->carga_resp) : null),
+        $request->producto,$this->op_client->tipo_subproducto,$request->producto
+        */
+        dd($request);
+        /*
+      "_token" => "YReBMQBbrPqvRko6wPYP8yZVNHGCUtMrhfgDkD0M" 
+      "carga_resp" => "1"           "cliente" => "INTER"
+      "producto" => "15"            "desc_producto" => "ASISTENCIA HOMBRE CTAS"
+       "borrar" => null puedo usarlo o crear un campo como opcion adicional , pero tambien debe existir en cabezera 
+       la condicion incluso para la descarga o lectura 
+       mesclar la id/ en la generacion  y lectura 
+      */
+        $objEXPORT = new EaGenCamExport($request->cliente, $detalle_subproducto->desc_subproducto, $varcontrolsecuencia, $request->producto, $detalle_subproducto->tipo_subproducto, $request->producto);
         \Log::info('Request : ');
         \Log::info('    $request->cliente : ' . $request->cliente);
         \Log::info('    $request->producto : ' . $request->producto);
@@ -448,8 +368,8 @@ class EaCargaIndividualImport extends Controller
         $row_insert_detalle['cliente'] = $request->cliente;
         $row_insert_detalle['estado'] = "0";
         //dd($objEXPORT->is_carga_older());
-        if (isset(($objEXPORT->is_carga_older($request->cliente,$request->producto)->id_carga))) {
-            if ($varcontrolsecuencia == ($objEXPORT->is_carga_older($request->cliente,$request->producto)->id_carga)) {
+        if (isset(($objEXPORT->is_carga_older($request->cliente, $request->producto)->id_carga))) {
+            if ($varcontrolsecuencia == ($objEXPORT->is_carga_older($request->cliente, $request->producto)->id_carga)) {
                 \Log::warning('se destruyo la carga :' . $row_insert_detalle['id_carga']);
                 $objEXPORT->destroy_cab_detalle($varcontrolsecuencia, $request->cliente, $request->producto);
                 $success = 'Borrado registros de : Id_carga =' . $row_insert_detalle['id_carga'] . ' - cliente -' . $row_insert_detalle['cliente'] . ' - producto  : ' . $detalle_subproducto->desc_subproducto;
@@ -463,24 +383,15 @@ class EaCargaIndividualImport extends Controller
                 'success' =>  'no existe registro en tabla detalle se elimino datos en cabezera'
             ]);
         }
-
-
         return redirect()->route('EaCargaIndividualImport.index')->with([
             'success' => isset($success) ? $success : '',
             'errorTecnico' => isset($errorTecnico) ?  $errorTecnico  : ''
         ]);
     }
 
-    /**
-     * @param  UploadedFile|string|null  $filePath
-     * @return UploadedFile|string
-     *
-     * @throws NoFilePathGivenException
-     */
     private function getFilePath($filePath = null)
     {
         $filePath = $filePath ?? $this->filePath ?? null;
-
         if (null === $filePath) {
             throw NoFilePathGivenException::import();
         }
