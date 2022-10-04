@@ -1524,3 +1524,47 @@ CEDULA	CEDULA_NUM	NOMBRES	COD_SEXO	DES_SEXO	COD_CIUDADANIA	DES_CIUDADANIA	FECH_N
 //https://trabajarporelmundo.org/7-trabajos-online-que-requieren-poca-o-ninguna-experiencia/
 // apunters numeros 
 //53 90 34 19 73 45 
+
+
+
+                            //KPE detalles, se puede usar el id del subproducto , escencial cuando esto
+                            //condiciones : 
+                            // caso 1 : es nuevo , usa el id que viene en detalles
+                            // caso 2 : es una carga entre el mes por lo que usa la otra consulta
+                            // puedo usar la $this->request , debido a la condicion previa que maneja el campo adcional (opciones)
+
+//pichincha
+/*                          lorena 
+                            29999999-4
+*/
+                            /*
+                             "id_subproducto" => "4"
+    "cliente" => "PRODUBANCO"
+    "contrato_ama" => "40010009E000058"
+    "cod_establecimiento" => null
+    "subproducto" => "ASISTENCIA TOTAL"
+    "tipo_subproducto" => "TC"
+    "desc_subproducto" => "ASISTENCIA TOTAL"
+    "graba_impuesto" => "SI"
+    "nom_impuesto" => "IVA"
+    "valor_porcentaje" => "12.00"
+    "deduccion_impuesto" => ".27"
+    "subtotal" => "2.23"
+    "valortotal" => "2.50"
+    "deudor" => "1500011033"
+    "cuenta" => "414505150"
+    "tipo_negocio" => "400"
+    "producto_sap" => "11000"
+    "cliente_sap" => "MTC00"
+    "nombre_contrato_ama" => "PRODUBANCO ASISTENCIA TOTAL"
+                            */
+                            /*
+                            $objEXPORT = new EaGenCamExport(
+                                $request->cliente,
+                                $this->detalle_subproducto->desc_subproducto,
+                                (isset($request->carga_resp) ? strval($request->carga_resp) : null),
+                                $producto,
+                                $this->detalle_subproducto->tipo_subproducto,
+                                $request->producto
+                            );
+                            */

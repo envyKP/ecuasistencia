@@ -344,19 +344,8 @@ class EaCargaIndividualImport extends Controller
         // \Log::error('Something is really going wrong.');
         $varcontrolsecuencia = (isset($request->carga_resp) ? strval($request->carga_resp) : null);
         $detalle_subproducto = ((new EaSubproductoController)->getSubproductoDetalle($request->cliente, $request->producto));
-        /*
-         $request->cliente,"null",(isset($request->carga_resp) ? strval($request->carga_resp) : null),
-        $request->producto,$this->op_client->tipo_subproducto,$request->producto
-        */
         dd($request);
-        /*
-      "_token" => "YReBMQBbrPqvRko6wPYP8yZVNHGCUtMrhfgDkD0M" 
-      "carga_resp" => "1"           "cliente" => "INTER"
-      "producto" => "15"            "desc_producto" => "ASISTENCIA HOMBRE CTAS"
-       "borrar" => null puedo usarlo o crear un campo como opcion adicional , pero tambien debe existir en cabezera 
-       la condicion incluso para la descarga o lectura 
-       mesclar la id/ en la generacion  y lectura 
-      */
+        //KPE CAMBIO EaGenCamExport usar lo mismo que el else dentro de la generacion o export en eacargaindividual
         $objEXPORT = new EaGenCamExport($request->cliente, $detalle_subproducto->desc_subproducto, $varcontrolsecuencia, $request->producto, $detalle_subproducto->tipo_subproducto, $request->producto);
         \Log::info('Request : ');
         \Log::info('    $request->cliente : ' . $request->cliente);

@@ -62,7 +62,7 @@ class EaCargaIndividualExport extends Controller
     public function exporta(Request $request)
     {
 
-        //dd($request);
+        dd($request);
         if ($request->btn_genera == 'buscar') {
             $clientes =  (new EaClienteController)->getAllCampanas();
             //\Log::info('funcion exporta clase EaCargaIndividualExport :' . $request->cliente . '    ???   ' . $request->producto);
@@ -133,6 +133,7 @@ class EaCargaIndividualExport extends Controller
             if (isset($request->cliente) || isset($request->desc_subproducto)) {
                 if (!isset($request->carga_resp)) {
                     $this->op_client = EaOpcionesCargaCliente::where('codigo_id', $request->producto)->first();
+                    //var_dump($this->op_caracteristica_ba);
                     $this->opciones_fijas = json_decode($this->op_client->opciones_fijas, true);
                     $this->campos_export = json_decode($this->op_client->campos_export, true);
                     $this->campoC = json_decode($this->op_client->campoc, true);
@@ -155,15 +156,21 @@ class EaCargaIndividualExport extends Controller
                             $ultima_carga['id_carga'] = 1;
                         }
                         $this->ultima_carga = ($ultima_carga != null ? $ultima_carga : null);
+
                         foreach ($prod_id as $producto) {
                             $this->detalle_subproducto = ((new EaSubproductoController)->getSubproductoDetalle($request->cliente, $producto));
+
+                            var_dump($this->detalle_subproducto);
+
                             $objEXPORT = new EaGenCamExport(
                                 $request,
                                 $this->detalle_subproducto
                             );
+                            dd($request);
                             $generacion_txt = $this->genera_cadena_subproducto($objEXPORT, $request,  $textoPlano);
                             $textoPlano = $textoPlano . $generacion_txt['textoPlano'];
                         }
+                        //dd($request);
                         if (isset($campoC["frase"])) {
                             switch ($request->cliente) {
                                 case 'BGR':
@@ -201,54 +208,70 @@ class EaCargaIndividualExport extends Controller
                         $id_carga = (isset($this->ultima_carga['id_carga']) ? $this->ultima_carga['id_carga'] : 1);
                         $fecha_generacion = (isset($this->ultima_carga->fecha_generacion) ? $this->ultima_carga->fecha_generacion : 0);
                         //bloque de insertar cabezera detalle
-                        /*
                         $file_reg_carga = array();
                         $file_reg_carga['cod_carga'] = $id_carga;
                         $file_reg_carga['cliente'] = $request->cliente;
                         $file_reg_carga['producto'] = $request->producto;
                         $file_reg_carga['fec_carga'] = $fecha_generacion;
                         $file_reg_carga['usuario'] = \Auth::user()->username;
-                        */
                         $fileName = ($id_carga) . $extension_file;
                         //$file_reg_carga['ruta_gen_debito'] 
-                        //$ruta_gen_debito = 'storage/generacion_debito/' . $request->cliente . '/' . $request->producto . '/' . date('Y') . '/' . $fileName;
+                        $ruta_gen_debito = 'storage/generacion_debito/' . $request->cliente . '/' . $request->producto . '/' . date('Y') . '/' . $fileName;
+                        /*
+                'cod_carga' => isset($rows['cod_carga']) ? $rows['cod_carga'] : null,
+                'fecha_actualizacion' => isset($row['fecha_actualizacion']) ? $rows['fecha_actualizacion'] : '',
+                'fec_registro' => Carbon::now(),
+                'producto' =>  isset($rows['producto']) ? trim($rows['producto']) : null,
+                'desc_producto' => isset($this->producto) ? trim($this->producto) : '',
+                'cliente' => isset($this->cliente) ? trim($this->cliente) : '',
+                'producto' => $this->cab_subproducto,
+                'fec_carga' => isset($rows['fecha_generacion']) ? trim($rows['fecha_generacion']) : null,
+                'usuario_registra' => isset($rows['usuario']) ? trim($rows['usuario']) : null,
+                'estado' => 'PENDIENTE',
+                'is_det_debito' => '1',
+                'ruta_gen_debito' => isset($rows['ruta_gen_debito']) ? trim($rows['ruta_gen_debito']) : null,
+                'opciones' => isset($rows['opciones']) ? $rows['opciones'] : null,
+                  */
                         $file_reg_carga['cod_carga'] = $id_carga;
-                        //$file_reg_carga['proceso'];
+                        $file_reg_carga['proceso'];
                         $file_reg_carga['cliente'] = $request->cliente;
                         $file_reg_carga['producto'] = $request->producto;
-                        $file_reg_carga['desc_producto'] = $this->op_client['archivo_nombre']; // $request->producto;
+                        $file_reg_carga['desc_producto'] = $request->producto;
                         $file_reg_carga['fec_carga'] = $fecha_generacion;
-                        //$file_reg_carga['archivo'];
+                        $file_reg_carga['archivo'];
                         $file_reg_carga['usuario_registra'] = \Auth::user()->username;
-                        $file_reg_carga['fec_registro'] = Carbon::now();
+                        $file_reg_carga['fec_registro'] = isset($fecha_generacion) ? $fecha_generacion : '';
                         $file_reg_carga['estado'] = 'PENDIENTE';
                         $file_reg_carga['is_det_debito'] = '1';
-                        //$file_reg_carga['usuario_actualiza'];
+                        $file_reg_carga['usuario_actualiza'];
                         $file_reg_carga['custom_code'] = isset($request['opcion_campo']) ? $request['opcion_campo'] : null;
                         $file_reg_carga['n_custom_code'] =  isset($request->opciones_data) ? $request->opciones_data : null;
-                        if (isset($request->opciones_data)) {
-                            if (isset($this->op_caracteristica_ba['campo_ba'])) {
-                                for ($i = 1; $i <= $this->op_caracteristica_ba['total']; $i++) {
-                                    if ($this->op_caracteristica_ba['var_camp_' . $i] == $request->opciones_data) {
-                                        $file_reg_carga['opciones_validacion'] = $this->op_caracteristica_ba['var_val_' . $i];
-                                    }
-                                }
-                            }
-                            //$fileName = ($id_carga) . $extension_file;
-                            Storage::disk('public')->makeDirectory('generacion_debito/' . $request->cliente . '/' . $request->producto . '/' . $request->opciones_data . '/' . date('Y'));
-                            file_put_contents(public_path('storage/generacion_debito/' . $request->cliente . '/' . $request->producto . '/' . $request->opciones_data . '/' . date('Y') . '/' . $fileName), $textoPlano);
-                            $ruta_gen_debito = 'storage/generacion_debito/' . $request->cliente . '/' . $request->producto . '/' . $request->opciones_data . '/' . date('Y') . '/' . $fileName;
-                        } else {
-                            $ruta_gen_debito = 'storage/generacion_debito/' . $request->cliente . '/' . $request->producto . '/' . date('Y') . '/' . $fileName;
-                            Storage::disk('public')->makeDirectory('generacion_debito/' . $request->cliente . '/' . $request->producto . '/' . date('Y'));
-                            file_put_contents(public_path('storage/generacion_debito/' . $request->cliente . '/' . $request->producto . '/' . date('Y') . '/' . $fileName), $textoPlano);
-                        }
-                        //$file_reg_carga['opciones_validacion'] = isset($this->op_client['op_caracteristica_ba'])? $this->op_client['op_caracteristica_ba']: null;
+                        $file_reg_carga['opciones_validacion'];
                         $file_reg_carga['ruta_gen_debito'] = isset($ruta_gen_debito) ? $ruta_gen_debito : '';
+
                         //$file_reg_carga['fecha_registro'] = date('d/m/Y H:i:s');
-                        $success = 'se genero exitosamente , se procede a realizar la descarga';
-                        //dd($file_reg_carga);
+                        /*
+                'cod_carga' => isset($rows['cod_carga']) ? $rows['cod_carga'] : null,
+                'fecha_actualizacion' => isset($row['fecha_actualizacion']) ? $rows['fecha_actualizacion'] : '',
+                'fec_registro' => Carbon::now(),
+                'producto' =>  isset($rows['producto']) ? trim($rows['producto']) : null,
+                'desc_producto' => isset($this->producto) ? trim($this->producto) : '',
+                'cliente' => isset($this->cliente) ? trim($this->cliente) : '',
+                'producto' => $this->cab_subproducto,
+                'fec_carga' => isset($rows['fecha_generacion']) ? trim($rows['fecha_generacion']) : null,
+                'usuario_registra' => isset($rows['usuario']) ? trim($rows['usuario']) : null,
+                'estado' => 'PENDIENTE',
+                'is_det_debito' => '1',
+                'ruta_gen_debito' => isset($rows['ruta_gen_debito']) ? trim($rows['ruta_gen_debito']) : null,
+                'opciones' => isset($rows['opciones']) ? $rows['opciones'] : null,
+                        */
+
+                        $success = 'se genero exitosamente , se procede a realizar la descarga ';
+                        Storage::disk('public')->makeDirectory('generacion_debito/' . $request->cliente . '/' . $request->producto . '/' . date('Y'));
+                        file_put_contents(public_path('storage/generacion_debito/' . $request->cliente . '/' . $request->producto . '/' . date('Y') . '/' . $fileName), $textoPlano);
+
                         $objEXPORT->registro_cargas($file_reg_carga);
+
                         return redirect()->route('EaCargaIndividualImport.index')->with([
                             'success' => isset($generacion_txt['success']) ? $generacion_txt['success'] : '',
                             'generacionVal' => isset($generacion_txt['success']) ? '200' : '',
@@ -263,11 +286,21 @@ class EaCargaIndividualExport extends Controller
                         dd("KPE MARCADOR INCOMPLETO 1");
                     }
                 } else {
+
+                    // error o problema en archivos y retorno de datos
                     $this->op_client = EaOpcionesCargaCliente::where('codigo_id', $request->producto)->first();
                     $prod_id = explode(',', $this->op_client['subproducto']);
+                    // de verdad es nescesario ? 
+                    // solo tengo que usar la id que venga , mas el campo opcional , 
+                    // validacion del campo opcional "pendiente"
                     $objEXPORT = new EaGenCamExport(
                         $request
                     );
+                    /* $objEXPORT = new EaGenCamExport(
+                        $request,
+                        $this->op_client
+                    );*/
+                    // si lo valido con null ?
                     $file_reg_carga = array();
                     $file_reg_carga['cod_carga'] = strval($request->carga_resp);
                     $file_reg_carga['cliente'] = $request->clinte;
@@ -280,7 +313,7 @@ class EaCargaIndividualExport extends Controller
                     }
                     $ruta =  $objEXPORT->ruta_carga(); // unico metodo que usa el objexport
                     //$this->detalle_subproducto cambiar al campo personalizado que proviene directamente de opciones, opciones debe ser gol
-                    $res = preg_replace('([^A-Za-z0-9 ])', ' ', $this->op_client->archivo_nombre);
+                    $res = preg_replace('([^A-Za-z0-9 ])', ' ', $this->op_client->desc_producto);
                     //$detalle_subproducto->desc_subproducto
                     $fileName = $request->cliente . "-" . $res . "-" . date("d-m-Y") . "-" . strval($request->carga_resp) . $extension_file;
                     $headers = [
@@ -290,6 +323,8 @@ class EaCargaIndividualExport extends Controller
                     $file = public_path() . '/' . $ruta->ruta_gen_debito;
                     return Response::download($file, $fileName, $headers);
                     //https://www.adictosaltrabajo.com/2015/01/29/regexsam/
+
+
                 }
             } else {
                 return redirect()->route('EaCargaIndividualImport.index')->with([
@@ -305,7 +340,8 @@ class EaCargaIndividualExport extends Controller
             ]);
         }
     }
-
+    // funcion que deberia generar el texto plano 
+    // KPE texto plano , generar 
     private function genera_cadena_subproducto($objEXPORT, $request, $textoPlano)
     {
         $campo0 = $this->campo0;
@@ -319,10 +355,13 @@ class EaCargaIndividualExport extends Controller
         \Log::info('    $request->cliente : ' . $request->cliente);
         \Log::info('    $request->producto : ' . $request->producto);
         //\Log::info('    varcontrolsecuencia : ' . $varcontrolsecuencia);
+        // todavia no implementado idea de recorte 
         if (isset($this->op_caracteristica_ba) && $this->op_caracteristica_ba != null) {
             $request['op_caracteristica_ba'] = $this->op_caracteristica_ba;
         }
+
         $recorrido = $objEXPORT->generar($request);
+        //dd($recorrido);
         $cont = $this->cont;
         $tiempo_inicial = microtime(true);
         \Log::info('tiempo que inicia : ' . $tiempo_inicial);
@@ -331,6 +370,8 @@ class EaCargaIndividualExport extends Controller
         $valido_reg_sec = $valido_total;
         $limit_insert = 150;
         $row_insert_detalle = array();
+        // bloque para validaciones que interfieran con la consulta de eagencamexport.
+        // KPE posiblemente añadir produbanco 
         switch ($request->cliente) {
             case 'BGR':
                 $contador_bgr = 1;

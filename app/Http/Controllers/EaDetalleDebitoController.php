@@ -19,24 +19,36 @@ class EaDetalleDebitoController extends Controller
         //
     }
     //KPE metodo para limpiar tabla temporal
+    //https://localhost/ecuasistencia/public/clear_temp/todos
     public function clear_temp($token)
     {
         //cambios KPE
         if (isset($token)) {
             if ($token === 'todos') {
                 /// ejecutar comando para realizar la limpieza de datos, posiblemente usar este metodo tambien 
-
-                echo 'procegir a realizar la limpieza';
+               // echo 'procegir a realizar la limpieza';
+               $token = $this->condicion_opciones();
             } else {
-                echo 'servicio denegado ';
+               // echo 'servicio denegado ';
+               $token = $this->condicion_opciones(true);
             }
-
-
             dd($token);
             echo 'dentro de condicion ';
         }
         echo 'final ';
     }
+    //pruebas KPE robar
+    public function condicion_opciones($condicion = false)
+    {
+        $campos_opciones = array();
+            if ($condicion) {
+                echo 'ea_detalle_debito.opciones';
+            } else {
+                echo 'ratata';
+            }
+        return $condicion;
+    }
+
     /**
      * Store a newly created resource in storage.
      *
@@ -70,7 +82,7 @@ class EaDetalleDebitoController extends Controller
     }
 
     public function getDetalleDebitoOpciones(Request  $request)
-    {   
+    {
         // 2 tipos de validaciones uno con fecha y otro con esto puedo usar la misma opcion de for,
         // pero el espacio debe ser limitado , no puedo 
         // parametro de consulta (campo nuevo . modifica lka base de datos)

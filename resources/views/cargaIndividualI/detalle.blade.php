@@ -69,7 +69,25 @@
                     <td>
                         <div>
                             <svg class="c-icon c-icon-1xl mr-1">
-                            </svg>{{ $registro->usuario_registra }}
+                            </svg> @php 
+                                /*
+                                $value_custom = '';
+                                if(isset($registro->custom_code) && isset($registro->n_custom_code) )
+                                {
+                                    $value_custom = $registro->n_custom_code;
+                                    if(isset($registro->opciones_validacion)){
+                                        $opciones_validacion= json_decode($registro->opciones_validacion, true);
+                                        for ($i=1; $i <= $opciones_validacion['total']; $i++) { 
+                                            if($opciones_validacion['var_camp_'.$i]== $registro->n_custom_code){
+                                                $value_custom = $opciones_validacion['var_val_'.$i];
+                                            }
+                                        }
+                                    }
+                                }
+                                echo $value_custom;
+                                */
+                                @endphp
+                                {{$registro->opciones_validacion}}
                         </div>
                         
                     </td>
