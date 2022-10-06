@@ -26,11 +26,11 @@ class EaDetalleDebitoController extends Controller
         if (isset($token)) {
             if ($token === 'todos') {
                 /// ejecutar comando para realizar la limpieza de datos, posiblemente usar este metodo tambien 
-               // echo 'procegir a realizar la limpieza';
-               $token = $this->condicion_opciones();
+                // echo 'procegir a realizar la limpieza';
+                $token = $this->condicion_opciones();
             } else {
-               // echo 'servicio denegado ';
-               $token = $this->condicion_opciones(true);
+                // echo 'servicio denegado ';
+                $token = $this->condicion_opciones(true);
             }
             dd($token);
             echo 'dentro de condicion ';
@@ -41,11 +41,11 @@ class EaDetalleDebitoController extends Controller
     public function condicion_opciones($condicion = false)
     {
         $campos_opciones = array();
-            if ($condicion) {
-                echo 'ea_detalle_debito.opciones';
-            } else {
-                echo 'ratata';
-            }
+        if ($condicion) {
+            echo 'ea_detalle_debito.opciones';
+        } else {
+            echo 'ratata';
+        }
         return $condicion;
     }
 
@@ -69,9 +69,11 @@ class EaDetalleDebitoController extends Controller
     // existe un campo que consulta los detalles del subproducto por debajo 
     // los productos juntos son bolivariano ctas, produbanco tarjetas
     // BGR , es la consulta atrasada de 30 dias 
+
+
+    
     public function getMenuSubproductoOpciones(Request $request)
-    { // es nescesario este bloque por los subproducto que pertenecen a un tipo y existe 
-        // subproductos en export que nescesitan estar juntos  ashley noa olmedo
+    {
         $html = '<option value="" selected>Selecciona Producto</option>';
         $subproductos = EaOpcionesCargaCliente::where('cliente', $request->cliente)
             ->get();

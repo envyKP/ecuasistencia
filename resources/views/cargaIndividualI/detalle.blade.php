@@ -68,28 +68,27 @@
                     <!-- bloque para variable opciones -->
                     <td>
                         <div>
-                            <svg class="c-icon c-icon-1xl mr-1">
-                            </svg> @php 
+                            @php
                                 /*
-                                $value_custom = '';
-                                if(isset($registro->custom_code) && isset($registro->n_custom_code) )
-                                {
-                                    $value_custom = $registro->n_custom_code;
-                                    if(isset($registro->opciones_validacion)){
-                                        $opciones_validacion= json_decode($registro->opciones_validacion, true);
-                                        for ($i=1; $i <= $opciones_validacion['total']; $i++) { 
-                                            if($opciones_validacion['var_camp_'.$i]== $registro->n_custom_code){
-                                                $value_custom = $opciones_validacion['var_val_'.$i];
-                                            }
-                                        }
-                                    }
-                                }
-                                echo $value_custom;
-                                */
-                                @endphp
-                                {{$registro->opciones_validacion}}
+                                                                $value_custom = '';
+                                                                if(isset($registro->custom_code) && isset($registro->n_custom_code) )
+                                                                {
+                                                                    $value_custom = $registro->n_custom_code;
+                                                                    if(isset($registro->opciones_validacion)){
+                                                                        $opciones_validacion= json_decode($registro->opciones_validacion, true);
+                                                                        for ($i=1; $i <= $opciones_validacion['total']; $i++) { 
+                                                                            if($opciones_validacion['var_camp_'.$i]== $registro->n_custom_code){
+                                                                                $value_custom = $opciones_validacion['var_val_'.$i];
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                                echo $value_custom;
+                                                                */
+                            @endphp
+                            {{ $registro->opciones_validacion }}
                         </div>
-                        
+
                     </td>
                     <!-- -->
                     <td>
@@ -186,22 +185,23 @@
                                     'cliente' => $registro->cliente,
                                     'estado_cabecera' => $registro->estado,
                                     'producto' => $registro->producto,
+                                    'opciones_data' => $registro->opciones_validacion,
                                     'carga_resp' => $registro->cod_carga,
                                     'desc_producto' => $registro->desc_producto,
                                     'registros_no_cumplen' => session('registros_no_cumplen'),
                                 ])
                             </div>
                         @endif
-
                     </td>
                     <td>
-
                         <div class="row content-center">
                             <form id="form-factura" action="{{ route('EaCargaIndividualExport.generarFactura') }}"
                                 method="get">
-                                @if (strcmp($registro->estado, 'PROCESADO') == 0)
+                                @if (strcmp($registro->estado, 'PENDIENTE') == 0)
                                     <input type="hidden" name="carga_resp" value="{{ $registro->cod_carga }}">
                                     <input type="hidden" name="cliente" value="{{ $registro->cliente }}">
+                                    <input type="hidden" name="opciones_data"
+                                        value="{{ $registro->n_custom_code }}">
                                     <input type="hidden" name="producto" value="{{ $registro->producto }}">
                                     @csrf
                                     <button class="btn btn-warning mx-1" title="Facturacion" name="Facturacion"

@@ -24,5 +24,6 @@ class EaOpcionesCargaCliente extends Model
         'campoc',
         'campo0',
         'op_caracteristica_ba',
+        'formato_fecha',
     ];
 }
