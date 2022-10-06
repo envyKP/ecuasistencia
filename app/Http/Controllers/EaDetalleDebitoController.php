@@ -71,7 +71,7 @@ class EaDetalleDebitoController extends Controller
     // BGR , es la consulta atrasada de 30 dias 
 
 
-    
+
     public function getMenuSubproductoOpciones(Request $request)
     {
         $html = '<option value="" selected>Selecciona Producto</option>';
@@ -153,8 +153,29 @@ class EaDetalleDebitoController extends Controller
 
 
 
+
+    private function opciones_vista($valor)
+    {
+        if($valor){
+
+        }else{
+
+        }
+    }
+
+
+    /**
+     * control de parametros en Conjunto 
+     * añadir el otro parametro de subcategoria 
+     * cambiar la consulta a dinamica 
+     * 
+     * 
+     *  */
     public function update_debit_detail($cod_carga, $cliente, $producto, $row)
     {
+
+
+
         //$secuencia =  ltrim($row['secuencia'], '0');
         return   EaDetalleDebito::where('id_carga', $cod_carga)
             ->where('cliente', $cliente)
@@ -165,7 +186,6 @@ class EaDetalleDebitoController extends Controller
 
     public function update_debit_detail_join_BA($id_detalle, $row)
     {
-
         return   EaDetalleDebito::where('id_detalle', $id_detalle)
             ->update($row);
     }

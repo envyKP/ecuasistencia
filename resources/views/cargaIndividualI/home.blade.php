@@ -94,8 +94,17 @@
 
                 }
             });
-
-
+            $("#filtro_opciones").click(function() {
+                if ($("#filtro_opciones").is(":checked")) {
+                    $("#filtro_cliente").prop("checked", true);
+                    $("#filtro_producto").prop("checked", true);
+                    $("#filtro_opciones").prop("checked", true);
+                    $("#opciones_data").css("display", "block");
+                } else {
+                    $("#filtro_opciones").prop("checked", false);
+                    $("#opciones_data").css("display", "none");
+                }
+            });
 
             $("#filtro_genera").click(function() {
                 if ($("#filtro_genera").is(":checked")) {

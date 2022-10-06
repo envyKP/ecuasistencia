@@ -135,7 +135,7 @@
                                         </span>
                                     </div>
                                     <select class="form-control" name="opciones_data" id="opciones_data"
-                                        style="display:block">
+                                        style="display:none">
                                         <option value="" selected>{{ 'Seleccione Opcional' }}</option>
                                     </select>
                                 </div>

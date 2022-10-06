@@ -40,7 +40,7 @@ class EaCancelacionMasivaImport implements ToCollection, WithValidation, WithHea
     public function collection(Collection $rows)
     {
 
-        \Log::info('inside colleccion IMPORT class EaGemCamImport');
+        \Log::info('inside colleccion IMPORT class EaCancelacionMasivaImport');
         $obj_base_activa = (new EaBaseActivaController);
         $obj_det_carga_corp = (new EaDetalleCargaCorpController);
         $registros_duplicados = array();

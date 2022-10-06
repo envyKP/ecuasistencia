@@ -185,7 +185,7 @@
                                     'cliente' => $registro->cliente,
                                     'estado_cabecera' => $registro->estado,
                                     'producto' => $registro->producto,
-                                    'opciones_data' => $registro->opciones_validacion,
+                                    'opciones_data' => $registro->n_custom_code,
                                     'carga_resp' => $registro->cod_carga,
                                     'desc_producto' => $registro->desc_producto,
                                     'registros_no_cumplen' => session('registros_no_cumplen'),

@@ -161,7 +161,7 @@ class EaCargaIndividualImport extends Controller
         $registroCarga = EaCabeceraDetalleCarga::where('cod_carga', $request->cod_carga)
             ->where('cliente', $request->cliente)
             ->where('producto', $request->producto)->first();
-        $import = (new EaGemCamImport($request->cod_carga, $request->cliente, $request->producto));
+        $import = (new EaGemCamImport($request->cod_carga, $request->cliente, $request->producto,$request));// solo existe aki  ? ? 
         $op_client = EaOpcionesCargaCliente::where('cliente',  $request->cliente)->where('subproducto', $request->producto)->first();
         $opciones_validacion = json_decode($op_client->opciones_validacion, true); // no lo valide aki si no en eaGemCamImport // imposible se usa para validar la extension
         // no opcion a agarrar valor que venga en el txt , debido a que no sabre si es entero o decimal

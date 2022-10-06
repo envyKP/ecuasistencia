@@ -71,6 +71,7 @@
                                     <input type="hidden" name="producto" value="{{ $producto }}">
                                     <input type="hidden" name="desc_producto" value="{{ $desc_producto }}">
                                     <input type="hidden" name="estado_cabecera" value="{{ $estado_cabecera }}">
+                                    <input type="hidden" name="opciones_data" value="{{ $opciones_data }}">
                                     <input type="hidden" name="registros_no_cumplen"
                                         value="{{ $registros_no_cumplen }}">
                                     <input type="hidden" name="usuario_actualiza"
