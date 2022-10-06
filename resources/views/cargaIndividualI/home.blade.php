@@ -30,48 +30,33 @@
     </style>
     <script type="text/javascript">
         $(document).ready(function() {
+
+            
             $("#cliente").change(function() {
                 $.ajax({
-                    url: "{{ route('EaSubproductoController.getSubproductoNoAMA') }}?cliente=" +
+                    url: "{{route('EaDetalleDebitoController.getMenuSubproductoOpciones')  }}?cliente=" +
                         $(this).val(),
                     method: "get",
                     success: function(data) {
                         $("#producto").html(data.htmlProducto);
+                        //$("#opciones_data").html(data.htmlProducto);
                     }
                 });
             });
+            
+           
             $("#producto").change(function() {
                 $.ajax({
-                    url: "{{ route('EaSubproductoController.getSubproducto') }}?cliente=" + $(
-                        "#cliente").val() + "&contrato_ama=" + $(this).val(),
+                    url: "{{ route('EaDetalleDebitoController.getDetalleDebitoOpciones') }}?producto=" +
+                        $(this).val(),
                     method: "get",
                     success: function(data) {
-                        $("#subproducto").html(data.htmlSubproducto)
+                        $("#opciones_data").html(data.htmlProducto);
                     }
                 });
             });
-            /*$("#form-procesarCarga").submit(function() {
-                            $.ajax({
-                                beforeSend: function() {
-                                    $("#tabla-det-caraga-corp").find('div,button').prop("disabled", true);
-                                    $(".modal").remove();
-                                    $("#processCarga").css('display', 'block');
-                                    var porcentaje = '0';
-                                },
-                                uploadProgress: function(event,position,total,porcentajecompleto){
-                                    var porcentaje = porcentajecompleto;
-                                    $('.progress .progress-bar').css("width", porcentaje + '%',function(){return $(this).atrr("aria-valuenow",porcentaje)+ "%";
-                                })
-                                },
-                                complete: function(xhr){
-                                    $("#tabla-det-caraga-processCarga").find('div,button').prop("disabled", false);
-                                    $("#processCarga").css('hidden', 'block');
-                                }
-                            });
-                        });*/
-
+            
             $("#btn_genera").change(function() {
-
                 $.ajax({
                     success: function(data) {
                         alert("okay");
@@ -79,9 +64,7 @@
                 });
             });
 
-            /*document.getElementById("filtro_cliente").setCustomValidity(
-                    'Por favor seleccione este campo para continuar');
-    */
+    
             $("#filtro_cliente").click(function() {
                 if ($("#filtro_cliente").is(":checked")) {
                     $("#cliente").css('display', 'block');
@@ -111,8 +94,17 @@
 
                 }
             });
-
-
+            $("#filtro_opciones").click(function() {
+                if ($("#filtro_opciones").is(":checked")) {
+                    $("#filtro_cliente").prop("checked", true);
+                    $("#filtro_producto").prop("checked", true);
+                    $("#filtro_opciones").prop("checked", true);
+                    $("#opciones_data").css("display", "block");
+                } else {
+                    $("#filtro_opciones").prop("checked", false);
+                    $("#opciones_data").css("display", "none");
+                }
+            });
 
             $("#filtro_genera").click(function() {
                 if ($("#filtro_genera").is(":checked")) {
@@ -154,11 +146,54 @@
 
 
         });
-        /*
-        function upload_function(cod_carga, cliente, producto, desc_producto, estado_cabecera,registros_no_cumplen,username) {
-            
+
+        function updateList() {
+            var input = document.getElementById('archivo');
+            var output = document.getElementById('fileList');
+            for (var i = 0; i < input.files.length; ++i) {
+                output.innerHTML = input.files.item(i).name;
+            }
+        }
         
-        */
+        function upload_function(form, idbar) {
+            let url = '<?php echo url('recepcion/archivo/cargaIndividual/subirArchivo'); ?>';
+            let formulario = new FormData($(form)[0]);
+            //let idbar = 1;
+            var procesbarId = "processCargaDetalle" + idbar;
+            //document.getElementById("processCargaDetalle1").style.display = "block";
+            document.getElementById(procesbarId).style.display = "block";
+            //var refButton = document.getElementById("processCargaDetalle");
+            //refButton.style.display = "none";
+
+            $.ajax({
+                type: "POST",
+                url: url,
+                data: formulario,
+                async: false,
+                processData: false,
+                contentType: false,
+                dataType: "json",
+
+                success: function(response) {
+
+                    var parsed_data = JSON.parse(JSON.stringify(response));
+                    let msg_response = parsed_data.mensaje;
+                    document.getElementById(procesbarId).style.display = "none";
+                    alert(msg_response);
+                    var percentVal = 'Wait, Saving';
+                    $('.progress .progress-bar').css("width", "0%");
+
+                },
+                error: function(response) {
+                    document.getElementById(procesbarId).style.display = "none";
+                    alert("Error " + response.error);
+                }
+            });
+
+        }
+
+
+
         function evgenera() {
             document.getElementById("processCargaDetalle").style.display = "block";
         }
@@ -251,14 +286,6 @@
 
         function validate(formData, jqForm, options) {
             var form = jqForm[0];
-        }
-
-        function updateList() {
-            var input = document.getElementById('archivo');
-            var output = document.getElementById('fileList');
-            for (var i = 0; i < input.files.length; ++i) {
-                output.innerHTML = input.files.item(i).name;
-            }
         }
     </script>
 @endsection

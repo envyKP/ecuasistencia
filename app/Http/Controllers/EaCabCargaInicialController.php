@@ -32,13 +32,12 @@ class EaCabCargaInicialController extends Controller
 
         $clientes =  (new EaClienteController)->getAllCampanas();
         $resumen_cabecera = EaCabeceraCargaCorp::orderBy('cod_carga')
+        ->where('proceso', 'carga_inicial')
             ->paginate(5);
 
         return view('cargaInicial.home')->with(compact('clientes'))
             ->with(isset($resumen_cabecera) ? compact('resumen_cabecera') : '');
     }
-
-
 
 
     /**
@@ -56,7 +55,6 @@ class EaCabCargaInicialController extends Controller
         return view('cargaInicial.home')->with(compact('clientes'))
             ->with(compact('RegistrosPendientes'));
     }
-
 
 
     /**
@@ -91,10 +89,8 @@ class EaCabCargaInicialController extends Controller
                 ->orWhere('proceso', 'generacion_infor_finan');
         })->orderBy('cliente')
             ->paginate(5);
-
         return $cabecera;
     }
-
 
 
     /**
@@ -112,9 +108,6 @@ class EaCabCargaInicialController extends Controller
         return $cabecera;
     }
 
-
-
-
     /**
      * Store a newly created resource in storage.
      *
@@ -123,58 +116,45 @@ class EaCabCargaInicialController extends Controller
      */
     public function uploadArchivos(Request  $request)
     {
-
         $datosCab = $request->except('_token', 'subproducto', 'filtro_cliente', 'filtro_producto', 'filtro_subproducto');
-        $fecha = Date('Ymd');
+        //$fecha = Date('Ymd');
 
         $productoDetalle = (new EaProductoController)->getProductoDetalle($request->cliente, $request->producto);
         $extension = $request->file('archivo')->extension();
-
+        $proceso_valor = 'carga_inicial';
 
         if (strtolower($extension) == 'xls' || strtolower($extension) == 'xlsx') {
-
             $datosCab['cod_carga'] = (new EaCabCargaInicialBitacoraController)->get_max_cod_carga_bita();
-            $datosCab['proceso'] = 'carga_inicial';
+            $datosCab['proceso'] = $proceso_valor;
             $datosCab['usuario_registra'] = $request->usuario_registra;
             $datosCab['fec_registro'] = Date('d/m/Y H:i:s');
             $datosCab['estado'] = 'PENDIENTE';
-
             $existe_visible = $this->valida_proceso_visible('carga_inicial');
             !$existe_visible ? $datosCab['visible'] = 'S' : '';
-
             if (isset($productoDetalle)) {
                 $datosCab['desc_producto'] = $productoDetalle->desc_producto;
             } else {
-
                 $datosCab['producto'] = '';
                 $datosCab['desc_producto'] = '';
             }
-
             if ($request->hasfile('archivo')) {
                 $nombre_archivo = $request->file('archivo')->getClientOriginalName();
                 //$nombre_archivo = "BASE_COLOCACION_".$request->cliente.'_'.$fecha.'.xlsx';
-                $datosCab['archivo'] = $request->file('archivo')->storeAs('cargas_inicial/' . $request->cliente, $nombre_archivo, 'public');
+                $datosCab['archivo'] = $request->file('archivo')->storeAs($proceso_valor.'/' . $request->cliente, $nombre_archivo, 'public');
             }
-
             $trx = EaCabeceraCargaCorp::insert($datosCab);
-
             if ($trx) {
-
                 $rsp = (new EaCabCargaInicialBitacoraController)->create_bitacora($datosCab['cod_carga']);
                 $success = "Archivo: " . $nombre_archivo . ", del cliente: " . $request->cliente . " cargado en estado pendiente de procesar.";
             }
         } else {
             $error = "Archivos permitidos: xls ó xlsx";
         }
-
-
         return redirect()->route('EaCabCargaInicialController.index')->with([
             'success' => isset($success) ? $success : '',
             'error' => isset($error) ? $error : ''
         ]);
     }
-
-
 
 
     /**
@@ -207,12 +187,10 @@ class EaCabCargaInicialController extends Controller
             $registro['subproducto'] = null;
         }
 
-
         $data = EaDetalleCargaCorp::where('cod_carga', $request->cod_carga)
             ->where('estado', 'PROCESADO')
             ->where('disponible_gestion', 'S')
             ->get();
-
 
         foreach ($data as $carga_inicial) {
 
@@ -241,19 +219,15 @@ class EaCabCargaInicialController extends Controller
                 $registro['tiptar'] = 'A';
                 $registro['dettiptar'] =  strtoupper($carga_inicial->tipo_de_tarjeta);
             }
-
-
             $obj_base_activa->storeArchivo($registro);
         }
-
-
         $cambio_estado = EaDetalleCargaCorp::where('cod_carga', $request->cod_carga)
             ->where('estado', 'PROCESADO')
             ->where('disponible_gestion', 'S')
             ->exists();
 
         if ($cambio_estado) {
-
+            // es temporal pero no lo borra de la base activa
             EaDetalleCargaCorp::where('cod_carga', $request->cod_carga)
                 ->where('estado', 'PROCESADO')
                 ->where('disponible_gestion', 'S')

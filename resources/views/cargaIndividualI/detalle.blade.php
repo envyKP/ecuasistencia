@@ -4,6 +4,7 @@
             <th class="text-center">{{ 'Código de carga' }}</th>
             <th>{{ 'Cliente' }}</th>
             <th>{{ 'Producto' }}</th>
+            <th>{{ 'Opciones' }}</th>
             <th>{{ 'Usuario genera' }}</th>
             <th>{{ 'Fecha generacion' }}</th>
             <th>{{ 'Nombre Archivo' }}</th>
@@ -64,6 +65,32 @@
                         </div>
                     </td>
                     <td>{{ $registro->desc_producto }}</td>
+                    <!-- bloque para variable opciones -->
+                    <td>
+                        <div>
+                            @php
+                                /*
+                                                                $value_custom = '';
+                                                                if(isset($registro->custom_code) && isset($registro->n_custom_code) )
+                                                                {
+                                                                    $value_custom = $registro->n_custom_code;
+                                                                    if(isset($registro->opciones_validacion)){
+                                                                        $opciones_validacion= json_decode($registro->opciones_validacion, true);
+                                                                        for ($i=1; $i <= $opciones_validacion['total']; $i++) { 
+                                                                            if($opciones_validacion['var_camp_'.$i]== $registro->n_custom_code){
+                                                                                $value_custom = $opciones_validacion['var_val_'.$i];
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                                echo $value_custom;
+                                                                */
+                            @endphp
+                            {{ $registro->opciones_validacion }}
+                        </div>
+
+                    </td>
+                    <!-- -->
                     <td>
                         <div>
                             <svg class="c-icon c-icon-1xl mr-1">
@@ -73,18 +100,18 @@
                             </svg>{{ $registro->usuario_registra }}
                         </div>
                     </td>
+
                     <td>
                         <svg class="c-icon c-icon-1xl">
                             <use
                                 xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-calendar') }} ">
                             </use>
-                        </svg> {{ $registro->fec_registro }}
+                        </svg> {{ \Carbon\Carbon::parse($registro->fec_registro)->format('d/m/Y H:m:s') }}
                     </td>
                     @php
                         $condicio_name = isset($registro->archivo) ? $registro->archivo : '';
                         $name_file = explode('/', $registro->archivo);
                         $value_name = isset($registro->archivo) ? $name_file[count($name_file) - 1] : '';
-                        
                     @endphp
                     <td>
                         {{ $value_name }}
@@ -158,26 +185,27 @@
                                     'cliente' => $registro->cliente,
                                     'estado_cabecera' => $registro->estado,
                                     'producto' => $registro->producto,
+                                    'opciones_data' => $registro->n_custom_code,
                                     'carga_resp' => $registro->cod_carga,
                                     'desc_producto' => $registro->desc_producto,
                                     'registros_no_cumplen' => session('registros_no_cumplen'),
                                 ])
                             </div>
                         @endif
-
                     </td>
                     <td>
-
                         <div class="row content-center">
                             <form id="form-factura" action="{{ route('EaCargaIndividualExport.generarFactura') }}"
                                 method="get">
-                                @if (strcmp($registro->estado, 'PROCESADO') == 0)
+                                @if (strcmp($registro->estado, 'PENDIENTE') == 0)
                                     <input type="hidden" name="carga_resp" value="{{ $registro->cod_carga }}">
                                     <input type="hidden" name="cliente" value="{{ $registro->cliente }}">
+                                    <input type="hidden" name="opciones_data"
+                                        value="{{ $registro->n_custom_code }}">
                                     <input type="hidden" name="producto" value="{{ $registro->producto }}">
                                     @csrf
                                     <button class="btn btn-warning mx-1" title="Facturacion" name="Facturacion"
-                                        id="btn_Facturacion" type="submit" >
+                                        id="btn_Facturacion" type="submit">
                                         <svg class="c-icon c-icon-1xl">
                                             <use
                                                 xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-description') }} ">

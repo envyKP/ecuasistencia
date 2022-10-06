@@ -67,18 +67,16 @@ class EaDetalleCargaCorpController extends Controller
      * @param  \App\Models\EaDetalleCargaCorp  $eaDetalleCargaCorp
      * @return \Illuminate\Http\Response
      */
-    public function existe_registro ($cod_carga, $cliente, $cedula_id)
+    public function existe_registro($cod_carga, $cliente, $cedula_id)
     {
         //
         $trx = EaDetalleCargaCorp::where('cod_carga', $cod_carga)
-                                 ->where('cliente', $cliente)
-                                 ->where('cedula_id', $cedula_id)
-                                 ->exists();
+            ->where('cliente', $cliente)
+            ->where('cedula_id', $cedula_id)
+            ->exists();
 
         return $trx;
     }
-
-
 
     /**
      * Remove the specified resource from storage.
@@ -88,12 +86,12 @@ class EaDetalleCargaCorpController extends Controller
      */
     public function truncate($cod_carga, $cliente)
     {
-
+        // borra todo con ->truncate();
         $trx = EaDetalleCargaCorp::where('cod_carga', $cod_carga)
-                                 ->where('cliente', $cliente)
-                                 ->truncate();
-
+            ->where('cliente', $cliente)
+            ->delete();
         return $trx;
-
     }
+
+    
 }

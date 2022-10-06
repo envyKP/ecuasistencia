@@ -82,15 +82,14 @@
                                     <span class="input-group-text form-control">
                                         <!-- form-control: ajusta el span(sombreado) al texto y al check-->
                                         <label class="c-switch c-switch-label c-switch-success mt-2">
-                                            <input class="c-switch-input" type="checkbox"  name="filtro_cliente"
+                                            <input class="c-switch-input" type="checkbox" name="filtro_cliente"
                                                 id="filtro_cliente" value="cliente"><span class="c-switch-slider"
                                                 data-checked="On" data-unchecked="Off"></span>
                                         </label>
                                         <strong class="ml-1"> {{ 'Por cliente: ' }} </strong>
                                     </span>
                                 </div>
-                                <select class="form-control" name="cliente" id="cliente" 
-                                    style="display:none">
+                                <select class="form-control" name="cliente" id="cliente" style="display:none">
                                     <option value="" selected>{{ 'Seleccione un cliente' }}</option>
                                     @foreach ($clientes as $cliente)
                                         <option value="{{ $cliente->cliente }}">{{ $cliente->desc_cliente }}
@@ -120,6 +119,30 @@
                                 </div>
                             </div>
                         </div>
+
+                        <div class="col-sm-3 col-md-3">
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text form-control">
+                                            <label class="c-switch c-switch-label c-switch-success mt-2">
+                                                <input class="c-switch-input" type="checkbox" name="filtro_opciones"
+                                                    id="filtro_opciones" value="opciones_data"><span
+                                                    class="c-switch-slider" data-checked="On"
+                                                    data-unchecked="Off"></span>
+                                            </label>
+                                            <strong class="ml-1"> {{ 'Opcion Adicional:' }} </strong>
+                                        </span>
+                                    </div>
+                                    <select class="form-control" name="opciones_data" id="opciones_data"
+                                        style="display:none">
+                                        <option value="" selected>{{ 'Seleccione Opcional' }}</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+
                     </div>
                     <div class="row">
                         <div class="col-sm-4 col-md-4">

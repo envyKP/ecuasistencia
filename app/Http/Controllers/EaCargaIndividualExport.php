@@ -8,23 +8,25 @@ use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use App\Models\EaCabeceraCargaCorp;
 use App\Models\EaCabeceraDetalleCarga;
-use App\Models\EaProducto;
-use App\Models\EaSubproducto;
 use App\Http\Controllers\EaClienteController;
 use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Imports\EaDetCargaCorpImport;
-use App\Http\Controllers\EaBaseActivaController;
-use App\Http\Controllers\EaProductoController;
 use App\Http\Controllers\EaSubproductoController;
-use App\Http\Controllers\EaParaInsert;
-use App\Http\Controllers\EaCabCargaInicialBitacoraController;
-use App\Http\Controllers\EaDetalleCargaCorpController;
 use App\Models\EaOpcionesCargaCliente;
-use Maatwebsite\Excel\Concerns\Exportable;
 use App\Models\EaCliente;
+use App\Models\EaDetalleDebito;
 use App\Exports\EaGenCamExport;
-use App\Exports\UsersExport;
+use Carbon\Carbon;
+//use App\Models\EaProducto;
+//use App\Models\EaSubproducto;
+//use App\Imports\EaDetCargaCorpImport;
+//use App\Http\Controllers\EaBaseActivaController;
+//use App\Http\Controllers\EaProductoController;
+//use App\Http\Controllers\EaParaInsert;
+//use App\Http\Controllers\EaCabCargaInicialBitacoraController;
+//use App\Http\Controllers\EaDetalleCargaCorpController;
+//use Maatwebsite\Excel\Concerns\Exportable;
+//use App\Exports\UsersExport;
 
 //use Illuminate\Http\Response;
 
@@ -35,6 +37,7 @@ use Defuse\Crypto\Crypto;
 use Defuse\Crypto\Key;
 use Illuminate\Support\Arr;
 use PhpParser\Node\Expr\Cast\Double;
+use PhpParser\Node\Stmt\Break_;
 
 class EaCargaIndividualExport extends Controller
 {
@@ -58,317 +61,496 @@ class EaCargaIndividualExport extends Controller
      */
     public function exporta(Request $request)
     {
-        if ($request->btn_genera == 'buscar') {
-
-            $clientes =  (new EaClienteController)->getAllCampanas();
-            \Log::info('funcion exporta clase EaCargaIndividualExport :' . $request->cliente . '    ???   ' . $request->producto);
-
-            if (isset($request->cliente)) {
-                \Log::info('1');
-                $resumen_cabecera = EaCabeceraDetalleCarga::orderBydesc('fec_registro')
-                    ->where('is_det_debito', '1')
-                    ->where('cliente', $request->cliente)
-                    ->paginate(15);
-
-                if (isset($request->producto)) {
-                    \Log::info('2');
-                    $resumen_cabecera = EaCabeceraDetalleCarga::orderBydesc('fec_registro')
-                        ->where('is_det_debito', '1')
-                        ->where('cliente', $request->cliente)
-                        ->where('producto', $request->producto)
-                        ->paginate(15);
-                }
-            }
-
-            if (isset($request->state)) {
-                $resumen_cabecera = EaCabeceraDetalleCarga::orderBydesc('fec_registro')
-                    ->where('is_det_debito', '1')
-                    ->where('estado', $request->state)
-                    ->paginate(15);
+        //abort(404, ' Configuracion faltante en tabla opciones subproductos');
+        try {
+            if ($request->btn_genera == 'buscar') {
+                $clientes =  (new EaClienteController)->getAllCampanas();
+                //\Log::info('funcion exporta clase EaCargaIndividualExport :' . $request->cliente . '    ???   ' . $request->producto);
                 if (isset($request->cliente)) {
-                    $resumen_cabecera = EaCabeceraDetalleCarga::orderBydesc('fec_registro')
+                    //\Log::info('Consulta a cliente :' . $request->cliente);
+                    $resumen_cabecera = EaCabeceraDetalleCarga::select(
+                        '*',
+                        //EaCabeceraDetalleCarga::raw("CONVERT(date,fec_registro, 105) as 'fec_registro2'"),
+                    )->orderBydesc('fec_registro')
                         ->where('is_det_debito', '1')
-                        ->where('estado', $request->state)
                         ->where('cliente', $request->cliente)
                         ->paginate(15);
                     if (isset($request->producto)) {
-                        $resumen_cabecera = EaCabeceraDetalleCarga::orderBydesc('fec_registro')
+                        \Log::info('Consulta a cliente :' . $request->cliente . ' ' . $request->producto);
+                        $resumen_cabecera = EaCabeceraDetalleCarga::select(
+                            '*',
+                            // EaCabeceraDetalleCarga::raw("CONVERT(date,fec_registro, 105) as 'fec_registro2'"),
+                        )->orderBydesc('fec_registro')
                             ->where('is_det_debito', '1')
-                            ->where('estado', $request->state)
                             ->where('cliente', $request->cliente)
                             ->where('producto', $request->producto)
                             ->paginate(15);
                     }
-                } elseif (isset($request->producto)) {
-                    $resumen_cabecera = EaCabeceraDetalleCarga::orderBydesc('fec_registro')
+                }
+                if (isset($request->state)) {
+                    $resumen_cabecera = EaCabeceraDetalleCarga::select(
+                        '*',
+                        //EaCabeceraDetalleCarga::raw("CONVERT(date,fec_registro, 105) as 'fec_registro2'"),
+                    )->orderBydesc('fec_registro')
                         ->where('is_det_debito', '1')
                         ->where('estado', $request->state)
-                        ->where('producto', $request->producto)
                         ->paginate(15);
+                    if (isset($request->cliente)) {
+                        $resumen_cabecera = EaCabeceraDetalleCarga::select(
+                            '*',
+                            // EaCabeceraDetalleCarga::raw("CONVERT(date,fec_registro, 105) as 'fec_registro2'"),
+                        )->orderBydesc('fec_registro')
+                            ->where('is_det_debito', '1')
+                            ->where('estado', $request->state)
+                            ->where('cliente', $request->cliente)
+                            ->paginate(15);
+                        if (isset($request->producto)) {
+                            $resumen_cabecera = EaCabeceraDetalleCarga::select(
+                                '*',
+                                //     EaCabeceraDetalleCarga::raw("CONVERT(date,fec_registro, 105) as 'fec_registro2'"),
+                            )->orderBydesc('fec_registro')
+                                ->where('is_det_debito', '1')
+                                ->where('estado', $request->state)
+                                ->where('cliente', $request->cliente)
+                                ->where('producto', $request->producto)
+                                ->paginate(15);
+                        }
+                    } elseif (isset($request->producto)) {
+                        $resumen_cabecera = EaCabeceraDetalleCarga::select(
+                            '*',
+                            //   EaCabeceraDetalleCarga::raw("CONVERT(date,fec_registro, 105) as 'fec_registro2'"),
+                        )->orderBydesc('fec_registro')
+                            ->where('is_det_debito', '1')
+                            ->where('estado', $request->state)
+                            ->where('producto', $request->producto)
+                            ->paginate(15);
+                    }
                 }
-            }
-            return view('cargaIndividualI.home')
-                ->with(compact('clientes'))
-                ->with(isset($resumen_cabecera) ? compact('resumen_cabecera') : '');
-        } else {
-
-            if (isset($request->cliente) || isset($request->desc_subproducto)) {
-
-
-
-                \Log::info('funcion exporta clase EaCargaIndividualExport');
-                \Log::warning('usuario que realiza la orden: ' . \Auth::user()->username);
-                // \Log::warning('Something could be going wrong.');
-                // \Log::error('Something is really going wrong.');
-
-                $varcontrolsecuencia = (isset($request->carga_resp) ? strval($request->carga_resp) : null);
-                $detalle_subproducto = ((new EaSubproductoController)->getSubproductoDetalle($request->cliente, $request->producto));
-                $objEXPORT = new EaGenCamExport($request->cliente, $detalle_subproducto->desc_subproducto, $varcontrolsecuencia, $request->producto, $detalle_subproducto->tipo_subproducto);
-                $op_client = EaOpcionesCargaCliente::where('cliente', $request->cliente)->where('subproducto', $request->producto)->first();
-                $opciones_fijas = json_decode($op_client->opciones_fijas, true);
-                $campos_export = json_decode($op_client->campos_export, true);
-                $campoC = json_decode($op_client->campoc, true);
-                $campo0 = json_decode($op_client->campo0, true);
-                $this->campo0 = $campo0;
-                if (!isset($request->carga_resp)) {
-                    $contenido = file_get_contents("../salsa.txt");
-                    $clave = Key::loadFromAsciiSafeString($contenido);
-                    \Log::info('Request : ');
-                    \Log::info('    $request->cliente : ' . $request->cliente);
-                    \Log::info('    $request->producto : ' . $request->producto);
-                    \Log::info('    varcontrolsecuencia : ' . $varcontrolsecuencia);
-                    $recorrido = $objEXPORT->generar();
-                    $ultima_carga = $objEXPORT->is_carga_older();
-                    $textoPlano = "";
-                    $detallevalidacion = array();
-                    $cont = 0;
-                    $condicion = false;
-
-                    $tiempo_inicial = microtime(true);
-                    \Log::info('tiempo que inicia : ' . $tiempo_inicial);
-                    $valido_sec = 1;
-                    $valido_total = count($recorrido);
-                    $valido_reg_sec = $valido_total;
-                    // EN GENERACION CAMPOS QUEMADOS
-                    if (isset($campoC["frase"])) {
-                        switch ($request->cliente) {
-                            case 'BGR':
-                                $textoPlano .= str_replace("{{date}}", date('Y/m/d'), $campoC["frase"]);
-                                $textoPlano .= "     " . count($recorrido);
-                                $textoPlano .= "\n";
-                                break;
-                            case 'PRODUBANCO':
-                                if (isset($campoC["fraseF"])) {
-                                } else {
-                                    //frase = TREC02210000000
-                                    $cont = 1;
-                                    $textoPlano .= $campoC["frase"] . $cont . "30850130850000000000000000033975300000000000000000000000000";
-                                    $textoPlano .= "\n";
-                                }
-                                break;
-                            default:
-                                $textoPlano .= $campoC["frase"];
-                                break;
+                return view('cargaIndividualI.home')
+                    ->with(compact('clientes'))
+                    ->with(isset($resumen_cabecera) ? compact('resumen_cabecera') : '');
+            } else {
+                if (isset($request->cliente) || isset($request->desc_subproducto)) {
+                    if (!isset($request->carga_resp)) {
+                        $this->op_client = EaOpcionesCargaCliente::where('codigo_id', $request->producto)->first();
+                        $this->opciones_fijas = json_decode($this->op_client->opciones_fijas, true);
+                        $this->campos_export = json_decode($this->op_client->campos_export, true);
+                        $this->campoC = json_decode($this->op_client->campoc, true);
+                        $this->campo0 = json_decode($this->op_client->campo0, true);
+                        $this->op_caracteristica_ba = json_decode($this->op_client->op_caracteristica_ba, true);
+                        if (isset($this->op_caracteristica_ba['campo_ba'])) {
+                            $request['opcion_campo'] = $this->op_caracteristica_ba['campo_ba'];
                         }
-                    }
-                    $limit_insert = 150;
-                    $row_insert_detalle = array();
-                    foreach ($recorrido as $individual) {
-                        if (isset($op_client->num_elem_export)) {
-                            $cont++;
-                            $secuencia = "";
-                            for ($i = 1; $i <= $op_client->num_elem_export; $i++) {
-                                // variable temporal que tendra el texto
-                                $value_field = "";
-                                if (isset($campos_export[$i]) || isset($opciones_fijas[$i])) {
-                                    $value_field =  isset($campos_export[$i]) ? $individual[$campos_export[$i]] : $opciones_fijas[$i];
-                                    //$text_temp = strlen($value_field);
-                                    if ((strlen($value_field) > 100)) {
-                                        // echo $value_field;
-                                        $value_field = Crypto::decrypt($value_field, $clave);
-                                        //dd($value_field);
-                                    }
-                                    if (isset($campos_export[$i])) {
-                                        // dd("esta en campos_export");
-                                        if (
-                                            $campos_export[$i] == 'deduccion_impuesto'  ||
-                                            ($campos_export[$i]) == 'subtotal' ||
-                                            ($campos_export[$i]) == 'valortotal'
-                                        ) {
-                                            //dd($campos_export[$i]);
-                                            if (str_contains($value_field, ".")) {
-                                                $validateLen = explode('.', $value_field);
-                                                //dd(strlen($validateLen[count($validateLen)-1]));
-                                                if (strlen($validateLen[count($validateLen) - 1]) == 2) {
-                                                    $value_field =   str_replace(".", "", $value_field);
-                                                } else {
-                                                    $value_field =   str_replace(".", "", $value_field);
-                                                    $value_field .= "0";
-                                                }
-                                            } else {
-                                                $value_field = $value_field . "00";
-                                            }
-                                        }
-                                    }
-                                    if (isset($campo0['campo0_' . $i]) || isset($campo0['campo0D_' . $i]) || isset($campo0['campoE_' . $i]) || isset($campo0['campoED_' . $i])) { //iria al final o al comienzo ?    
-                                        // METODO 
-                                        //  dd("esta en campo0");
-                                        $value_field = $this->validate_0_E($value_field, $i);
-                                    } else {
-                                        if (isset($campoC['insert_date_' . $i])) {
-                                            $value_field = str_replace('insert_date_' . $i, strtoupper(date($campoC['insert_date_' . $i])), $value_field);
-                                        }
-                                    }
-                                    $textoPlano .= $value_field;
-                                    //echo  $textoPlano;
-                                    //dd($value_field);
-                                    if (isset($campoC["espacios"])) {
-                                        $textoPlano .= $campoC["espacios"];
-                                    }
-                                } elseif (isset($campoC['campoC_' . $i])) {
-                                    if ($campoC['campoC_' . $i] == "contador_secuencia") {
-                                        $secuencia = $cont;
-                                    } else {
-                                        $secuencia = date($campoC['campoC_' . $i]);
-                                    }
-                                    if (isset($campo0['campo0_' . $i]) || isset($campo0['campo0D_' . $i]) || isset($campo0['campoE_' . $i]) || isset($campo0['campoED_' . $i])) { //iria al final o al comienzo ?    
-                                        $secuencia = $this->validate_0_E($secuencia, $i);
-                                    }
-                                    $value_field = $secuencia;
-                                    $textoPlano .= $value_field;
-                                    if (isset($campoC["espacios"])) {
-                                        $textoPlano .= $campoC["espacios"];
-                                    }
-                                }
-                            }
-                        } else {
-                            \Log::error('Falta una configuracion , porfavor acceda a Ea_opciones_carga_cliente.');
-                            dd("Falta una configuracion , porfavor acceda a Ea_opciones_carga_cliente");
-                        }
-                        $textoPlano .= "\n";
-                        $condicion = true;
-                        $row_insert_sets = array();
-                        $id_carga = (isset($individual->id_carga) ? $individual->id_carga : 1);
-                        $fecha_generacion = (isset($ultima_carga->fecha_generacion) ? $ultima_carga->fecha_generacion : 0);
-                        if ($fecha_generacion != date('mY')) {
-                            $id_carga = (isset($ultima_carga->id_carga) ? $ultima_carga->id_carga : 0);
-                        }
-                        $row_insert_sets['id_sec'] = isset($individual->id_sec) ? trim($individual->id_sec) : null; // ok
-                        $row_insert_sets['id_carga'] = $id_carga + 1; // ok
-                        if (isset($campoC['identificador'])) {
-                            if ($campoC['identificador'] == 'secuencia') {
-                                $row_insert_sets['secuencia'] = ltrim($secuencia, '0');
-                            } elseif ($campoC['identificador'] == 'cedula_id') {
-                                //cuentas , cedula por defecto
-                                $row_insert_sets['secuencia'] = $individual->cedula_id;
+
+                        $textoPlano = "";
+                        $this->cont = 0;
+                        if (isset($this->op_client['subproducto'])) {
+                            ///bloque de repeticion
+                            $prod_id = explode(',', $this->op_client['subproducto']);
+                            //ya no tiene realacion con el subproducto de prod si no el de la base en detalles_debitos
+                            $ultima_carga = $this->ultima_carga_subproducto($request);
+                            $ultima_carga = ($ultima_carga != null ? $ultima_carga : null);
+                            if (isset($ultima_carga['id_carga'])) {
+                                $ultima_carga['id_carga'] = $ultima_carga['id_carga'] + 1;
                             } else {
-                                \Log::error('Error Fatal , no esta bien configurado el identificador de forma correcta , porfavor especifique si es el campo cedula_id o es una secuencia');
-                                dd("Error Fatal , no esta bien configurado el identificador de forma correcta , porfavor especifique si es el campo cedula_id o es una secuencia");
+                                $ultima_carga['id_carga'] = 1;
                             }
-                        } else {
-                            $row_insert_sets['secuencia'] = $individual->cedula_id;
-                        }
-                        $row_insert_sets['fecha_registro'] = date('d/m/Y H:i:s'); //ok
-                        $row_insert_sets['subproducto_id'] = $request->producto; //ok
-                        $row_insert_sets['cliente'] = $request->cliente; //ok
-                        $row_insert_sets['estado'] = "0"; //sing
-                        $row_insert_sets['fecha_generacion'] =  date('mY'); //ok
-                        array_push($row_insert_detalle, $row_insert_sets);
-                        $row_insert_sets = array();
-                        if ($valido_sec == $limit_insert) {
-                            $valido_sec = 0;
-                            $valido_reg_sec = $valido_reg_sec - $limit_insert;
-                            $objEXPORT->view_reg_state($row_insert_detalle);
-                            $row_insert_detalle = array();
-                        } elseif ($valido_sec == $valido_reg_sec) {
-                            $objEXPORT->view_reg_state($row_insert_detalle);
-                        }
-                        $valido_sec++;
-                    }
-                    $tiempo_final = microtime(true);
-                    \Log::info('tiempo que termina : ' . $tiempo_final);
+                            $this->ultima_carga = ($ultima_carga != null ? $ultima_carga : null);
+                            $conut_adicionales = 0;
 
-                    $textoPlano =  str_replace("{{secuencia}}", $cont,  $textoPlano);
-                    $extension_file = ".";
-                    if (isset($campoC["extension"])) {
-                        $extension_file .= $campoC["extension"];
+                            foreach ($prod_id as $producto) {
+                                $conut_adicionales++;
+                                $this->detalle_subproducto = ((new EaSubproductoController)->getSubproductoDetalle($request->cliente, $producto));
+                                $objEXPORT = new EaGenCamExport(
+                                    $request,
+                                    $this->detalle_subproducto
+                                );
+                                $generacion_txt = $this->genera_cadena_subproducto($objEXPORT, $request,  $textoPlano);
+                                if (($conut_adicionales < count($prod_id))) {
+                                    $textoPlano = $textoPlano . $generacion_txt['textoPlano'];
+                                } elseif (($conut_adicionales == count($prod_id))) {
+                                    $textoPlano = $generacion_txt['textoPlano'];
+                                }
+                                if ($textoPlano == "") {
+                                    $textoPlano = $textoPlano . $generacion_txt['textoPlano'];
+                                }
+                            }
+                            //dd($conut_pruebas);
+                            if (isset($campoC["frase"])) {
+                                switch ($request->cliente) {
+                                    case 'BGR':
+                                        $contador_bgr = 1; // iniciaba el contador aki , y seguia hasta terminar 
+                                        // no deberia ser nescesario en la parte de general , ya que el contador normal deberia servir 
+                                        $time = strtotime(date("Y-m-d"));
+                                        $num2 = 30; // añadir validacion a extraer 
+                                        $final = date("Y-m-d", strtotime(" -" . $num2 . " day ", $time));
+                                        $primera_linea = str_replace("{{date}}", $final, $this->campoC["frase"]);
+                                        $primera_linea .= "\n";
+                                        $primera_linea = $primera_linea . $textoPlano;
+                                        $textoPlano = $primera_linea;
+                                        break;
+                                        /*
+                                    case 'PRODUBANCO':
+                                        if (isset($campoC["fraseF"])) {
+                                        } else {
+                                            $aproximado_calculo = $generacion_txt['count_recorrido'] * $this->detalle_subproducto['valortotal'];
+                                            $textoPlano .= $campoC["frase"] . $this->cont . " " . $aproximado_calculo . " "; //CALCULO
+                                            $textoPlano .= "\n";
+                                        }
+                                        break;
+                                        */
+                                    default:
+                                        //$textoPlano .= $campoC["frase"];
+                                        break;
+                                }
+                            }
+                            $tiempo_final = microtime(true);
+                            \Log::info('tiempo que termina : ' . $tiempo_final);
+                            $extension_file = ".";
+                            if (isset($this->campoC["extension"])) {
+                                $extension_file .= $this->campoC["extension"];
+                            } else {
+                                $extension_file .= "txt";
+                            }
+                            $id_carga = (isset($this->ultima_carga['id_carga']) ? $this->ultima_carga['id_carga'] : 1);
+                            $fecha_generacion = (isset($this->ultima_carga->fecha_generacion) ? $this->ultima_carga->fecha_generacion : 0);
+                            //bloque de insertar cabezera detalle
+                            /*
+                        $file_reg_carga = array();
+                        $file_reg_carga['cod_carga'] = $id_carga;
+                        $file_reg_carga['cliente'] = $request->cliente;
+                        $file_reg_carga['producto'] = $request->producto;
+                        $file_reg_carga['fec_carga'] = $fecha_generacion;
+                        $file_reg_carga['usuario'] = \Auth::user()->username;
+                        */
+                            $fileName = ($id_carga) . $extension_file;
+                            //$file_reg_carga['ruta_gen_debito'] 
+                            //$ruta_gen_debito = 'storage/generacion_debito/' . $request->cliente . '/' . $request->producto . '/' . date('Y') . '/' . $fileName;
+                            $file_reg_carga['cod_carga'] = $id_carga;
+                            //$file_reg_carga['proceso'];
+                            $file_reg_carga['cliente'] = $request->cliente;
+                            $file_reg_carga['producto'] = $request->producto;
+                            $file_reg_carga['desc_producto'] = $this->op_client['archivo_nombre']; // $request->producto;
+                            $file_reg_carga['fec_carga'] = $fecha_generacion;
+                            //$file_reg_carga['archivo'];
+                            $file_reg_carga['usuario_registra'] = \Auth::user()->username;
+                            $file_reg_carga['fec_registro'] = Carbon::now();
+                            $file_reg_carga['estado'] = 'PENDIENTE';
+                            $file_reg_carga['is_det_debito'] = '1';
+                            //$file_reg_carga['usuario_actualiza'];
+                            $file_reg_carga['custom_code'] = isset($request['opcion_campo']) ? $request['opcion_campo'] : null;
+                            $file_reg_carga['n_custom_code'] =  isset($request->opciones_data) ? $request->opciones_data : null;
+                            if (isset($request->opciones_data)) {
+                                if (isset($this->op_caracteristica_ba['campo_ba'])) {
+                                    for ($i = 1; $i <= $this->op_caracteristica_ba['total']; $i++) {
+                                        if ($this->op_caracteristica_ba['var_camp_' . $i] == $request->opciones_data) {
+                                            $file_reg_carga['opciones_validacion'] = $this->op_caracteristica_ba['var_val_' . $i];
+                                        }
+                                    }
+                                }
+                                //$fileName = ($id_carga) . $extension_file;
+                                Storage::disk('public')->makeDirectory('generacion_debito/' . $request->cliente . '/' . $request->producto . '/' . $request->opciones_data . '/' . date('Y'));
+                                file_put_contents(public_path('storage/generacion_debito/' . $request->cliente . '/' . $request->producto . '/' . $request->opciones_data . '/' . date('Y') . '/' . $fileName), $textoPlano);
+                                $ruta_gen_debito = 'storage/generacion_debito/' . $request->cliente . '/' . $request->producto . '/' . $request->opciones_data . '/' . date('Y') . '/' . $fileName;
+                            } else {
+                                $ruta_gen_debito = 'storage/generacion_debito/' . $request->cliente . '/' . $request->producto . '/' . date('Y') . '/' . $fileName;
+                                Storage::disk('public')->makeDirectory('generacion_debito/' . $request->cliente . '/' . $request->producto . '/' . date('Y'));
+                                file_put_contents(public_path('storage/generacion_debito/' . $request->cliente . '/' . $request->producto . '/' . date('Y') . '/' . $fileName), $textoPlano);
+                            }
+                            //$file_reg_carga['opciones_validacion'] = isset($this->op_client['op_caracteristica_ba'])? $this->op_client['op_caracteristica_ba']: null;
+                            $file_reg_carga['ruta_gen_debito'] = isset($ruta_gen_debito) ? $ruta_gen_debito : '';
+                            //$file_reg_carga['fecha_registro'] = date('d/m/Y H:i:s');
+                            $success = 'se genero exitosamente , se procede a realizar la descarga';
+                            //dd($file_reg_carga);
+                            $objEXPORT->registro_cargas($file_reg_carga);
+                            return redirect()->route('EaCargaIndividualImport.index')->with([
+                                'success' => isset($generacion_txt['success']) ? $generacion_txt['success'] : '',
+                                'generacionVal' => isset($generacion_txt['success']) ? '200' : '',
+                                'carga_resp' => ($id_carga),
+                                'producto' => isset($request->producto) ? $request->producto : '',
+                                'cliente' => isset($request->cliente) ? $request->cliente : '',
+                                'errorTecnico' => isset($errorTecnico) ?  $errorTecnico  : '',
+                                'registros_no_cumplen' => isset($registros_no_cumplen) ? $registros_no_cumplen : ''
+                            ]);
+                            //return response()->json(['success' => $import->detalle_proceso['msg']]);
+                        } else {
+                            abort(404, ' Configuracion faltante en tabla opciones subproductos');
+                        }
                     } else {
-                        $extension_file .= "txt";
+                        $this->op_client = EaOpcionesCargaCliente::where('codigo_id', $request->producto)->first();
+                        $prod_id = explode(',', $this->op_client['subproducto']);
+                        $objEXPORT = new EaGenCamExport(
+                            $request
+                        );
+                        $file_reg_carga = array();
+                        $file_reg_carga['cod_carga'] = strval($request->carga_resp);
+                        $file_reg_carga['cliente'] = $request->clinte;
+                        $file_reg_carga['producto'] = $request->producto;
+                        $extension_file = ".";
+                        if (isset($campoC["extension"])) {
+                            $extension_file .= $campoC["extension"];
+                        } else {
+                            $extension_file .= "txt";
+                        }
+                        $ruta =  $objEXPORT->ruta_carga(); // unico metodo que usa el objexport
+                        //$this->detalle_subproducto cambiar al campo personalizado que proviene directamente de opciones, opciones debe ser gol
+                        $res = preg_replace('([^A-Za-z0-9 ])', ' ', $this->op_client->archivo_nombre);
+                        //$detalle_subproducto->desc_subproducto
+                        $fileName = $request->cliente . "-" . $res . "-" . date("d-m-Y") . "-" . strval($request->carga_resp) . $extension_file;
+                        $headers = [
+                            'Content-type' => 'text/plain',
+                            'Content-Disposition' => sprintf('attachment; filename="%s"', $fileName),
+                        ];
+                        $file = public_path() . '/' . $ruta->ruta_gen_debito;
+                        return Response::download($file, $fileName, $headers);
+                        //https://www.adictosaltrabajo.com/2015/01/29/regexsam/
                     }
-                    $id_carga = (isset($ultima_carga->id_carga) ? $ultima_carga->id_carga : 0);
-                    $fecha_generacion = (isset($ultima_carga->fecha_generacion) ? $ultima_carga->fecha_generacion : 0);
-                    $file_reg_carga = array();
-                    $file_reg_carga['cod_carga'] = $id_carga;
-                    $file_reg_carga['cliente'] = $request->clinte;
-                    $file_reg_carga['producto'] = $request->producto;
-                    $file_reg_carga['fecha_registro'] = date('d/m/Y H:i:s');
-                    $file_reg_carga['fec_carga'] = $fecha_generacion;
-                    $file_reg_carga['usuario'] = \Auth::user()->username;
-                    //$row_insert_sets['id_carga'] = $id_carga + 1;
-                    $validoacion_par = json_encode($detallevalidacion);
-                    //$descripcion = preg_replace('([^A-Za-z0-9 ])', ' ', $detalle_subproducto->desc_subproducto);
-                    $fileName = ($id_carga + 1) . $extension_file;
-                    $success = 'se genero exitosamente , se procede a realizar la descarga ';
-                    Storage::disk('public')->makeDirectory('generacion_debito/' . $request->cliente . '/' . $request->producto . '/' . date('Y'));
-                    file_put_contents(public_path('storage/generacion_debito/' . $request->cliente . '/' . $request->producto . '/' . date('Y') . '/' . $fileName), $textoPlano);
-                    $file_reg_carga['ruta_gen_debito'] = 'storage/generacion_debito/' . $request->cliente . '/' . $request->producto . '/' . date('Y') . '/' . $fileName;
-                    $objEXPORT->registro_cargas($file_reg_carga, $validoacion_par);
+                } else {
                     return redirect()->route('EaCargaIndividualImport.index')->with([
                         'success' => isset($success) ? $success : '',
-                        'generacionVal' => isset($success) ? '200' : '',
-                        'carga_resp' => ($id_carga + 1),
-                        'producto' => isset($request->producto) ? $request->producto : '',
-                        'cliente' => isset($request->cliente) ? $request->cliente : '',
-                        'errorTecnico' => isset($errorTecnico) ?  $errorTecnico  : '',
+                        'errorTecnico' => isset($errorTecnico) ?  $errorTecnico  : 'Disculpe los inconvenientes puede que usted no selecciono el cliente o subproducto',
                         'registros_no_cumplen' => isset($registros_no_cumplen) ? $registros_no_cumplen : ''
                     ]);
-                } else {
-
-                    $file_reg_carga = array();
-                    $file_reg_carga['cod_carga'] = $varcontrolsecuencia;
-                    $file_reg_carga['cliente'] = $request->clinte;
-                    $file_reg_carga['producto'] = $request->producto;
-                    $extension_file = ".";
-                    if (isset($campoC["extension"])) {
-                        $extension_file .= $campoC["extension"];
-                    } else {
-                        $extension_file .= "txt";
-                    }
-                    $ruta =  $objEXPORT->ruta_carga();
-                    $res = preg_replace('([^A-Za-z0-9 ])', ' ', $detalle_subproducto->desc_subproducto);
-                    //$detalle_subproducto->desc_subproducto
-
-                    $fileName = $request->cliente . "-" . $res . "-" . date("d-m-Y") . "-" . $varcontrolsecuencia . $extension_file;
-                    $headers = [
-                        'Content-type' => 'text/plain',
-                        'Content-Disposition' => sprintf('attachment; filename="%s"', $fileName),
-                    ];
-                    $file = public_path() . '/' . $ruta->ruta_gen_debito;
-                    return Response::download($file, $fileName, $headers);
-                    //https://www.adictosaltrabajo.com/2015/01/29/regexsam/
                 }
-            } else {
                 return redirect()->route('EaCargaIndividualImport.index')->with([
                     'success' => isset($success) ? $success : '',
-                    'errorTecnico' => isset($errorTecnico) ?  $errorTecnico  : 'Disculpe los inconvenientes puede que usted no selecciono el cliente o subproducto',
+                    'errorTecnico' => isset($errorTecnico) ?  $errorTecnico  : 'hubo un error disculpe los inconvenientes',
                     'registros_no_cumplen' => isset($registros_no_cumplen) ? $registros_no_cumplen : ''
                 ]);
             }
+        } catch (\Exception $e) {
+            abort(409);
+        }
+    }
 
-            return redirect()->route('EaCargaIndividualImport.index')->with([
-                'success' => isset($success) ? $success : '',
-                'errorTecnico' => isset($errorTecnico) ?  $errorTecnico  : 'hubo un error disculpe los inconvenientes',
-                'registros_no_cumplen' => isset($registros_no_cumplen) ? $registros_no_cumplen : ''
-            ]);
+    private function genera_cadena_subproducto($objEXPORT, $request, $textoPlano)
+    {
+        try {
+            $campo0 = $this->campo0;
+            $campoC = $this->campoC;
+            $opciones_fijas = $this->opciones_fijas;
+            $op_client = $this->op_client;
+            $campos_export = $this->campos_export;
+            //$detalle_subproducto = $this->detalle_subproducto;
+            $contenido = file_get_contents("../salsa.txt");
+            $clave = Key::loadFromAsciiSafeString($contenido);
+            \Log::info('Request : ');
+            \Log::info('    $request->cliente : ' . $request->cliente);
+            \Log::info('    $request->producto : ' . $request->producto);
+            //\Log::info('    varcontrolsecuencia : ' . $varcontrolsecuencia);
+            if (isset($this->op_caracteristica_ba) && $this->op_caracteristica_ba != null) {
+                $request['op_caracteristica_ba'] = $this->op_caracteristica_ba;
+            }
+            $recorrido = $objEXPORT->generar($request);
+            $cont = $this->cont;
+            $tiempo_inicial = microtime(true);
+            \Log::info('tiempo que inicia : ' . $tiempo_inicial);
+            $valido_sec = 1;
+            $valido_total = count($recorrido);
+            $valido_reg_sec = $valido_total;
+            $limit_insert = 150;
+            $row_insert_detalle = array();
+
+            $precio_final = null;
+
+            switch ($request->cliente) {
+                case 'BGR':
+                    $contador_bgr = 1;
+                    break;
+                case 'PRODUBANCO':
+                    // IDEAS PARA USAR EL CAMPO OPCIONAL ?? 
+                    // REALIZE TODA LA CONSULTA Y EL CONTINUE SE ENCUENTE EN UN ISSET ??
+                    // VAMOS CON ELLO , ASI LA CONSULTA SOLO AUMENTO UN CAMPO Y NO TIENE QUE CAMBIAR
+                    // nop se añadio el request para tomar datos de la consulta directamente ,
+                    // de echo se puede añadir directamente el resquest en la creacion del
+                    // contructor 
+                    break;
+                default:
+                    break;
+            }
+            foreach ($recorrido as $individual) {
+                // ok esto era nescesario , por que no tomaba la date de 30 dias , esto permite el calulo de 30 dias antes de cobro
+                // nesesito transformar o conservar esto , debito a que la fecha en consulta no permitia este cobor
+                // Recordar cliente BGR
+                if (isset($contador_bgr)) {
+                    $time = strtotime(date("m/d/Y H:i:s"));
+                    $num2 = 30; // añadir validacion a extraer 
+                    $final = date("m/d/Y H:i:s", strtotime(" -" . $num2 . " day ", $time));
+                    $date_1 = Carbon::createFromFormat('m/d/Y H:i:s', ($individual['fecha'] . '00:00:00'));
+                    $date_2 = Carbon::createFromFormat('m/d/Y H:i:s', $final);
+                    if ($date_1->lt($date_2)) {
+                        $contador_bgr++;
+                    } else {
+                        continue;
+                    }
+                }
+                // saltaria lo que es la sentencia en el continue , y unicamente es para que de forma interna maneje los datos
+                // que esta generando los archivos planos , si se encuentra completamente funcional ANTES.
+                // corregir esto mientras muevo los datos de numeracion , el contador BGR solo es nescesario que exista cuando se realiza esta consulta.
+                // puede reemplazarse con un valor de validacion que se encuentre en el $this->opciones ?? , si si puede 
+                // bloque para la generacion de texto plano en memoria , antes de realizar la insercion de datos 
+                //bloque exclusivo para PRODUBANCO
+                //3 corte el 12$                ciclo13 = 3;
+                //4 corte el 15                $ciclo15 = 4;
+                //9 corte el 30                $ciclo30 = 9;
+                /*
+                if (isset($produbanco_validacion)) {
+                    $request['opcional'];
+                    if ($individual['ciclo'] == $request['opcional']) {
+                        $contador_bgr++; 
+                    } else {
+                        continue;
+                    }
+                }
+                */
+
+                if (isset($op_client->num_elem_export)) {
+                    $cont++;
+                    $secuencia = "";
+                    for ($i = 1; $i <= $op_client->num_elem_export; $i++) {
+                        // variable temporal que tendra el texto
+                        $value_field = "";
+                        if (isset($campos_export[$i]) || isset($opciones_fijas[$i])) {
+                            $value_field =  isset($campos_export[$i]) ? $individual[$campos_export[$i]] : $opciones_fijas[$i];
+
+                            if ((strlen($value_field) > 100)) {
+
+                                $value_field = Crypto::decrypt($value_field, $clave);
+                                if (isset($campoC['bin_' . $i])) {
+                                    $value_field = substr($value_field, 0, 6);
+                                }
+                            }
+                            if (isset($campos_export[$i])) {
+                                if (
+                                    $campos_export[$i] == 'deduccion_impuesto'  ||
+                                    ($campos_export[$i]) == 'subtotal' ||
+                                    ($campos_export[$i]) == 'valortotal'
+                                ) {
+                                    if (($campos_export[$i]) == 'valortotal') {
+                                        $precio_final = $value_field;
+                                    }
+
+                                    if (str_contains($value_field, ".")) {
+                                        $validateLen = explode('.', $value_field);
+                                        if (strlen($validateLen[count($validateLen) - 1]) == 2) {
+                                            $value_field =   str_replace(".", "", $value_field);
+                                        } else {
+                                            $value_field =   str_replace(".", "", $value_field);
+                                            $value_field .= "0";
+                                        }
+                                    } else {
+                                        $value_field = $value_field . "00";
+                                    }
+                                }
+                                if (isset($campo0['tranF_' . $i])) {
+                                    if ($campos_export[$i] == 'tipcta' || $campo0['tranF_' . $i] == 'tipcta') {
+                                        switch ($value_field) {
+                                            case 'AHO':
+                                                $value_field = '03';
+                                                break;
+                                            case 'CTE':
+                                                $value_field = '04';
+                                                break;
+                                            default:
+                                                break;
+                                        }
+                                    }
+                                }
+                            }
+                            if (isset($campo0['campo0_' . $i]) || isset($campo0['campo0D_' . $i]) || isset($campo0['campoE_' . $i]) || isset($campo0['campoED_' . $i])) { //iria al final o al comienzo ?    
+                                $value_field = $this->validate_0_E($value_field, $i);
+                            } else {
+                                if (isset($campoC['insert_date_' . $i])) {
+                                    $value_field = str_replace('insert_date_' . $i, strtoupper(date($campoC['insert_date_' . $i])), $value_field);
+                                }
+                            }
+                            $textoPlano .= $value_field;
+                            if (isset($campoC["espacios"])) {
+                                $textoPlano .= $campoC["espacios"];
+                            }
+                        } elseif (isset($campoC['campoC_' . $i])) {
+                            if ($campoC['campoC_' . $i] == "contador_secuencia") {
+                                $secuencia = $cont;
+                            } else {
+                                $secuencia = date($campoC['campoC_' . $i]);
+                            }
+                            if (isset($campo0['campo0_' . $i]) || isset($campo0['campo0D_' . $i]) || isset($campo0['campoE_' . $i]) || isset($campo0['campoED_' . $i])) { //iria al final o al comienzo ?    
+                                $secuencia = $this->validate_0_E($secuencia, $i);
+                            }
+                            $value_field = $secuencia;
+                            $textoPlano .= $value_field;
+                            if (isset($campoC[$i])) {
+                            } elseif (isset($campoC["espacios"])) {
+                                $textoPlano .= $campoC["espacios"];
+                            }
+                        }
+                    }
+                } else {
+                    \Log::error('Falta una configuracion , porfavor acceda a Ea_opciones_carga_cliente.');
+                    abort(404, 'Falta una configuracion , porfavor acceda a Ea_opciones_carga_cliente');
+                }
+                // bloque para la generacion de texto plano en memoria , antes de realizar la insercion de datos 
+                $textoPlano .= "\n";
+                //$condicion = true;
+                $row_insert_sets = array();
+                $id_carga =  isset($this->ultima_carga['id_carga']) ?  $this->ultima_carga['id_carga'] : 1;
+                $row_insert_sets['id_sec'] = isset($individual->id_sec) ? trim($individual->id_sec) : null; // ok
+                $row_insert_sets['id_carga'] = $id_carga;
+                //$row_insert_sets['id_carga'] = $id_carga + 1; // ok
+                if (isset($campoC['identificador'])) {
+                    if ($campoC['identificador'] == 'secuencia') {
+                        $row_insert_sets['secuencia'] = ltrim($secuencia, '0');
+                    } elseif ($campoC['identificador'] == 'cedula_id') {
+                        //cuentas , cedula por defecto
+                        $row_insert_sets['secuencia'] = $individual->cedula_id;
+                    } else {
+                        \Log::error('Error Fatal , no esta bien configurado el identificador de forma correcta , porfavor especifique si es el campo cedula_id o es una secuencia');
+                        abort(404, 'Error Fatal , no esta bien configurado el identificador de forma correcta , porfavor especifique si es el campo cedula_id o es una secuencia');
+                    }
+                } else {
+                    $row_insert_sets['secuencia'] = $individual->cedula_id;
+                }
+                $row_insert_sets['fecha_registro'] = date('d/m/Y H:i:s');
+                $row_insert_sets['subproducto_id'] =  $request->producto; //ok //error el producto es el id que viene en subproducto
+                $row_insert_sets['opciones_id'] = isset($request->opciones_data) ?  $request->opciones_data : null;
+                $row_insert_sets['cliente'] = $request->cliente; //ok
+                $row_insert_sets['estado'] = "0"; //sing
+                $row_insert_sets['fecha_generacion'] =  date('mY'); //ok
+                $row_insert_sets['valor_debitado'] = $precio_final;
+                //bloque que inserta registros dentro de la base
+
+                array_push($row_insert_detalle, $row_insert_sets);
+                $row_insert_sets = array();
+                if ($valido_sec == $limit_insert) {
+                    $valido_sec = 0;
+                    $valido_reg_sec = $valido_reg_sec - $limit_insert;
+                    //$objEXPORT->view_reg_state($row_insert_detalle);
+                    EaDetalleDebito::insert($row_insert_detalle);
+                    $row_insert_detalle = array();
+                } elseif ($valido_sec == $valido_reg_sec) {
+                    //$objEXPORT->view_reg_state($row_insert_detalle);
+                    EaDetalleDebito::insert($row_insert_detalle);
+                }
+                $valido_sec++;
+            }
+            $resumen = array();
+            //$resumen['id_carga'] = $row_insert_sets['id_carga'];
+            $resumen['success'] = isset($success) ? $success : '';
+            //$resumen['secuencia'] = $secuencia;
+            $resumen['textoPlano'] = $textoPlano;
+            $resumen['fusion_condicion'] = isset($contador_bgr) ? 'true' : 'false';
+            $resumen['secuencia_cont'] = $cont;
+            $resumen['count_recorrido'] = count($recorrido);
+            $this->cont = $cont;
+            // se perdera un poco , no posible repetir si no se encuentra creada como un $THIS->
+            //dd($resumen);
+            return $resumen;
+        } catch (\Exception $e) {
+            EaDetalleDebito::rollback();
         }
     }
 
 
-    /**
-     * 
-     * 
-     * 
-     */
     public function returnRoute()
     {
         $rutas_debito = EaCabeceraCargaCorp::where('estado', 'PENDIENTE')
@@ -492,6 +674,27 @@ class EaCargaIndividualExport extends Controller
         //
     }
 
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function ultima_carga_subproducto($request)
+    {
+
+        if (isset($request->opciones_data)) {
+            return EaDetalleDebito::where('subproducto_id', $request->producto)
+                ->where('opciones_id', $request->opciones_data)
+                ->orderbydesc('id_carga')
+                ->first();
+        }
+        return EaDetalleDebito::where('subproducto_id', $request->producto)
+            ->orderbydesc('id_carga')
+            ->first();
+    }
+
     /**
      * Display the specified resource.
      * @param  \Illuminate\Http\Request  $request
@@ -499,57 +702,25 @@ class EaCargaIndividualExport extends Controller
      */
     public function generarFactura(Request $request)
     {
+
+        /*
+      "carga_resp" => "1"
+      "cliente" => "PRODUBANCO"
+      "opciones_data" => "4"
+      "producto" => "20"
+      "_token" => "ht3O7FTa1tvruEdZoedOKD73eAGKDvuKZO2duAxT"
+      "Facturacion" => null
+        */
         \Log::info('funcion generarFactura clase EaCargaIndividualExport');
         $varcontrolsecuencia = (isset($request->carga_resp) ? strval($request->carga_resp) : null);
         $detalle_subproducto = ((new EaSubproductoController)->getSubproductoDetalle($request->cliente, $request->producto));
-        $name_producto = str_replace("/", " ", $detalle_subproducto->desc_subproducto);
-        return Excel::download(new EaGenCamExport($request->cliente, $detalle_subproducto->desc_subproducto, $varcontrolsecuencia, $request->producto, $detalle_subproducto->tipo_subproducto), $request->cliente . "-" . $name_producto . "-" . date("Y-m-d") . '.xlsx');
+        //bloque de pruebas 
+        $this->op_client = EaOpcionesCargaCliente::where('codigo_id', $request->producto)->first();
+        $prod_id = explode(',', $this->op_client['subproducto']);
+        $name_producto = str_replace("/", " ", $this->op_client['archivo_nombre']);
+        // no cuadraria se debe aplicar lo mismo que en el else dentro del metodo export
+        //KPE CAMBIO EaGenCamExport 
+        //$request->cliente, $detalle_subproducto->desc_subproducto, $varcontrolsecuencia, $request->producto, $detalle_subproducto->tipo_subproducto
+        return Excel::download(new EaGenCamExport($request), $request->cliente . "-" . $name_producto . "-" . date("Y-m-d") . '.xlsx');
     }
 }
-
-
-
-
-
-                                     // ARMA LAS RESPUESTA QUE SE INSERTAN EN EL DOCUMENTO TXT , Y ADICIONAL LLAMA AL METODO QUE LO INSTERTA EN LA BASE DE DATOS.
-            //dd($recorrido);
-            // Ejemplo BGR CTAS
-            //{"campoF_1":"CO","campoF_2":"8020000304","campoF_6":"USD","campoF_7":"293","campoF_8":"CTA","campoF_9":"42","campoF_16":"","campoF_18":"ESTUDIANTE SEGURO_insert_date_18-P0","campoF_19":"0","campoF_20":"","campoF_21":"","campoF_22":"","campoF_23":"","campoF_24":"332","campoF_25":"","campoF_26":"","campoF_27":"","campoF_28":"31","campoF_29":"","campoF_30":"8"}
-            //{"campoB_5":"cedula_id","campoB_10":"tipcta","campoB_11":"cuenta","campoB_12":"tipide","campoB_13":"cedula_id","campoB_14":"nombre","campoB_15":"ciudadet","campoB_17":"ciudadet","campoB_22":"valortotal"}
-            //{"campoC_3":"contador_secuencia","campoC_4":"Ymd","espacios":"\t","insert_date_18":"M-Y"}
-
-            //ejemplo INTER CTAS
-            //{"campoF_1":"CO","campoF_2":"632575","campoF_6":"USD","campoF_8":"CTA","campoF_9":"32","campoF_15":"","campoF_16":"","campoF_17":"","campoF_18":"","campoF_19":"FAMILIA","campoF_20":"","campoF_21":"NA","campoF_22":"NA","campoF_25":"NA","campoF_26":"NA","campoF_27":"NA"}
-            //{"campoB_5":"cedula_id","campoB_7":"valortotal","campoB_10":"tipcta","campoB_11":"cuenta","campoB_12":"tipide","campoB_13":"cedula_id","campoB_14":"nombre","campoB_23":"subtotal","campoB_24":"deduccion_impuesto"}
-            //{"campoC_3":"contador_secuencia","campoC_4":"Ymd","espacios":"\t","identificador":"cedula_id"}
-
-            //ejemplo Produbanco CTAS
-            //{"campoF_1":"CO","campoF_2":"02005112032","campoF_6":"USD","campoF_8":"CTA","campoF_9":"32","campoF_15":"","campoF_16":"","campoF_17":"","campoF_18":"","campoF_19":"FAMILIA","campoF_20":"","campoF_21":"NA","campoF_22":"NA","campoF_25":"NA","campoF_26":"NA","campoF_27":"NA"}
-            //{"campoB_5":"cedula_id","campoB_7":"valortotal","campoB_10":"tipcta","campoB_11":"cuenta","campoB_12":"tipide","campoB_13":"cedula_id","campoB_14":"nombre","campoB_23":"subtotal","campoB_24":"deduccion_impuesto"}
-            //{"campoC_3":"contador_secuencia","campoC_4":"Ymd","espacios":"\t","identificador":"cedula_id"}
-
-
-            //CO	02005112032	0000007	00000000000000000000	          1706765052	USD	0000000000300	CTA	0036	CTE	02010000578	C	   1706765052	BELLAGAMBA STREUBEL GUILLERMO           	VICTOR EMILIO ESTRADA1208   LAURELES    	           GUAYAQUIL	           042888048	               QUITO	                                                                                                                                                                                     DEBITO DEL 20220118		0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	0000000000000
-            /* produbanco CTAS
-CO	02005112032	0000001	00000000000000000000	          0908851496	USD	0000000000300	CTA	0036	CTE	02010000522	C	   0908851496	CUESTA ASTUDILLO CARLO MAGNO            	MACHALA609    E/ CHAMBERS Y OCONNORS    	           GUAYAQUIL	           042338886	               QUITO	                                                                                                                                                                                     DEBITO DEL 20220118		0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	0000000000000
-CO	02005112032	0000002	00000000000000000000	          0918156639	USD	0000000000300	CTA	0036	CTE	02000000349	C	   0918156639	ALVAREZ PACHECO ROBERTO CARLOS          	ASUNCION28     MEXICO                   	           GUAYAQUIL	           042331377	               QUITO	                                                                                                                                                                                     DEBITO DEL 20220118		0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	0000000000000
-CO	02005112032	0000003	00000000000000000000	          0912799095	USD	0000000000300	CTA	0036	AHO	12010000865	C	   0912799095	ANCHUNDIA ESPINOZA OSCAR ALEXANDER      	SAN MARTIN5504   ENTRE 32AVA Y 33AVA    	           GUAYAQUIL	           042473695	               QUITO	                                                                                                                                                                                     DEBITO DEL 20220118		0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	0000000000000
-CO	02005112032	0000004	00000000000000000000	          0905147013	USD	0000000000300	CTA	0036	CTE	02220000926	C	   0905147013	BARAHONA INTRIAGO CECILIO ALFREDO       	PLAYAS, BARRIO ALEXANDER360    Y CARLOS 	           GUAYAQUIL	           042760742	               QUITO	                                                                                                                                                                                     DEBITO DEL 20220118		0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	0000000000000
-CO	02005112032	0000005	00000000000000000000	          0919253146	USD	0000000000300	CTA	0036	CTE	02000000127	C	   0919253146	ALVARADO AREVALO JOSE LUIS              	NULL                                    	           GUAYAQUIL	           042843571	               QUITO	                                                                                                                                                                                     DEBITO DEL 20220118		0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	0000000000000
-CO	02005112032	0000006	00000000000000000000	          1801463298	USD	0000000000300	CTA	0036	AHO	12080000243	C	   1801463298	BARRIGA IZURIETA NORI ALICIA            	AV.PASTEUR321    LUXEMBURGO             	              AMBATO	           032824535	               QUITO	                                                                                                                                                                                     DEBITO DEL 20220118		0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	0000000000000
-CO	02005112032	0000007	00000000000000000000	          1706765052	USD	0000000000300	CTA	0036	CTE	02010000578	C	   1706765052	BELLAGAMBA STREUBEL GUILLERMO           	VICTOR EMILIO ESTRADA1208   LAURELES    	           GUAYAQUIL	           042888048	               QUITO	                                                                                                                                                                                     DEBITO DEL 20220118		0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	NA                  	0000000000000	0000000000000
-                */
-
-                            // 16-24-28-44-48-40-56-16
-                            //54-69-52-22-66-61-16
-                            //37-4 -9 -8 -32-16
-                            //66-79-33-27-16
-                            //53-65-27-16
-                            //84-28-16
-                            //27-16
-
-                            //16
-                            //09+21-1205
-                            //48-7-53
-                            //{"campoC_3":"contador_secuencia","campoC_4":"Ymd"}
-                            //{"campoC_3":"identificacion","campoC_4":"Ymd"}

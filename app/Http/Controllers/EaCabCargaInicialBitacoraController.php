@@ -71,10 +71,11 @@ class EaCabCargaInicialBitacoraController extends Controller
 
       */
 
-        $trx2 = EaCabeceraCargaCorpBitacora::where('cliente', 'INTER')
+        /*  $trx2 = EaCabeceraCargaCorpBitacora::where('cliente', 'INTER')
             ->where('cod_carga', '2')
             ->where('producto', '14')
             ->update(['archivo' => $datos_carga->archivo]);
+            */
         $trx = EaCabeceraCargaCorpBitacora::create([
 
             "cod_carga" => $datos_carga->cod_carga,
@@ -109,8 +110,8 @@ class EaCabCargaInicialBitacoraController extends Controller
      */
     public function get_max_cod_carga_bita()
     {
-        $cod_carga = EaCabeceraCargaCorpBitacora::whereNotNull('visible')->max('cod_carga');
-        //$cod_carga = EaCabeceraCargaCorpBitacora::max('cod_carga');
+        //$cod_carga = EaCabeceraCargaCorpBitacora::whereNotNull('visible')->max('cod_carga');
+        $cod_carga = EaCabeceraCargaCorpBitacora::max('cod_carga'); //KPE  modificacion
 
         if (isset($cod_carga) && $cod_carga >= 1) {
             $cod_carga++;

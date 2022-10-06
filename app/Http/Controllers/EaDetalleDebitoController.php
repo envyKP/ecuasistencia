@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\EaCabeceraDetalleCarga;
+use App\Models\EaOpcionesCargaCliente;
 use App\Models\EaDetalleDebito;
 use Illuminate\Http\Request;
 
@@ -17,6 +18,36 @@ class EaDetalleDebitoController extends Controller
     {
         //
     }
+    //KPE metodo para limpiar tabla temporal
+    //https://localhost/ecuasistencia/public/clear_temp/todos
+    public function clear_temp($token)
+    {
+        //cambios KPE
+        if (isset($token)) {
+            if ($token === 'todos') {
+                /// ejecutar comando para realizar la limpieza de datos, posiblemente usar este metodo tambien 
+                // echo 'procegir a realizar la limpieza';
+                $token = $this->condicion_opciones();
+            } else {
+                // echo 'servicio denegado ';
+                $token = $this->condicion_opciones(true);
+            }
+            dd($token);
+            echo 'dentro de condicion ';
+        }
+        echo 'final ';
+    }
+    //pruebas KPE robar
+    public function condicion_opciones($condicion = false)
+    {
+        $campos_opciones = array();
+        if ($condicion) {
+            echo 'ea_detalle_debito.opciones';
+        } else {
+            echo 'ratata';
+        }
+        return $condicion;
+    }
 
     /**
      * Store a newly created resource in storage.
@@ -28,25 +59,67 @@ class EaDetalleDebitoController extends Controller
     {
         //
     }
+    //flowdesk 
+    ///KPE bloque de metodos usados para metodos de vista por dertras.
+    // existe el contratoAMA que puede ser similar a la ID pero puede usarse con mas de un subproducto
+    // que exista dentro del mismo cliente
+    // deberia intentar validar ? por no solo nombre si no por contrato ama ? . 
+    //para el subproducto estoy usando la ID pero puedo añadir el contratoAMA como filtro
+    // validado : si es posible solo añadir el filtro al comienzo de consultar , debido a que 
+    // existe un campo que consulta los detalles del subproducto por debajo 
+    // los productos juntos son bolivariano ctas, produbanco tarjetas
+    // BGR , es la consulta atrasada de 30 dias 
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
+
+
+    public function getMenuSubproductoOpciones(Request $request)
+    {
+        $html = '<option value="" selected>Selecciona Producto</option>';
+        $subproductos = EaOpcionesCargaCliente::where('cliente', $request->cliente)
+            ->get();
+        foreach ($subproductos as $subproducto) {
+            $html .= '<option value="' . $subproducto->codigo_id  . '">' . $subproducto->archivo_nombre . '</option>';
+        }
+        return response()->json(['htmlProducto' => $html]);
+    }
+
+    public function getDetalleDebitoOpciones(Request  $request)
+    {
+        // 2 tipos de validaciones uno con fecha y otro con esto puedo usar la misma opcion de for,
+        // pero el espacio debe ser limitado , no puedo 
+        // parametro de consulta (campo nuevo . modifica lka base de datos)
+        // el campo existente tambien modifica la base de datos.
+        // el campo existente extrae el campo a modificar , y añade la opcion de crear un combo de hasta 4 elementos o items
+        //getDetalleDebitoOpciones
+        //3 corte el 12$                ciclo13 = 3;
+        //4 corte el 15                $ciclo15 = 4;
+        //9 corte el 30                $ciclo30 = 9;
+        //$request['opcional']; // el id que viene del campo ciclo(3,4,9) dettipcic(corte 12..., etc)
+        $html = '<option value="" selected>Seleccione una opcion</option>';
+        $subproductos = EaOpcionesCargaCliente::where('codigo_id', $request->producto)
+            ->first();
+        $campo_opciones = json_decode($subproductos->op_caracteristica_ba, true);
+        //{"total":"3","var_camp_1":"3","var_val_1":"CORTE EL 12","var_camp_2":"4","var_val_2":"CORTE EL 15","var_camp_3":"9","var_val_3":"CORTE EL 30","camp_ba":"dettipcic"} // falta los ciclos 
+        if (isset($campo_opciones['total'])) {
+            for ($i = 1; $i <= $campo_opciones['total']; $i++) {
+                if (isset($campo_opciones['var_val_' . $i])) {
+                    $html .= '<option value="' . $campo_opciones['var_camp_' . $i] . '">' .  $campo_opciones['var_val_' . $i] . '</option>';
+                }
+            }
+        } else {
+            $html = '<option value="" selected> No existe Campo opcional</option>';
+        }
+        return response()->json(['htmlProducto' => $html]);
+    }
+
+
+
     public function show($id)
     {
         //
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
+
     public function update(Request $request, $id)
     {
         //
@@ -78,8 +151,31 @@ class EaDetalleDebitoController extends Controller
             ->update($row);
     }
 
+
+
+
+    private function opciones_vista($valor)
+    {
+        if($valor){
+
+        }else{
+
+        }
+    }
+
+
+    /**
+     * control de parametros en Conjunto 
+     * añadir el otro parametro de subcategoria 
+     * cambiar la consulta a dinamica 
+     * 
+     * 
+     *  */
     public function update_debit_detail($cod_carga, $cliente, $producto, $row)
     {
+
+
+
         //$secuencia =  ltrim($row['secuencia'], '0');
         return   EaDetalleDebito::where('id_carga', $cod_carga)
             ->where('cliente', $cliente)
@@ -88,47 +184,10 @@ class EaDetalleDebitoController extends Controller
             ->update($row);
     }
 
-    public function update_debit_detail_join_BA($id_detalle,$row)
+    public function update_debit_detail_join_BA($id_detalle, $row)
     {
-        //::join("base_activa", "ea_detalle_debito.desc_subproducto", "=", "ea_base_activa.subproducto")
-        // condicion inicial prototipo
-        /*  $subquery = DB::table('catch-text')
-            ->select(DB::raw("user_id,MAX(created_at) as MaxDate"))
-            ->groupBy('user_id');
-            $query = User::joinSub($subquery,'MaxDates',function($join){
-            $join->on('users.id','=','MaxDates.user_id');
-            })->select(['users.*','MaxDates.*']);
-        
-        DB::table('attributes as a')
-        ->join('catalog as c', 'a.parent_id', '=', 'c.id')
-        ->update([ 'a.key' => DB::raw("`c`.`left_key`") ]);
-        */
-
-        //PROTOTIPO 2 TOMANDO EN CUENTA DIFERENCIA ENTRE TARJETA Y CUENTA 
-        /*
-        if ($row['secuencia'] == 'tarjeta') {
-            return   EaDetalleDebito::where('id_carga', $cod_carga)
-                ->where('cliente', $cliente)
-                ->where('subproducto_id', $producto)
-                ->join("ea_base_activa", "ea_base_activa.id_sec", "=", "ea_detalle_debito.id_sec")
-                ->update($row);
-        } elseif ($row['secuencia'] == 'cuenta') {
-            return   EaDetalleDebito::where('id_carga', $cod_carga)
-                ->where('cliente', $cliente)
-                ->where('subproducto_id', $producto)
-                ->where('secuencia', $secuencia)
-                ->update($row);
-        } else {
-            dd("Error en metodo update, no reconoce la entrada de dato id_sec");
-        }
-        */
-        //$id_detalle = $row['id_detalle'];
-        //dd($row);
         return   EaDetalleDebito::where('id_detalle', $id_detalle)
             ->update($row);
-
-        //$secuencia = $row['secuencia'];
-
     }
     /**
      * Remove the specified resource from storage.

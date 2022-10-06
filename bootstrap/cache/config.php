@@ -834,7 +834,7 @@
   'trustedproxy' => 
   array (
     'proxies' => NULL,
-    'headers' => 94,
+    'headers' => 30,
   ),
   'tinker' => 
   array (

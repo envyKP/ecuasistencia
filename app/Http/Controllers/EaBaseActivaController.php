@@ -106,6 +106,7 @@ class EaBaseActivaController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
+    //KPE : no se por que SGA  uso serch en vez de search -- pendiente de cambiar nomenclaturas.
     public function serch(Request $request)
     {
 
@@ -444,7 +445,7 @@ class EaBaseActivaController extends Controller
         $cliente['detresp'] = $baseActivaCliente->detresp;
 
 
-        //======================================================================================= Validacion de inputs fuera de rol admin =========================================================================================================//
+        //====================================================================================== Validacion de inputs fuera de rol admin ======================================================================================//
         if (!empty($request->ciclo)) {
             $cliente['dettipcic'] = EaCicloCorte::where('ciclo', $request->ciclo)->first()->corte;
         } else {
@@ -619,7 +620,7 @@ class EaBaseActivaController extends Controller
     }
 
 
-
+    //$producto = contrato ama , 
     /* valida registro de carga diaria, segun call type de venta*/
     public function valida_resgistro_base_activa($cliente, $cedula_id, $producto)
     {

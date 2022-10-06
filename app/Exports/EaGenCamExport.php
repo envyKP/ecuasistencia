@@ -3,15 +3,8 @@
 namespace App\Exports;
 
 use App\Models\EaBaseActiva;
-use App\Models\EaSubproducto;
 use App\Models\EaDetalleDebito;
 use App\Models\EaCabeceraDetalleCarga;
-use Illuminate\Contracts\View\View;
-use Maatwebsite\Excel\Concerns\FromView;
-use Illuminate\Support\Collection;
-use Maatwebsite\Excel\Concerns\ToCollection;
-use Illuminate\Support\Facades\DB;
-use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 use App\Models\EaOpcionesCargaCliente;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\Exportable;
@@ -19,16 +12,25 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use \Maatwebsite\Excel\Sheet;
 use Maatwebsite\Excel\Concerns\WithColumnFormatting;
-use Maatwebsite\Excel\Events\BeforeExport;
-use Maatwebsite\Excel\Events\BeforeWriting;
-use Maatwebsite\Excel\Events\BeforeSheet;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterSheet;
-use PhpOffice\PhpSpreadsheet\Shared\Date;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
-use Defuse\Crypto\Crypto;
 use Defuse\Crypto\Key;
+use Carbon\Carbon;
+//use Maatwebsite\Excel\Events\BeforeExport;
+//use Maatwebsite\Excel\Events\BeforeWriting;
+//use Maatwebsite\Excel\Events\BeforeSheet;
+//use App\Models\EaSubproducto;
+//use Illuminate\Contracts\View\View;
+//use Maatwebsite\Excel\Concerns\FromView;
+//use Illuminate\Support\Collection;
+//use Maatwebsite\Excel\Concerns\ToCollection;
+//use Illuminate\Support\Facades\DB;
+//use Maatwebsite\Excel\Concerns\WithMultipleSheets;
+//use PhpOffice\PhpSpreadsheet\Shared\Date;
+//use Defuse\Crypto\Crypto;
+
 //use Illuminate\Support\ServiceProvider;
 Sheet::macro('styleCells', function (Sheet $sheet, string $cellRange, array $style) {
     $sheet->getDelegate()->getStyle($cellRange)->applyFromArray($style);
@@ -36,43 +38,54 @@ Sheet::macro('styleCells', function (Sheet $sheet, string $cellRange, array $sty
 
 class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder implements WithEvents, FromCollection, WithHeadings, ShouldAutoSize, WithColumnFormatting, WithCustomValueBinder
 {
-
-
-    /**
-     * @return \Illuminate\Support\Collection
-     */
-    public function generar()
+    //esta condicion se repite al menos 3 veces
+    public function condicion_opciones($condicion = false)
     {
+        $campos_opciones = array();
 
+        if (isset($this->request->opcion_campo)) {
+            //if (isset($this->request['opcion_campo'])) {
+            if ($condicion) {
+                //echo("deberia ser true");
+                $campos_opciones['campo'] = 'ea_detalle_debito.opciones';
+            } else {
+                //echo("deberia ser false");
+                $campos_opciones['campo'] = $this->request['opcion_campo'];
+            }
+            $campos_opciones['valor'] = $this->request['opciones_data'];
+        } else {
+            $campos_opciones['campo'] = 'tipresp';
+            $campos_opciones['valor'] = '1';
+        }
+        return $campos_opciones;
+    }
+
+    public function generar($request)
+    {
         if (!isset($this->cliente)) {
             $this->cliente = "";
         }
-
-        $detalles = $this->is_carga_older();
-
+        $carga_secuencia = "";
         $generar_return = null;
-        //en caso que exista algo que no se incluya en las consultas
+        $campos_opciones = $this->condicion_opciones();
+        //dd($this->request);
+        //dd($campos_opciones);
+        $detalles = $this->is_carga_older($request);
         switch ($this->cliente) {
             case 'disable':
-
                 break;
-
-
             default:
                 $fecha_generacion = (isset($detalles->fecha_generacion) ? $detalles->fecha_generacion : 0);
                 if (($fecha_generacion) == date('mY')) {
                     // echo ($detalles->fecha_generacion) . ($detalles->id_sec) . " se encuentra dentro del mes";
-                    $carga_secuencia = "";
                     if (isset($this->cod_carga_corp)) {
                         $carga_secuencia = $this->cod_carga_corp;
                     } else {
                         $carga_secuencia = $detalles->id_carga;
                     }
+                    $campos_opciones = $this->condicion_opciones(true);
                     $this->cod_carga_corp = $carga_secuencia;
-
                     if ($this->tipo_subproducto == 'TC') {
-
-
                         \Log::info('$carga_secuencia : ' . $carga_secuencia);
                         \Log::info('condicion - secuencia - mes - Cliente : INTER CTAS');
                         $generar_return =  EaBaseActiva::join("ea_subproductos", "ea_subproductos.desc_subproducto", "=", "ea_base_activa.subproducto")
@@ -93,18 +106,20 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
                                 'ea_base_activa.direccion',
                                 'ea_base_activa.ciudadet',
                                 'ea_subproductos.valortotal',
+                                'ea_base_activa.fecha',
+                                'ea_base_activa.ciclo',
                             )
                             ->where('ea_detalle_debito.subproducto_id', $this->id_subproducto)
                             ->where('ea_detalle_debito.id_carga', $carga_secuencia)
                             ->where('ea_base_activa.cliente', $this->cliente)
                             ->where('tipresp', '1')
                             ->where('codresp', '100')
-                            ->where('detresp', 'ACEPTA SERVICIO')
+                            ->where($campos_opciones['campo'], $campos_opciones['valor'])
                             ->where('ea_base_activa.estado', 'Z')
                             ->where('ea_base_activa.codestado', 'A')
                             ->where('ea_detalle_debito.estado', '0')
                             ->orderby('ea_base_activa.id_sec')
-                            ->get();
+                            ->take(1000)->get();
                     } elseif ($this->tipo_subproducto == 'CTAS') {
                         //inicio condigo cuentas KPE
                         \Log::info('$carga_secuencia : ' . $carga_secuencia);
@@ -125,23 +140,30 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
                                 'ea_base_activa.nombre',
                                 'ea_base_activa.ciudadet',
                                 'ea_subproductos.valortotal',
+                                'ea_base_activa.fecha',
+                                'ea_base_activa.ciclo',
                             )
                             ->where('ea_detalle_debito.subproducto_id', $this->id_subproducto)
                             ->where('ea_detalle_debito.id_carga', $carga_secuencia)
                             ->where('ea_base_activa.cliente', $this->cliente)
                             ->where('tipresp', '1')
                             ->where('codresp', '100')
-                            ->where('detresp', 'ACEPTA SERVICIO')
+                            ->where($campos_opciones['campo'], $campos_opciones['valor'])
                             ->where('ea_base_activa.codestado', 'A')
                             ->where('ea_base_activa.estado', 'Z')
                             ->where('ea_detalle_debito.estado', '0')
                             ->orderby('ea_base_activa.id_sec')
-                            ->get();
+                            ->take(1000)->get();
                     } else {
                         \Log::error('Error interno conexion a base o problema con sql.');
                         dd('Error interno conexion a base o problema con sql.');
                     }
                 } else {
+                    /*
+                    tipcta
+                    AHO = 03
+                    CTE = 04
+                    */
                     if ($this->tipo_subproducto == 'TC') {
                         \Log::info('condicion - Inicio - mes - CTAS');
                         $generar_return =  EaBaseActiva::join("ea_subproductos", "ea_subproductos.contrato_ama", "=", "ea_base_activa.producto")
@@ -153,35 +175,34 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
                                 'ea_base_activa.feccad',
                                 'ea_base_activa.cuenta',
                                 'ea_base_activa.cedula_id',
-
                                 'ea_base_activa.tipcta',
                                 'ea_base_activa.tipide',
                                 'ea_subproductos.deduccion_impuesto',
                                 'ea_base_activa.nombre',
                                 'ea_base_activa.ciudadet',
                                 'ea_subproductos.valortotal',
+                                'ea_base_activa.fecha',
+                                'ea_base_activa.ciclo',
                             )
                             ->where('ea_subproductos.desc_subproducto', $this->producto)
                             ->where('ea_base_activa.subproducto', $this->producto)
+                            ->where('ea_base_activa.producto', $this->contrato_ama)
                             ->where('ea_base_activa.cliente', $this->cliente)
                             ->where('tipresp', '1')
-                            ->where('detresp', 'ACEPTA SERVICIO')
+                            ->where($campos_opciones['campo'], $campos_opciones['valor'])
                             ->where('ea_base_activa.estado', 'Z')
                             ->where('codresp', '100')
                             ->where('ea_base_activa.codestado', 'A')
                             ->orderby('ea_base_activa.id_sec')
-                            ->get();
-                           
+                            ->take(1000)->get();
                     } elseif ($this->tipo_subproducto == 'CTAS') {
                         \Log::info('condicion - Inicio - mes - CTAS');
                         $generar_return =  EaBaseActiva::join("ea_subproductos", "ea_subproductos.contrato_ama", "=", "ea_base_activa.producto")
                             ->select(
                                 'ea_base_activa.id_sec',
-
                                 'ea_subproductos.cod_establecimiento',
                                 'ea_subproductos.subtotal',
                                 'ea_base_activa.feccad',
-
                                 'ea_base_activa.cedula_id',
                                 'ea_base_activa.cuenta',
                                 'ea_base_activa.tipcta',
@@ -190,24 +211,26 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
                                 'ea_base_activa.nombre',
                                 'ea_base_activa.ciudadet',
                                 'ea_subproductos.valortotal',
+                                'ea_base_activa.fecha',
+                                'ea_base_activa.ciclo',
                             )
                             ->where('ea_subproductos.desc_subproducto', $this->producto)
                             ->where('ea_base_activa.subproducto', $this->producto)
+                            ->where('ea_base_activa.producto', $this->contrato_ama)
                             ->where('ea_base_activa.cliente', $this->cliente)
                             ->where('tipresp', '1')
-                            ->where('detresp', 'ACEPTA SERVICIO')
+                            ->where($campos_opciones['campo'], $campos_opciones['valor'])
                             ->where('ea_base_activa.estado', 'Z')
                             ->where('codresp', '100')
                             ->where('ea_base_activa.codestado', 'A')
                             ->orderby('ea_base_activa.id_sec')
-                            ->get();
+                            ->take(1000)->get();
                         //pymes todo esta como acepta , en mi base le cambiare a acepta servicio.
                     } else {
                         \Log::error('Error interno conexion a base o problema con sql.');
                         dd('Error interno conexion a base o problema con sql.');
                     }
                 }
-                
                 return $generar_return;
                 break;
         }
@@ -215,38 +238,11 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
 
     use Exportable;
 
-    /**
-     * @param array $rows
-     * @param  \Illuminate\Http\Request  $request
-     * */
     public function view_reg_state(array $rows)
     {
-        //MODIFICAR EN EL FUTURO LA TABLA QUE SE DEBE INSERTAR O CREAR UN ALTER ESPÉCIFICO PARA PRODUBANCO DEBIDO A QUE ESTE NO CUENTA CON EL CAMPO SECUENCIA
-        
         try {
-            //optimizar insert block
-            /* $row_insert_detalle = array();
-            $data =
-                array('id_sec' => '448487', 'id_carga' => '777');
-            array_push($row_insert_detalle, $data);
-
-            EaDetalleDebito::insert($row_insert_detalle);
-            
-            */
             EaDetalleDebito::insert($rows); // Eloquent approach
-            //DB::table('table')->insert($data); /
-            //  old block
-            /*EaDetalleDebito::create([
-                'id_carga' => isset($rows['id_carga']) ? $rows['id_carga'] + 1 : null,
-                'id_sec' => isset($rows['id_sec']) ? trim($rows['id_sec']) : null,
-                'secuencia' => isset($rows['secuencia']) ? trim($rows['secuencia']) : null,
-                'fecha_registro' => isset($rows['fecha_registro']) ? trim($rows['fecha_registro']) : null,
-                'cliente' => isset($this->cliente) ? trim($this->cliente) : '',
-                'estado' => '0',
-                'fecha_generacion' => isset($rows['fecha_generacion']) ? trim($rows['fecha_generacion']) : null,
-                'subproducto_id' => isset($this->id_subproducto) ? trim($this->id_subproducto) : '',
-            ]);
-            */
+
         } catch (\Exception $e) {
             \Log::warning('error view_reg_state:  ' . $e);
             dd("error fatal:" . $e->getMessage());
@@ -255,22 +251,35 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
         }
     }
 
+    // modificar este metodo
     public function destroy_cab_detalle($cod_carga, $cliente, $producto)
     {
         \Log::warning('funcion destroy_cab_detalle class EaGenCamExport by user ' . \Auth::user()->username);
         try {
-            \Log::warning('EaDetalleDebito::where(id_carga,' . $cod_carga . ')->where(cliente, ' . $cliente . ')
-            ->where(subproducto_id, ' . $producto . ')
-            ->delete();');
-
+            // puede que no lo borre
+            \Log::warning("EaDetalleDebito::where(id_carga," . $cod_carga . " )->where(cliente, " . $cliente);
+            // KPE CAMBIO VARIABLE ->where('subproducto_id', $producto)
             EaDetalleDebito::where('id_carga', $cod_carga)
                 ->where('cliente', $cliente)
                 ->where('subproducto_id', $producto)
                 ->delete();
+            $this->destroy_cab($cod_carga, $cliente, $producto);
+            /* EaCabeceraDetalleCarga::where('cod_carga', $cod_carga)
+                ->where('cliente', $cliente)
+                ->where('producto', $producto)
+                ->delete();
+            */
+        } catch (\Exception $e) {
+            \Log::warning('error view_reg_state:  ' . $e);
+            // $obj_det_carga_corp->truncate($this->cod_carga, $this->cliente );
+            $this->errorTecnico = $e->getMessage();
+        }
+    }
 
-            \Log::warning('EaDetalleDebito::where(id_carga,' . $cod_carga . ')->where(cliente, ' . $cliente . ')
-            ->where(subproducto_id, ' . $producto . ')
-            ->delete();');
+    public function destroy_cab($cod_carga, $cliente, $producto)
+    {
+        \Log::warning('funcion destroy_cab_detalle class EaGenCamExport by user ' . \Auth::user()->username);
+        try {
 
             EaCabeceraDetalleCarga::where('cod_carga', $cod_carga)
                 ->where('cliente', $cliente)
@@ -283,49 +292,59 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
         }
     }
 
-    public function registro_cargas(array $rows, $validoacion_par)
+
+    // modificar este metodo
+    public function registro_cargas(array $rows)
     {
         try {
-
-            EaCabeceraDetalleCarga::create([
-                'cod_carga' => isset($rows['cod_carga']) ? $rows['cod_carga'] + 1 : null,
+            $mensaje = EaCabeceraDetalleCarga::create($rows);
+            /*
+                $mensaje = EaCabeceraDetalleCarga::create([
+                'cod_carga' => isset($rows['cod_carga']) ? $rows['cod_carga'] : null,
                 'fecha_actualizacion' => isset($row['fecha_actualizacion']) ? $rows['fecha_actualizacion'] : '',
-                'fec_registro' => isset($rows['fecha_registro']) ? trim($rows['fecha_registro']) : null,
+                'fec_registro' => Carbon::now(),
                 'producto' =>  isset($rows['producto']) ? trim($rows['producto']) : null,
                 'desc_producto' => isset($this->producto) ? trim($this->producto) : '',
                 'cliente' => isset($this->cliente) ? trim($this->cliente) : '',
-                'producto' => $this->id_subproducto,
+                'producto' => $this->cab_subproducto,
                 'fec_carga' => isset($rows['fecha_generacion']) ? trim($rows['fecha_generacion']) : null,
                 'usuario_registra' => isset($rows['usuario']) ? trim($rows['usuario']) : null,
                 'estado' => 'PENDIENTE',
                 'is_det_debito' => '1',
-                'opciones_validacion' => $validoacion_par,
                 'ruta_gen_debito' => isset($rows['ruta_gen_debito']) ? trim($rows['ruta_gen_debito']) : null,
+                'opciones' => isset($rows['opciones']) ? $rows['opciones'] : null,
             ]);
+            */
         } catch (\Exception $e) {
             // $obj_det_carga_corp->truncate($this->cod_carga, $this->cliente );
             $this->errorTecnico = $e->getMessage();
+            dd($this->errorTecnico);
         }
     }
+    // la ruta tendra problema ? o se reemplaza con la ultima ? // la ultima!
     public function ruta_carga()
     {
-
-        #$this->cliente = $cliente;
-        #$this->cod_carga_corp = $cod_carga_corp;
-        #$this->producto = $producto; //usanddo la desc
-        #$this->id_subproducto = $sub_producto_id;
-        #$this->tipo_subproducto = $tipo_subproducto;
-
+        //dd($this->cod_carga_corp);
         try {
-            return EaCabeceraDetalleCarga::where('cod_carga', $this->cod_carga_corp)->where('producto', $this->id_subproducto)->where('cliente', $this->cliente)->get()->first();
+            return EaCabeceraDetalleCarga::where('cod_carga', $this->cod_carga_corp)->where('producto', $this->cab_subproducto)->first();
         } catch (\Exception $e) {
             $this->errorTecnico = $e->getMessage();
         }
     }
-
-
-    public function is_carga_older()
+    // Usada en generar()
+    // extrae la ultima carga segun el cliente
+    // cambios para solo tomar ID - pendiente
+    // cambios para añadir opciones adicionales - pendiente
+    public function is_carga_older($request)
     {
+        if (isset($request['op_caracteristica_ba'])) {
+            $campos_opciones = $this->condicion_opciones(true);
+            return EaDetalleDebito::where('subproducto_id', $this->id_subproducto)
+                ->where('opciones', $campos_opciones['valor'])
+                ->orderbydesc('id_carga')
+                ->first();
+        }
+
         return EaDetalleDebito::where('cliente', $this->cliente)
             ->where('subproducto_id', $this->id_subproducto)
             ->orderbydesc('id_carga')
@@ -334,45 +353,20 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
 
     public function collection()
     {
-        //iniciaria aki un bloque de condiciones que permitiran consultar el json de validaciones aki antes de realizar la consulta.
-        // debido a que es nescesario cambiar o dar valor a los campos del export
-
-        //ejemplo de implementacion 
-        /*
-        $temporal = null;
-        if($this->tipo_subproducto=='CTAS'){
-            $temporal='ea_base_activa.cuenta';
-        }elseif($this->tipo_subproducto='TC'){
-            $temporal='ea_base_activa.tarjeta';
-        }
-
-        $this->collection =  EaBaseActiva::join("ea_detalle_debito", "ea_detalle_debito.id_sec", "=", "ea_base_activa.id_sec")
-            ->select(
-                'ea_base_activa.cedula_id',
-                'ea_base_activa.nombre',
-                'ea_base_activa.direccion',
-                'ea_base_activa.mail',
-                
-                'ea_detalle_debito.fecha_actualizacion',
-                'ea_detalle_debito.valor_debitado'
-            )
-            ->where('ea_detalle_debito.subproducto_id', $this->id_subproducto)
-            ->where('ea_detalle_debito.id_carga', $this->cod_carga_corp)
-            ->where('ea_base_activa.cliente', $this->cliente)
-            ->where('ea_detalle_debito.estado', '1')
-            ->orderby('ea_base_activa.cedula_id')
-            ->get();
-
-         */
-        /**EaBaseActiva::raw("'S/N' as 'Dirección Cliente'"),
-                EaBaseActiva::raw("'S/N' as 'Correo Cliente'"),
-                EaBaseActiva::raw("'0' as 'Cta / TC'"), */
 
         $temporal = null;
         $temporal2 = null;
         $temporal3 = null;
-        $op_client = EaOpcionesCargaCliente::where('cliente', $this->cliente)->where('subproducto', $this->producto)->first();
 
+        // generacion de factura no funciona ?? NO
+
+        $op_client = EaOpcionesCargaCliente::where('cliente', $this->cliente)->where('codigo_id', $this->producto)->first();
+        //bloque para configuracion de opciones motrar datos , depreciado eh inutilizado,  
+        //($op_client->opciones_factura crear el campo opciones_factura en ea_opciones_carga_cliente
+        // extructura de json debe ser similar : {'direccion':'1','direccion': '1'} solo es nescesario que exista un caracter o mas
+        /*
+        debito de 2 subproductos distintos ? como PTA lo hago ? 
+        */
         $opciones_factura = null;
         if (isset($op_client->opciones_factura)) {
             $opciones_factura = json_decode($op_client->campos_import, true);
@@ -381,7 +375,7 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
             } else {
                 $temporal = EaBaseActiva::raw("'S/N' as 'Dirección Cliente'");
             }
-            if (isset($opciones_factura['correo'])) {
+            if (isset($opciones_factura['direccion'])) {
                 $temporal2 = 'ea_base_activa.mail';
             } else {
                 $temporal2 = EaBaseActiva::raw("'S/N' as 'Correo Cliente'");
@@ -391,8 +385,16 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
             $temporal2 = EaBaseActiva::raw("'S/N' as 'Correo Cliente'");
             $temporal3 = EaBaseActiva::raw("'0' as 'Cta / TC'");
         }
-        //$temporal3 = 'ea_base_activa.cuenta';
-        //$this->tipo_subproducto = 'CTAS';
+        //opciones_data" => "3"
+        if (isset($this->request['opciones_data'])) {
+            $opciones_categoria = json_decode($op_client->op_caracteristica_ba, true);
+            if (isset($opciones_categoria->campo_ba)) {
+                $this->request['opcion_campo'] = $opciones_categoria['campo_ba'];
+            }
+        }
+        $campos_opciones = $this->condicion_opciones(true); // revisar o preguntar en caso de que se deshabilite luego de debitar
+
+
         $this->collection =  EaBaseActiva::join("ea_detalle_debito", "ea_detalle_debito.id_sec", "=", "ea_base_activa.id_sec")
             ->select(
                 'ea_base_activa.cedula_id',
@@ -406,6 +408,7 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
             ->where('ea_detalle_debito.subproducto_id', $this->id_subproducto)
             ->where('ea_detalle_debito.id_carga', $this->cod_carga_corp)
             ->where('ea_base_activa.cliente', $this->cliente)
+            ->where($campos_opciones['campo'], $campos_opciones['valor'])
             ->where('ea_detalle_debito.estado', '1')
             ->orderby('ea_base_activa.cedula_id')
             ->get();
@@ -413,11 +416,26 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
         $clave = Key::loadFromAsciiSafeString($contenido);
         foreach ($this->collection as $individual) {
             $input =  $individual->fecha_actualizacion;
-            $date = strtotime($input);
-            $individual->fecha_actualizacion = date('Y-m-d', $date);
-            
-            if ($individual->fecha_actualizacion == '1970-01-01') {
-                $individual->fecha_actualizacion = 'Date Parse Error , fecha registrada = ' . $input;
+            if (strlen($input) == 0 || strlen($input) < 5) {
+                $individual->fecha_actualizacion =  Carbon::now()->format('Y-m-d');;
+            } else {
+                if (isset($op_client->formato_fecha)) {
+                    /**
+                     * d M Y H:i:s
+                     * d M Y H:i:s
+                     * d/m/Y H:i:s
+                     */
+                    $dataTimeFecha_i = Carbon::createFromFormat($op_client->formato_fecha, $input);
+                    $individual->fecha_actualizacion = ($dataTimeFecha_i->format('Y-m-d'));
+                } else {
+                    $individual->fecha_actualizacion = (Carbon::parse($input)->format('Y-m-d'));
+                }
+            }
+            $input =  $individual->valor_debitado;
+            if (strlen($input) == 0) {
+                $individual->valor_debitado =   str_replace(",", ".", $individual->valor_debitado);
+            } else {
+                $individual->valor_debitado =   str_replace(",", ".", $individual->valor_debitado);
             }
         }
         return $this->collection;
@@ -431,13 +449,10 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
     /*
     public function registerEvents(): array
     {
-        return [
-            
-            
+        return [           
             AfterSheet::class    => function(AfterSheet $event) {
                 $event->writer->setCreator('EnvyKP');
                 $event->sheet->setOrientation(\PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::ORIENTATION_LANDSCAPE);
-
                 $event->sheet->styleCells(
                     'A1:W1',
                     [
@@ -515,20 +530,7 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
                                 'rgb' => 'FFFF01',
                             ]
                         ],
-                    ]
-                    {"5":"","6":"202","7":"","8":"00","10":"439473","13":"00","14":"D","15":"00000","16":"","17":""}
-                    {"1":"tarjeta", "2":"cod_establecimient" ,"4":"subtotal","11":"feccad","12":"deduccion_impuesto","16":"subtotal"}
-                    {"secuencia":"vale","fecha_actualizacion":"","valor_debitado":"VALOR","detalle":"estado","validacion_campo_1":"Establecimiento","validacion_valor_1":"876406","num_validacion":"1"}
-                    {"campoC_3":"Ymd","campoC_9":"contador_secuencia","espacios":"","identificador":"secuencia"}
-                    {"campo0_2":"8","campo0_4":"17","campo0_5":"17","campo0_7":"6","campo0_9":"6","campo0_12":"17","campo0_16":"15","campo0_17":"15"}
-
-                   subproducto = desc_subproducto
-
-                    {"5":"","6":"202","7":"","8":"00","10":"439473","13":"00","14":"D","15":"00000","16":"","17":""}
-                    {"1":"tarjeta", "2":"cod_establecimient" ,"4":"subtotal","11":"feccad","12":"deduccion_impuesto","16":"subtotal"}
-                    {"campoC_3":"Ymd","campoC_9":"contador_secuencia","espacios":"","identificador":"secuencia"}
-                    {"campo0_2":"8","campo0_4":"17","campo0_5":"17","campo0_7":"6","campo0_9":"6","campo0_12":"17","campo0_16":"15","campo0_17":"15"}
-                );*/
+                 );*/
             },
         ];
     }
@@ -541,14 +543,22 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
         ];
     }
 
-    public function __construct(string $cliente, string $producto, string $cod_carga_corp = null, string $sub_producto_id, $tipo_subproducto)
+    public function __construct($request, $detalles = null)
     {
+        $this->request = $request;
+        $this->cliente = $request->cliente;
+        $this->cab_subproducto = $request->producto;
+        $this->id_subproducto = $request->producto;
+        $this->cod_carga_corp = (isset($request->carga_resp) ? $request->carga_resp : null);
+        if ($detalles != null) {
+            $this->producto = isset($detalles->desc_subproducto) ? $detalles->desc_subproducto : dd("error en dato nombre producto");
+            $this->contrato_ama = isset($detalles->contrato_ama) ? $detalles->contrato_ama : dd("error en dato contrato ama");
+            $this->tipo_subproducto =  isset($detalles->tipo_subproducto) ? $detalles->tipo_subproducto : dd("error en dato tipo_subproducto");
+        } else {
+            //$this->tipo_subproducto = $tipo_subproducto;// usado para generar TXT
+            $this->producto = $request->producto;
+        }
 
-        $this->cliente = $cliente;
-        $this->cod_carga_corp = $cod_carga_corp;
-        $this->producto = $producto; //usanddo la desc
-        $this->id_subproducto = $sub_producto_id;
-        $this->tipo_subproducto = $tipo_subproducto;
         $this->collection = null;
     }
 }

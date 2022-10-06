@@ -98,12 +98,9 @@ class EaSubproductoController extends Controller
         $html = '<option value="" selected>Selecciona Producto</option>';
         $subproductos = EaSubproducto::where('cliente', $request->cliente)
             ->get();
-
         foreach ($subproductos as $subproducto) {
-
             $html .= '<option value="' . $subproducto->id_subproducto  . '">' . (substr($subproducto->desc_subproducto, -strlen($subproducto->tipo_subproducto)) == $subproducto->tipo_subproducto ? $subproducto->desc_subproducto : ($subproducto->desc_subproducto) . " " . ($subproducto->tipo_subproducto)) . '</option>';
         }
-
         return response()->json(['htmlProducto' => $html]);
     }
 
