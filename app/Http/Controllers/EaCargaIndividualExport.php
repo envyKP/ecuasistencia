@@ -61,6 +61,7 @@ class EaCargaIndividualExport extends Controller
      */
     public function exporta(Request $request)
     {
+        // revisar flujo de $this->ultima_carga
         //abort(404, ' Configuracion faltante en tabla opciones subproductos');
         try {
             if ($request->btn_genera == 'buscar') {
@@ -263,7 +264,8 @@ class EaCargaIndividualExport extends Controller
                                 $extension_file .= "txt";
                             }
                             $id_carga = (isset($this->ultima_carga['id_carga']) ? $this->ultima_carga['id_carga'] : 1);
-                            $fecha_generacion = (isset($this->ultima_carga->fecha_generacion) ? $this->ultima_carga->fecha_generacion : 0);
+                            
+                            $fecha_generacion = (isset($this->ultima_carga->fecha_generacion) ? $this->ultima_carga->fecha_generacion : date('mY'));
                             //bloque de insertar cabezera detalle
                             /*
                         $file_reg_carga = array();

@@ -49,7 +49,8 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow, Wi
         //$datos_subproductos = $obj_subproducto->getSubproductoDetalle($this->cliente, $this->producto);
         //$datos_subproductos->desc_subproducto; // subproducto - base activa
         $inner_tables_ba_det = null;
-        $op_client = EaOpcionesCargaCliente::where('cliente', $this->cliente)->where('subproducto', $this->producto)->first();
+        //$op_client = EaOpcionesCargaCliente::where('cliente', $this->cliente)->where('subproducto', $this->producto)->first();
+        $op_client = EaOpcionesCargaCliente::where('opciones_id', $this->producto)->first();
         $opciones_validacion = null;
         $opciones_import = null;
         if (isset($op_client->opciones_validacion) && isset($op_client->campos_import)) {
@@ -78,7 +79,6 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow, Wi
                     }
                 }
                 if (isset($opciones_validacion['identificador_secuencia'])) {
-
 
                     if ($opciones_validacion['identificador_secuencia'] == "cuenta" || $opciones_validacion['identificador_secuencia'] == "tarjeta") {
                         $id_detalle = null;
@@ -222,8 +222,9 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow, Wi
      */
     public function merge_inner_import($datos_subproductos)
     {
-        //dd($datos_subproductos->tipo_subproducto);
+        //dd($datos_subproductos);
         $campos_opciones = $this->condicion_opciones();
+        //dd($campos_opciones);
         $merge_inner_import =  EaDetalleDebito::join("ea_base_activa", "ea_base_activa.id_sec", "=", "ea_detalle_debito.id_sec")
             ->select(
                 'ea_detalle_debito.id_detalle',
@@ -240,11 +241,13 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow, Wi
             ->where('ea_detalle_debito.cliente', $this->cliente)
             ->where('ea_detalle_debito.subproducto_id', $this->producto)->orderby('ea_detalle_debito.secuencia')
             ->get();
+
         $contenido = file_get_contents("../salsa.txt");
         $clave = Key::loadFromAsciiSafeString($contenido);
         //bloque para descomentar luego de pruenbas con datos erroneos en bolivariano.
         // BOLIVARIANO TC , no tiene dato en TC evaluar o corregir luego , no se que tiene los datos 
         // recordar la base de datos en una copia de la que existe en produccion, o existe otros datos
+        //dd($merge_inner_import);
         foreach ($merge_inner_import as $row) {
             //dd(strlen($row[$datos_subproductos]));
             if (strlen($row[$datos_subproductos]) <= 20) {
@@ -253,6 +256,7 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow, Wi
             }
             $value_field = Crypto::decrypt($row[$datos_subproductos], $clave);
             $row[$datos_subproductos] = $value_field;
+            //echo $row[$datos_subproductos]."    \n";
         }
         return $merge_inner_import;
     }
@@ -262,11 +266,11 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow, Wi
     {
         $campos_opciones = array();
         if (isset($this->opciones_data)) {
-            $campos_opciones['campo'] = 'ea_detalle_debito.opciones';
-            $campos_opciones['valor'] = $this->request['opciones_data'];
+            $campos_opciones['campo'] = 'ea_detalle_debito.opciones_id';
+            $campos_opciones['valor'] =  $this->opciones_data;
         } else {
-            $campos_opciones['campo'] = 'tipresp';
-            $campos_opciones['valor'] = '1';
+            $campos_opciones['campo'] = 'id_carga';
+            $campos_opciones['valor'] = $this->cod_carga;
         }
         return $campos_opciones;
     }

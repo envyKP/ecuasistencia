@@ -33,5 +33,6 @@ class EaCabeceraDetalleCarga extends Model
         'usuario_actualiza',
         'opciones_validacion',
         'ruta_gen_debito',
+        'fecha_actualiza',
     ];
 }

@@ -113,17 +113,18 @@ class EaCargaIndividualImport extends Controller
 
     private function control_archivos($datosCab, $request, $op_client)
     {
-        $datosCab['fec_carga'] = Date('d/m/Y H:i:s');
+        //dd($request);
+        $datosCab['fecha_actualiza'] = Date('d/m/Y H:i:s');
         if ($request->hasfile('archivo')) {
             $nombre_archivo = $request->file('archivo')->getClientOriginalName();
             $descripcion = preg_replace('([^A-Za-z0-9 ])', '', $op_client->archivo_nombre);
-            if (isset($request->opciones_data)) {
-                $datosCab['archivo'] = $request->file('archivo')->storeAs('lecturaDebito/' . $request->cliente . '/' . $descripcion . '/' . $request->cod_carga . '/' . $request->opciones_data, $nombre_archivo, 'public');
+            if (isset($request->n_custom_code)) {
+                $datosCab['archivo'] = $request->file('archivo')->storeAs('lecturaDebito/' . $request->cliente . '/' . $descripcion . '/' . $request->cod_carga . '/' . $request->n_custom_code, $nombre_archivo, 'public');
             } else {
                 $datosCab['archivo'] = $request->file('archivo')->storeAs('lecturaDebito/' . $request->cliente . '/' . $descripcion . '/' . $request->cod_carga, $nombre_archivo, 'public');
             }
         }
-        $valores_campo_opciones = isset($request->opciones_data) ? $request->opciones_data : null;
+        $valores_campo_opciones = isset($request->n_custom_code) ? $request->n_custom_code : null;
         $campos_opciones = $this->condicion_opciones_cabezera($valores_campo_opciones);
         $trx = EaCabeceraDetalleCarga::where('producto', (isset($datosCab['producto']) ? $datosCab['producto'] : ''))
             ->where($campos_opciones['campo'], $campos_opciones['valor'])
@@ -188,27 +189,19 @@ class EaCargaIndividualImport extends Controller
     // solo tiene que reconocer 2 cosas opciones_id y aparte el original carga y subproducto_id
     public function procesar(Request $request)
     {
-        //falta el campo para opcion
-        //n_custom_code//listo
-        /**
-      "cod_carga" => "1"
-      "cliente" => "INTER"
-      "producto" => "4"
-      "desc_producto" => "ASISTENCIA HOMBRE TC"
-      "estado_cabecera" => "PENDIENTE"
-      "n_custom_code" => null
-         */
-        dd($request);
+
         $cabecera_update = array();
         $registroCarga = EaCabeceraDetalleCarga::where('cod_carga', $request->cod_carga)
             ->where('cliente', $request->cliente)
             ->where('producto', $request->producto)
             ->first();
         $import = (new EaGemCamImport($request->cod_carga, $request->cliente, $request->producto, $request));
-        $op_client = EaOpcionesCargaCliente::where('cliente',  $request->cliente)->where('subproducto', $request->producto)->first();
+
+        $op_client = EaOpcionesCargaCliente::where('codigo_id', $request->producto)->first();
+
         $opciones_validacion = json_decode($op_client->opciones_validacion, true); // no lo valide aki si no en eaGemCamImport // imposible se usa para validar la extension
         // no opcion a agarrar valor que venga en el txt , debido a que no sabre si es entero o decimal
-
+        //dd($opciones_validacion);
         $formato = "";
         if (isset($opciones_validacion['formato'])) {
             $formato = $opciones_validacion['formato'];
@@ -222,56 +215,71 @@ class EaCargaIndividualImport extends Controller
                 /*
             metodo de lectura de txt , por espaciado , como se implementaria ? existe limite se puede usar la misma estructura implementada en el collector()
             */
-                $opciones_validacion = null;
-                $opciones_import = null;
-                if (isset($op_client->opciones_validacion) && isset($op_client->campos_import)) {
+                //$opciones_validacion = null;
+                //$opciones_import = null;
+                /*if (isset($op_client->opciones_validacion) && isset($op_client->campos_import)) {
                     $opciones_import = json_decode($op_client->campos_import, true);
                     $opciones_validacion = json_decode($op_client->opciones_validacion, true);
+                    
                 } else {
                     $cabecera_update['estado'] = 'ERROR';
                     $detalle_proceso['errorTecnico'] = "No pudo terminar la operacion revise la configuracion ";
                     $import->detalle_proceso['msg'] = "error tecnico : " . $detalle_proceso['errorTecnico'];
                     $this->update_datos_cab_carga($registroCarga->cliente, $request->cod_carga, $request->producto, $cabecera_update);
                     return response()->json(['success' => $import->detalle_proceso['msg']]);
-                }
+                }*/
                 $fh = fopen(public_path('storage\\' . $this->getFilePath($registroCarga->archivo)), 'r');
                 $count1 = 0;
+                $tarjetas_BA = $import->merge_inner_import("tarjeta");
+                $obj_detalle_debito = (new EaDetalleDebitoController);
                 while ($line = fgets($fh)) {
-                    
-                    // creado para saltar la primera linea // no lo hare editable// exclusivo para Produbanco
-                    // solo debe leer tarjeta si existe ha sido debitado
-                   
-                    // no nescesario en la lectura , si en la creacion 
-                   /*
-                    if ($count1 == 0) {
-                        /// leer la primera linea echo ($line);
-                        $count1++;
+                    // inicio de menu , esto sera quemado solo para uso de produbanco.
+                    try {
+
+                        $identificador_secuencia =  substr($line, 0, 16);
+                        //dd($identificador_secuencia);
+
+                        if (is_numeric($identificador_secuencia) == 1) {
+                            foreach ($tarjetas_BA as $indet) {
+                                //dd($indet['tarjeta']);
+                                /*echo "numero archivo : ".$identificador_secuencia;
+                                echo "    ".$indet['tarjeta']."<- de base";*/
+                                if ($identificador_secuencia == $indet['tarjeta']) {
+                                    /*echo "numero archivo : ".$identificador_secuencia;
+                                    echo "    ".$indet['tarjeta']."<- de base";*/
+                                    $id_detalle = $indet['id_detalle']; //
+                                    // insertar estos valores
+                                    //detalle
+                                    //fecha actualizacion 
+                                    //estado
+                                    $updateRow = array();
+                                    $date = date('Y-m-d');
+                                    $updateRow['fecha_actualizacion'] =  $date;
+                                    $updateRow['estado'] = '1';
+                                    $updateRow['detalle'] = 'OK';
+                                    //dd($updateRow);
+                                    $existe =  $obj_detalle_debito->update_debit_detail_join_BA($id_detalle, $updateRow);
+                                    //echo " ".$id_detalle." ";
+                                    unset($indet);
+                                }
+                                /*if ($row[$opciones_import[$opciones_validacion['identificador_secuencia']]] == $indet[$opciones_validacion['identificador_secuencia']]) {
+                                    $id_detalle = $indet['id_detalle']; //
+                                    unset($indet);
+                                    break;
+                                }*/
+                            }
+                        } else {
+                            continue;
+                        }
+
+                        //echo "fuera de bucle";
+
+                    } catch (\Throwable $th) {
                         continue;
                     }
-                    */
 
-                    //$opciones_validacion['definicion'] --> cambiar luego de insertar una estructura 
-                    //$opciones_validacion['limite']// nueva variable a insertar 
-                    // algo como secuencia_:
-                    // secuencia_v_:
-                    // 1:tarjeta
-                    // 2 : fecha
-                    // 3 : secuencia
-                    // solo nescesitaria esto en cualquier lectura de archivo
-                    // if () isset si no existe , salta y quema algo 
-                    //inacceciu
-                    // no es posible crear un bucle dentro del mismo while para manejar las validadciones en base 
-                    /*
-                for ($i = 0; $i < $opciones_validacion['limite']; $i++) {
-                    echo "\n" . (substr($line, $opciones_validacion['campo_' . $i], $opciones_validacion['valor_' . $i]));
-                }*/
-                    //{"validacion_campo_1":"tip_afecta","validacion_valor_1":"0","num_validacion":"1","identificador_secuencia":"tarjeta"}//opciones validacion
-                    //{"tarjeta":"6,16","fecha_actual":"26,6","detalle":"32,8"}//campos import
-                    // utilizo for o directamente uso variables, llamaria 10 variables , en vez de simplemente continuar ?
-                    // for es confiable, esta vez el json sera en pares.
-                    //{"campo_1":0,"valor_1":6,"campo_2":6,"valor_2":16,"campo_3":22,"valor_3":4,"campo_4":26,"valor_4":6,"campo_5":32,"valor_5":8, }
-                    $opciones_import[$opciones_validacion['identificador_secuencia']]; // $opciones_import['tarjeta'] = 6,16 // no usa el nombre de campo si no numero 
-                    //$secuencia = $opciones_import[$opciones_validacion['identificador_secuencia']];
+                    //bloque personalizado Para leer texto
+                    /* $opciones_import[$opciones_validacion['identificador_secuencia']];
                     if (isset($opciones_import[$opciones_validacion['identificador_secuencia']])) {
                         $limite_secuencia = explode(",", $opciones_import[$opciones_validacion['identificador_secuencia']]); // deberia separalos con el , volviendo array la variable
                         $identificador_secuencia =  substr($line, $limite_secuencia[0], $limite_secuencia[1]);
@@ -296,38 +304,30 @@ class EaCargaIndividualImport extends Controller
                         $detalle =  substr($line, $limite_secuencia[0], $limite_secuencia[1]);
                     } else {
                     }
-                    /**nop lo que venga en el txt significara que es un valor debitado
-                     * // generar una condicion que solo valide que cambie de estado si existe el identificador
-                     */
-                    // distincion entre tarjeta y cuenta , para el insert , el inser deberia ser el mismo que el que se usa en el collection()
-                    // de verdad lo implementare de esta forma , es toda una estructura nueva practicamente , 
-                    // unicamente para el texto haciendo inviable o mas dificil el almacenamiento en formulario para base 
-                    /*
-                if(tarjeta || cuenta){}elseif(secuencia || cedula){}if (isset($opciones_validacion['secuencia'])) {echo "\n" . (substr($line, 0, 6)); // secuencia}
-                if (isset($opciones_validacion['secuencia'])) {    echo "\n" . (substr($line, 0, 6)); // secuencia}if (isset($opciones_validacion['secuencia'])) {    echo "\n" . (substr($line, 0, 6)); // secuencia}if (isset($opciones_validacion['secuencia'])) {    echo "\n" . (substr($line, 0, 6)); // secuencia}echo "\n" . (substr($line, 0, 6)); // secuenciaecho "<===>"; // limboecho "\n" . (substr($line, 6, 16)); // tarjetaecho "<===>"; // limboecho "\n" . (substr($line, 22, 4)); // 0000echo "<===>"; // limboecho "\n" . (substr($line, 26, 6)); //fecha y mes talvez ?echo "<===>";echo "\n" . (substr($line, 32, 8)); //02320101 //descripcion o aprovacion $count1++;
                 */
-                    //poner una condicion con breack y adicional llenar el campo $detalle_proceso['errorTecnico'] = 
                 }
                 fclose($fh);
-                if (!empty($detalle_proceso['errorTecnico'])) {
+
+                //dd("terminado");
+                /*if (isset($detalle_proceso['errorTecnico'])) {
                     $cabecera_update['estado'] = 'ERROR';
                     $import->detalle_proceso['msg'] = "error tecnico : " . $detalle_proceso['errorTecnico'];
                     $this->update_datos_cab_carga($registroCarga->cliente, $request->cod_carga, $request->producto, $cabecera_update);
                     return response()->json(['success' => $import->detalle_proceso['msg']]);
                 } else {
-                    try {
-                        $cabecera_update['estado'] = 'PROCESADO';
-                        $this->update_datos_cab_carga($registroCarga->cliente, $request->cod_carga, $request->producto, $cabecera_update);
-                        return response()->json($import->detalle_proceso);
-                    } catch (\Exception $e) {
-                        $errorTecnico = $e->getMessage();
-                        return response()->json($errorTecnico);
-                    }
+                    */
+
+                try {
+                    $cabecera_update['estado'] = 'PROCESADO';
+                    $this->update_datos_cab_carga($registroCarga->cliente, $request, $cabecera_update);
+                    $detalle_proceso['success'] = "completado exitosamente";
+                    $detalle_proceso['msg'] = "completado exitosamente";
+                    return response()->json($detalle_proceso);
+                } catch (\Exception $e) {
+                    $errorTecnico = $e->getMessage();
+                    return response()->json($errorTecnico);
                 }
-
-
-
-                // terminacion metodo de texto
+                //  }
                 break;
 
             default:
@@ -373,23 +373,26 @@ class EaCargaIndividualImport extends Controller
 
 
 
-
-
-
-
-
-
-
-
-
-    public function update_datos_cab_carga($cliente, $cod_carga, $producto, array $datos)
+    public function update_datos_cab_carga($cliente,$request, array $datos)
     {
-
-        $trx =  EaCabeceraDetalleCarga::where('cliente', $cliente)
-            ->where('cod_carga', $cod_carga)
-            ->where('producto', $producto)
+        // $cod_carga, $producto
+        //$request->cod_carga, $request->producto
+        
+        if(isset($request->n_custom_code)){
+            $trx =  EaCabeceraDetalleCarga::where('cliente', $cliente)
+            ->where('cod_carga', $request->cod_carga)
+            ->where('producto', $request->producto)
+            ->where('n_custom_code',$request->n_custom_code)
             ->update($datos);
         return $trx;
+        }else{
+            $trx =  EaCabeceraDetalleCarga::where('cliente', $cliente)
+            ->where('cod_carga', $request->cod_carga)
+            ->where('producto', $request->producto)
+            ->update($datos);
+        return $trx;
+        }
+       
     }
 
 
@@ -419,7 +422,7 @@ class EaCargaIndividualImport extends Controller
 
     public function destroy(Request $request)
     {
-        dd($request);
+        //dd($request);
         \Log::info('FUNCION DESTROY: ');
         \Log::warning('usuario que realiza la orden DESTROY: ' . \Auth::user()->username);
         $objEXPORT = new EaGenCamExport($request);
