@@ -47,7 +47,7 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
             //if (isset($this->request['opcion_campo'])) {
             if ($condicion) {
                 //echo("deberia ser true");
-                $campos_opciones['campo'] = 'ea_detalle_debito.opciones';
+                $campos_opciones['campo'] = 'ea_detalle_debito.opciones_id';
             } else {
                 //echo("deberia ser false");
                 $campos_opciones['campo'] = $this->request['opcion_campo'];
@@ -71,12 +71,14 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
         //dd($this->request);
         //dd($campos_opciones);
         $detalles = $this->is_carga_older($request);
+
         switch ($this->cliente) {
             case 'disable':
                 break;
             default:
                 $fecha_generacion = (isset($detalles->fecha_generacion) ? $detalles->fecha_generacion : 0);
                 if (($fecha_generacion) == date('mY')) {
+                    // dd("llego");
                     // echo ($detalles->fecha_generacion) . ($detalles->id_sec) . " se encuentra dentro del mes";
                     if (isset($this->cod_carga_corp)) {
                         $carga_secuencia = $this->cod_carga_corp;
@@ -84,6 +86,7 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
                         $carga_secuencia = $detalles->id_carga;
                     }
                     $campos_opciones = $this->condicion_opciones(true);
+                    // dd($campos_opciones);
                     $this->cod_carga_corp = $carga_secuencia;
                     if ($this->tipo_subproducto == 'TC') {
                         \Log::info('$carga_secuencia : ' . $carga_secuencia);
@@ -111,7 +114,6 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
                             )
                             ->where('ea_detalle_debito.subproducto_id', $this->id_subproducto)
                             ->where('ea_detalle_debito.id_carga', $carga_secuencia)
-                            ->where('ea_base_activa.cliente', $this->cliente)
                             ->where('tipresp', '1')
                             ->where('codresp', '100')
                             ->where($campos_opciones['campo'], $campos_opciones['valor'])
@@ -252,17 +254,28 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
     }
 
     // modificar este metodo
-    public function destroy_cab_detalle($cod_carga, $cliente, $producto)
+    public function destroy_cab_detalle($cod_carga, $cliente, $producto, $adicional_opcion = null)
     {
         \Log::warning('funcion destroy_cab_detalle class EaGenCamExport by user ' . \Auth::user()->username);
         try {
             // puede que no lo borre
             \Log::warning("EaDetalleDebito::where(id_carga," . $cod_carga . " )->where(cliente, " . $cliente);
             // KPE CAMBIO VARIABLE ->where('subproducto_id', $producto)
-            EaDetalleDebito::where('id_carga', $cod_carga)
-                ->where('cliente', $cliente)
-                ->where('subproducto_id', $producto)
-                ->delete();
+            if (isset($adicional_opcion) || $adicional_opcion != null) {
+                EaDetalleDebito::where('id_carga', $cod_carga)
+                    ->where('cliente', $cliente)
+                    ->where('subproducto_id', $producto)
+                    ->where('opciones_id', $adicional_opcion)
+                    ->delete();
+            } else {
+                EaDetalleDebito::where('id_carga', $cod_carga)
+                    ->where('cliente', $cliente)
+                    ->where('subproducto_id', $producto)
+                    ->delete();
+            }
+
+
+
             $this->destroy_cab($cod_carga, $cliente, $producto);
             /* EaCabeceraDetalleCarga::where('cod_carga', $cod_carga)
                 ->where('cliente', $cliente)
@@ -272,6 +285,28 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
         } catch (\Exception $e) {
             \Log::warning('error view_reg_state:  ' . $e);
             // $obj_det_carga_corp->truncate($this->cod_carga, $this->cliente );
+            $this->errorTecnico = $e->getMessage();
+        }
+    }
+    public function destroy_detalle($cod_carga, $cliente, $producto, $adicional_opcion = null)
+    {
+        \Log::warning('funcion destroy_cab_detalle class EaGenCamExport by user ' . \Auth::user()->username);
+        try {
+            \Log::warning("EaDetalleDebito::where(id_carga," . $cod_carga . " )->where(cliente, " . $cliente);
+            if (isset($adicional_opcion) || $adicional_opcion != null) {
+                EaDetalleDebito::where('id_carga', $cod_carga)
+                    ->where('cliente', $cliente)
+                    ->where('subproducto_id', $producto)
+                    ->where('opciones_id', $adicional_opcion)
+                    ->delete();
+            } else {
+                EaDetalleDebito::where('id_carga', $cod_carga)
+                    ->where('cliente', $cliente)
+                    ->where('subproducto_id', $producto)
+                    ->delete();
+            }
+        } catch (\Exception $e) {
+            \Log::warning('error view_reg_state:  ' . $e);
             $this->errorTecnico = $e->getMessage();
         }
     }
@@ -298,23 +333,6 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
     {
         try {
             $mensaje = EaCabeceraDetalleCarga::create($rows);
-            /*
-                $mensaje = EaCabeceraDetalleCarga::create([
-                'cod_carga' => isset($rows['cod_carga']) ? $rows['cod_carga'] : null,
-                'fecha_actualizacion' => isset($row['fecha_actualizacion']) ? $rows['fecha_actualizacion'] : '',
-                'fec_registro' => Carbon::now(),
-                'producto' =>  isset($rows['producto']) ? trim($rows['producto']) : null,
-                'desc_producto' => isset($this->producto) ? trim($this->producto) : '',
-                'cliente' => isset($this->cliente) ? trim($this->cliente) : '',
-                'producto' => $this->cab_subproducto,
-                'fec_carga' => isset($rows['fecha_generacion']) ? trim($rows['fecha_generacion']) : null,
-                'usuario_registra' => isset($rows['usuario']) ? trim($rows['usuario']) : null,
-                'estado' => 'PENDIENTE',
-                'is_det_debito' => '1',
-                'ruta_gen_debito' => isset($rows['ruta_gen_debito']) ? trim($rows['ruta_gen_debito']) : null,
-                'opciones' => isset($rows['opciones']) ? $rows['opciones'] : null,
-            ]);
-            */
         } catch (\Exception $e) {
             // $obj_det_carga_corp->truncate($this->cod_carga, $this->cliente );
             $this->errorTecnico = $e->getMessage();
@@ -331,16 +349,17 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
             $this->errorTecnico = $e->getMessage();
         }
     }
-    // Usada en generar()
-    // extrae la ultima carga segun el cliente
-    // cambios para solo tomar ID - pendiente
-    // cambios para añadir opciones adicionales - pendiente
+
+
     public function is_carga_older($request)
     {
+
         if (isset($request['op_caracteristica_ba'])) {
+
             $campos_opciones = $this->condicion_opciones(true);
-            return EaDetalleDebito::where('subproducto_id', $this->id_subproducto)
-                ->where('opciones', $campos_opciones['valor'])
+            //dd($campos_opciones);
+            return EaDetalleDebito::where('subproducto_id', $request->producto)
+                ->where('opciones_id', $campos_opciones['valor'])
                 ->orderbydesc('id_carga')
                 ->first();
         }
@@ -351,15 +370,25 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
             ->first();
     }
 
+    public function is_carga_older_solo_id($campo_adicional)
+    {
+        if (isset($campo_adicional)) {
+            return EaDetalleDebito::where('subproducto_id', $this->id_subproducto)
+                ->where('opciones_id', $campo_adicional)
+                ->orderbydesc('id_carga')
+                ->first();
+        }
+        return EaDetalleDebito::where('subproducto_id', $this->id_subproducto)
+            ->orderbydesc('id_carga')
+            ->first();
+    }
+
     public function collection()
     {
-
         $temporal = null;
         $temporal2 = null;
         $temporal3 = null;
-
         // generacion de factura no funciona ?? NO
-
         $op_client = EaOpcionesCargaCliente::where('cliente', $this->cliente)->where('codigo_id', $this->producto)->first();
         //bloque para configuracion de opciones motrar datos , depreciado eh inutilizado,  
         //($op_client->opciones_factura crear el campo opciones_factura en ea_opciones_carga_cliente

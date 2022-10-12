@@ -31,10 +31,10 @@
     <script type="text/javascript">
         $(document).ready(function() {
 
-            
+
             $("#cliente").change(function() {
                 $.ajax({
-                    url: "{{route('EaDetalleDebitoController.getMenuSubproductoOpciones')  }}?cliente=" +
+                    url: "{{ route('EaDetalleDebitoController.getMenuSubproductoOpciones') }}?cliente=" +
                         $(this).val(),
                     method: "get",
                     success: function(data) {
@@ -43,8 +43,8 @@
                     }
                 });
             });
-            
-           
+
+
             $("#producto").change(function() {
                 $.ajax({
                     url: "{{ route('EaDetalleDebitoController.getDetalleDebitoOpciones') }}?producto=" +
@@ -55,7 +55,7 @@
                     }
                 });
             });
-            
+
             $("#btn_genera").change(function() {
                 $.ajax({
                     success: function(data) {
@@ -64,7 +64,7 @@
                 });
             });
 
-    
+
             $("#filtro_cliente").click(function() {
                 if ($("#filtro_cliente").is(":checked")) {
                     $("#cliente").css('display', 'block');
@@ -154,7 +154,7 @@
                 output.innerHTML = input.files.item(i).name;
             }
         }
-        
+
         function upload_function(form, idbar) {
             let url = '<?php echo url('recepcion/archivo/cargaIndividual/subirArchivo'); ?>';
             let formulario = new FormData($(form)[0]);
@@ -198,7 +198,7 @@
             document.getElementById("processCargaDetalle").style.display = "block";
         }
 
-        function procesar_function(cod_carga, cliente, producto, desc_producto, estado_cabecera, idbar) {
+        function procesar_function(cod_carga, cliente, producto, desc_producto, estado_cabecera, n_custom_code, idbar) {
             //document.getElementById("demo").innerHTML = "Frame Pruebas function , intentemos ajax .";
             //var form = $("#form-uploadArchivos");
             //var url = form.attr('action');
@@ -210,7 +210,8 @@
                 'cliente': cliente,
                 'producto': producto,
                 'desc_producto': desc_producto,
-                'estado_cabecera': estado_cabecera
+                'estado_cabecera': estado_cabecera,
+                'n_custom_code': n_custom_code
             });
 
             var procesbarId = "processCargaDetalle" + idbar;

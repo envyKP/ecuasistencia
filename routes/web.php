@@ -11,6 +11,7 @@ use  App\Http\Controllers\EaSubproductoController;
 use  App\Http\Controllers\EaBaseActivaBusquedaController;
 use  App\Http\Controllers\UserController;
 use  App\Http\Controllers\EaCamposBaController;
+use  App\Http\Controllers\EaControlCampania;
 use  App\Http\Controllers\EaMigracionBaseActivaController;
 use  App\Http\Controllers\EaMotivoDesactivacionController;
 use  App\Http\Controllers\EaCabCargaInicialController;
@@ -132,6 +133,17 @@ Route::middleware(['auth', 'prevent-back-history', 'isAdmin'])->group(function (
     Route::patch('Subproducto/store/', [EaSubproductoController::class, 'store'])->name('EaSubproductoController.store');
     Route::patch('Subproducto/update/', [EaSubproductoController::class, 'update'])->name('EaSubproductoController.update');
 });
+//KPE Edicion Campanias
+Route::middleware(['auth', 'prevent-back-history', 'isAdmin'])->group(function () {
+    Route::get('configCampanias/index/', [EaControlCampania::class, 'index'])->name('EaControlCampania.index');
+   /* Route::patch('producto/delete/', [EaProductoController::class, 'destroy'])->name('EaProductoController.destroy');
+    Route::patch('producto/store/', [EaProductoController::class, 'store'])->name('EaProductoController.store');
+    Route::patch('producto/update/', [EaProductoController::class, 'update'])->name('EaProductoController.update');
+    Route::patch('Subproducto/delete/', [EaSubproductoController::class, 'destroy'])->name('EaSubproductoController.destroy');
+    Route::patch('Subproducto/store/', [EaSubproductoController::class, 'store'])->name('EaSubproductoController.store');
+    Route::patch('Subproducto/update/', [EaSubproductoController::class, 'update'])->name('EaSubproductoController.update');*/
+});
+
 
 
 Route::middleware(['auth', 'prevent-back-history', 'isAdmin'])->group(function () {

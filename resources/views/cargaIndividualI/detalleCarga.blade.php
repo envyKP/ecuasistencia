@@ -71,7 +71,7 @@
                                     <input type="hidden" name="producto" value="{{ $producto }}">
                                     <input type="hidden" name="desc_producto" value="{{ $desc_producto }}">
                                     <input type="hidden" name="estado_cabecera" value="{{ $estado_cabecera }}">
-                                    <input type="hidden" name="opciones_data" value="{{ $opciones_data }}">
+                                    <input type="hidden" name="n_custom_code" value="{{ $opciones_data }}">
                                     <input type="hidden" name="registros_no_cumplen"
                                         value="{{ $registros_no_cumplen }}">
                                     <input type="hidden" name="usuario_actualiza"
@@ -89,7 +89,7 @@
                                         </button></td>
                                 </form>
                                 <td> <button class="btn btn-info mx-1" title="Guardar" type="button"
-                                        onclick="procesar_function('{{ $cod_carga }}','{{ $cliente }}','{{ $producto }}','{{ $desc_producto }}', '{{ $estado_cabecera }}', '{{ $row . $cliente . $producto }}')">
+                                        onclick="procesar_function('{{ $cod_carga }}','{{ $cliente }}','{{ $producto }}','{{ $desc_producto }}', '{{ $estado_cabecera }}', '{{ $opciones_data }}', '{{ $row . $cliente . $producto }}')">
                                         <svg class="c-icon c-icon-1xl">
                                             <use
                                                 xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-save') }} ">

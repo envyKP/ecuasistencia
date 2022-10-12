@@ -101,9 +101,7 @@ class EaProductoController extends Controller
      */
     public function index()
     {
-
         $Allcampanas = (new EaClienteController)->getAllCampanas();
-
         return view ('configProdu.home')->with(compact('Allcampanas'));
     }
 

@@ -142,11 +142,46 @@ class EaCargaIndividualExport extends Controller
                             $request['opcion_campo'] = $this->op_caracteristica_ba['campo_ba'];
                         }
 
+
                         $textoPlano = "";
                         $this->cont = 0;
                         if (isset($this->op_client['subproducto'])) {
-                            ///bloque de repeticion
-                            $prod_id = explode(',', $this->op_client['subproducto']);
+
+                            // condicion manejo carga dentro del mes o si es primera carga
+                            // is older mmyyyy = actual
+                            //EaCabeceraCargaCorp::where('producto',$this->op_client['codigo_id'])->where()-first();
+                            $prod_id = null;
+
+                            if (isset($request->opciones_data)) {
+                                try {
+                                    $cabezera_datos = EaCabeceraDetalleCarga::where('producto', $this->op_client['codigo_id'])
+                                        ->where('n_custom_code', $request->opciones_data)->orderbydesc('cod_carga')
+                                        ->first();
+
+                                    if (isset($cabezera_datos->fec_carga)) {
+                                        if ($cabezera_datos->fec_carga == date('mY')) {
+                                            //dd("en condicion");
+                                            //$prod_id =  $this->op_client['subproducto'];
+                                            $prod_id = explode(',', $this->op_client['subproducto']);
+                                            $prod_id = $prod_id[0];
+                                            $prod_id = explode(',', $prod_id);
+
+                                            //dd($prod_id);
+                                        } else {
+                                            //dd("en condicion 1");
+                                            $prod_id = explode(',', $this->op_client['subproducto']);
+                                        }
+                                    } else {
+                                        //dd("en condicion 2");
+                                        $prod_id = explode(',', $this->op_client['subproducto']);
+                                    }
+                                } catch (\Exception $e) {
+                                    dd($e);
+                                }
+                            } else {
+                                $prod_id = explode(',', $this->op_client['subproducto']);
+                            }
+                            //dd("fuera de bloque de condiciones ");
                             //ya no tiene realacion con el subproducto de prod si no el de la base en detalles_debitos
                             $ultima_carga = $this->ultima_carga_subproducto($request);
                             $ultima_carga = ($ultima_carga != null ? $ultima_carga : null);
@@ -158,23 +193,38 @@ class EaCargaIndividualExport extends Controller
                             $this->ultima_carga = ($ultima_carga != null ? $ultima_carga : null);
                             $conut_adicionales = 0;
 
+
+
+                            // dd( count($prod_id));
                             foreach ($prod_id as $producto) {
                                 $conut_adicionales++;
+
+
                                 $this->detalle_subproducto = ((new EaSubproductoController)->getSubproductoDetalle($request->cliente, $producto));
+
+
                                 $objEXPORT = new EaGenCamExport(
                                     $request,
                                     $this->detalle_subproducto
                                 );
+
                                 $generacion_txt = $this->genera_cadena_subproducto($objEXPORT, $request,  $textoPlano);
+
+
+
                                 if (($conut_adicionales < count($prod_id))) {
                                     $textoPlano = $textoPlano . $generacion_txt['textoPlano'];
                                 } elseif (($conut_adicionales == count($prod_id))) {
                                     $textoPlano = $generacion_txt['textoPlano'];
                                 }
+
+
                                 if ($textoPlano == "") {
                                     $textoPlano = $textoPlano . $generacion_txt['textoPlano'];
                                 }
                             }
+
+
                             //dd($conut_pruebas);
                             if (isset($campoC["frase"])) {
                                 switch ($request->cliente) {

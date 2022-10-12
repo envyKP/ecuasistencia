@@ -27,7 +27,7 @@ class EaDetalleDebitoController extends Controller
             if ($token === 'todos') {
                 /// ejecutar comando para realizar la limpieza de datos, posiblemente usar este metodo tambien 
                 // echo 'procegir a realizar la limpieza';
-                $token = $this->condicion_opciones();
+                $token = $this->condicion_opciones("asdf");
             } else {
                 // echo 'servicio denegado ';
                 $token = $this->condicion_opciones(true);
@@ -36,17 +36,6 @@ class EaDetalleDebitoController extends Controller
             echo 'dentro de condicion ';
         }
         echo 'final ';
-    }
-    //pruebas KPE robar
-    public function condicion_opciones($condicion = false)
-    {
-        $campos_opciones = array();
-        if ($condicion) {
-            echo 'ea_detalle_debito.opciones';
-        } else {
-            echo 'ratata';
-        }
-        return $condicion;
     }
 
     /**
@@ -69,8 +58,6 @@ class EaDetalleDebitoController extends Controller
     // existe un campo que consulta los detalles del subproducto por debajo 
     // los productos juntos son bolivariano ctas, produbanco tarjetas
     // BGR , es la consulta atrasada de 30 dias 
-
-
 
     public function getMenuSubproductoOpciones(Request $request)
     {
@@ -153,16 +140,14 @@ class EaDetalleDebitoController extends Controller
 
 
 
-
+    /*
     private function opciones_vista($valor)
     {
-        if($valor){
-
-        }else{
-
+        if ($valor) {
+        } else {
         }
     }
-
+*/
 
     /**
      * control de parametros en Conjunto 
@@ -174,21 +159,41 @@ class EaDetalleDebitoController extends Controller
     public function update_debit_detail($cod_carga, $cliente, $producto, $row)
     {
 
+        //$secuencia =  ltrim($row['secuencia'], '0')
 
+        $campos_opciones = $this->condicion_opciones($row);
 
-        //$secuencia =  ltrim($row['secuencia'], '0');
         return   EaDetalleDebito::where('id_carga', $cod_carga)
             ->where('cliente', $cliente)
             ->where('subproducto_id', $producto)
+            ->where($campos_opciones['campo'], $campos_opciones['valor'])
             ->where('secuencia', $row['secuencia'])
             ->update($row);
     }
 
+
+    // no es nescesario realizar un revalidacion ya que la consulta se realiza a tarjetas, y toma el id_detalle para actualizar
     public function update_debit_detail_join_BA($id_detalle, $row)
     {
         return   EaDetalleDebito::where('id_detalle', $id_detalle)
             ->update($row);
     }
+    //pruebas KPE robar
+    public function condicion_opciones($valores)
+    {
+        //$opciones = isset($row['opciones_id']) ? $row['opciones_id'] : null;
+        $campos_opciones = array();
+        if (isset($valores['opciones_id'])) {
+            $campos_opciones['campo'] = 'ea_detalle_debito.opciones';
+            $campos_opciones['valor'] = $valores['opciones_id'];
+        } else {
+            $campos_opciones['campo'] = 'secuencia';
+            $campos_opciones['valor'] = $valores['secuencia'];
+            //
+        }
+        return $campos_opciones;
+    }
+
     /**
      * Remove the specified resource from storage.
      *

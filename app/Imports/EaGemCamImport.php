@@ -31,7 +31,6 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow, Wi
         return 2;
     }
 
-
     /**
      * @param array $row
      * @param  \Illuminate\Http\Request  $request
@@ -41,6 +40,7 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow, Wi
     {
         // sobre la teoria no uso nada del subproduco 
         // todo se hace oo realiza sobre la de destalles
+        dd($this->request);
         \Log::info('inside colleccion IMPORT class EaGemCamImport');
         $obj_detalle_debito = (new EaDetalleDebitoController);
         $obj_subproducto = (new EaSubproductoController);
@@ -62,7 +62,7 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow, Wi
         }
         if (isset($opciones_import[$opciones_validacion['identificador_secuencia']])) {
             if ($opciones_validacion['identificador_secuencia'] == "cuenta" || $opciones_validacion['identificador_secuencia'] == "tarjeta") {
-                $inner_tables_ba_det = $this->merge_inner_import($opciones_validacion['identificador_secuencia']); //
+                $inner_tables_ba_det = $this->merge_inner_import($opciones_validacion['identificador_secuencia']); //cuenta o tarjeta
             }
         }
         foreach ($rows as $row) {
@@ -77,8 +77,9 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow, Wi
                         }
                     }
                 }
-
                 if (isset($opciones_validacion['identificador_secuencia'])) {
+
+
                     if ($opciones_validacion['identificador_secuencia'] == "cuenta" || $opciones_validacion['identificador_secuencia'] == "tarjeta") {
                         $id_detalle = null;
                         foreach ($inner_tables_ba_det as $indet) {
@@ -98,7 +99,6 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow, Wi
                         if ($updateRow['valor_debitado'] == "BORRAR") {
                             unset($updateRow['valor_debitado']);
                         }
-
                         $updateRow['detalle'] = isset($row[$opciones_import['detalle']]) ? $row[$opciones_import['detalle']] : '';
                         $cont = 0;
                         for ($p = 0; $p < ($opciones_validacion['num_validacion']); $p++) {
@@ -116,6 +116,8 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow, Wi
                             $updateRow['estado'] = '0';
                         }
                         //dd($updateRow['estado']);
+
+                        // deberia existir problema , como se donde actualizar ???
                         $existe =  $obj_detalle_debito->update_debit_detail_join_BA($id_detalle, $updateRow);
                         $this->condicio_1 = "Se actualizo correctamente";
                         $this->msg = "completado exitosamente";
@@ -138,10 +140,10 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow, Wi
                         for ($p = 0; $p < ($opciones_validacion['num_validacion']); $p++) {
                             if ($opciones_validacion['validacion_valor_' . ($p + 1)] == "") {
                                 if ($row[$opciones_validacion['validacion_campo_' . ($p + 1)]] != null) {
-                                    $cont++;
+                                    $cont++; // en caso de estar vacio pero concordar con el campo
                                 }
                             } elseif ($row[$opciones_validacion['validacion_campo_' . ($p + 1)]] == $opciones_validacion['validacion_valor_' . ($p + 1)]) {
-                                $cont++;
+                                $cont++; // en caso que el valor especificado sea el mismo
                             }
                         }
                         if ($cont == $opciones_validacion['num_validacion']) {
@@ -149,8 +151,15 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow, Wi
                         } else {
                             $updateRow['estado'] = '0';
                         }
-                        $updateRow['secuencia'] = ltrim($row[$opciones_import[$opciones_validacion['identificador_secuencia']]], '0');
+
+
+                        $updateRow['secuencia'] = ltrim($row[$opciones_import[$opciones_validacion['identificador_secuencia']]], '0'); // tiene que ser la cedula o secuencia
+                        $updateRow['opciones_id'] = $this->opciones_data; // añade opciones , en teoria deberia realizar exitosamente 
+                        // los cambios en excel
+                        // problema en secuencia 
                         $existe =  $obj_detalle_debito->update_debit_detail($this->cod_carga, $this->cliente, $this->producto, $updateRow);
+
+
                         $this->msg = "completado exitosamente";
                     } else {
                         // dd("error validando el indentificador o no se encuentra base");
@@ -198,7 +207,10 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow, Wi
         $this->cumple_validacion = 0; //no usado
         $this->msg = '';
         $this->detalle_proceso = array();
-        if (isset($request['opciones_data'])) {
+        if (isset($request['n_custom_code'])) {
+            $this->opciones_data = $request['n_custom_code'];
+        } else {
+            $this->opciones_data = null;
         }
     }
 
@@ -211,6 +223,7 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow, Wi
     public function merge_inner_import($datos_subproductos)
     {
         //dd($datos_subproductos->tipo_subproducto);
+        $campos_opciones = $this->condicion_opciones();
         $merge_inner_import =  EaDetalleDebito::join("ea_base_activa", "ea_base_activa.id_sec", "=", "ea_detalle_debito.id_sec")
             ->select(
                 'ea_detalle_debito.id_detalle',
@@ -222,6 +235,8 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow, Wi
                 'ea_base_activa.tarjeta',
             )
             ->where('ea_detalle_debito.id_carga', $this->cod_carga)
+            ->where('ea_detalle_debito.cliente', $this->cliente)
+            ->where($campos_opciones['campo'], $campos_opciones['valor'])
             ->where('ea_detalle_debito.cliente', $this->cliente)
             ->where('ea_detalle_debito.subproducto_id', $this->producto)->orderby('ea_detalle_debito.secuencia')
             ->get();
@@ -241,6 +256,21 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow, Wi
         }
         return $merge_inner_import;
     }
+
+
+    public function condicion_opciones($condicion = false)
+    {
+        $campos_opciones = array();
+        if (isset($this->opciones_data)) {
+            $campos_opciones['campo'] = 'ea_detalle_debito.opciones';
+            $campos_opciones['valor'] = $this->request['opciones_data'];
+        } else {
+            $campos_opciones['campo'] = 'tipresp';
+            $campos_opciones['valor'] = '1';
+        }
+        return $campos_opciones;
+    }
+
 
     //metodo provicional para transformacion de texto,// descartado por consulta recurrentes
     /*
