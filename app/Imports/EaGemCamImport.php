@@ -67,8 +67,12 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow, Wi
             }
         }
         foreach ($rows as $row) {
+
+
             if (isset($row[$opciones_import[$opciones_validacion['identificador_secuencia']]])) {
                 $updateRow = array();
+
+
                 if (isset($opciones_import['num_validacion'])) {
                     for ($i = 0; $i < $opciones_import['num_validacion']; $i++) {
                         if ($row[$opciones_import['validacion_campo_' . ($i + 1)]] != $opciones_import['validacion_valor_' . ($i + 1)]) {
@@ -78,6 +82,9 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow, Wi
                         }
                     }
                 }
+
+
+
                 if (isset($opciones_validacion['identificador_secuencia'])) {
 
                     if ($opciones_validacion['identificador_secuencia'] == "cuenta" || $opciones_validacion['identificador_secuencia'] == "tarjeta") {
@@ -101,27 +108,36 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow, Wi
                         }
                         $updateRow['detalle'] = isset($row[$opciones_import['detalle']]) ? $row[$opciones_import['detalle']] : '';
                         $cont = 0;
-                        for ($p = 0; $p < ($opciones_validacion['num_validacion']); $p++) {
-                            if ($opciones_validacion['validacion_valor_' . ($p + 1)] == "") {
-                                if ($row[$opciones_validacion['validacion_campo_' . ($p + 1)]] != null) {
+
+                        //si existe validaciones
+                        if (isset($opciones_validacion['num_validacion'])) {
+                            for ($p = 0; $p < ($opciones_validacion['num_validacion']); $p++) {
+                                if ($opciones_validacion['validacion_valor_' . ($p + 1)] == "") {
+                                    if ($row[$opciones_validacion['validacion_campo_' . ($p + 1)]] != null) {
+                                        $cont++;
+                                    }
+                                } elseif ($row[$opciones_validacion['validacion_campo_' . ($p + 1)]] == $opciones_validacion['validacion_valor_' . ($p + 1)]) {
                                     $cont++;
                                 }
-                            } elseif ($row[$opciones_validacion['validacion_campo_' . ($p + 1)]] == $opciones_validacion['validacion_valor_' . ($p + 1)]) {
-                                $cont++;
                             }
-                        }
-                        if ($cont == $opciones_validacion['num_validacion']) {
-                            $updateRow['estado'] = '1';
+                            if ($cont == $opciones_validacion['num_validacion']) {
+                                $updateRow['estado'] = '1';
+                            } else {
+                                $updateRow['estado'] = '0';
+                            }
                         } else {
-                            $updateRow['estado'] = '0';
+                            //si solo existe
+                            $updateRow['estado'] = '1';
                         }
-                        //dd($updateRow['estado']);
 
                         // deberia existir problema , como se donde actualizar ???
                         $existe =  $obj_detalle_debito->update_debit_detail_join_BA($id_detalle, $updateRow);
                         $this->condicio_1 = "Se actualizo correctamente";
                         $this->msg = "completado exitosamente";
                     } elseif ($opciones_validacion['identificador_secuencia'] == "secuencia" || $opciones_validacion['identificador_secuencia'] == "cedula_id") {
+
+
+
                         $actualdate = date('Y-m-d');
                         $input = (isset($row[$opciones_import['fecha_actualizacion']])) ? $row[$opciones_import['fecha_actualizacion']] : $actualdate;
                         $date = date('Y-m-d', strtotime($input));
@@ -137,21 +153,26 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow, Wi
 
                         $updateRow['detalle'] = isset($row[$opciones_import['detalle']]) ? $row[$opciones_import['detalle']] : '';
                         $cont = 0;
-                        for ($p = 0; $p < ($opciones_validacion['num_validacion']); $p++) {
-                            if ($opciones_validacion['validacion_valor_' . ($p + 1)] == "") {
-                                if ($row[$opciones_validacion['validacion_campo_' . ($p + 1)]] != null) {
-                                    $cont++; // en caso de estar vacio pero concordar con el campo
+                        //si existe validaciones
+                        if (isset($opciones_validacion['num_validacion'])) {
+                            for ($p = 0; $p < ($opciones_validacion['num_validacion']); $p++) {
+                                if ($opciones_validacion['validacion_valor_' . ($p + 1)] == "") {
+                                    if ($row[$opciones_validacion['validacion_campo_' . ($p + 1)]] != null) {
+                                        $cont++; // en caso de estar vacio pero concordar con el campo
+                                    }
+                                } elseif ($row[$opciones_validacion['validacion_campo_' . ($p + 1)]] == $opciones_validacion['validacion_valor_' . ($p + 1)]) {
+                                    $cont++; // en caso que el valor especificado sea el mismo
                                 }
-                            } elseif ($row[$opciones_validacion['validacion_campo_' . ($p + 1)]] == $opciones_validacion['validacion_valor_' . ($p + 1)]) {
-                                $cont++; // en caso que el valor especificado sea el mismo
                             }
-                        }
-                        if ($cont == $opciones_validacion['num_validacion']) {
-                            $updateRow['estado'] = '1';
+                            if ($cont == $opciones_validacion['num_validacion']) {
+                                $updateRow['estado'] = '1';
+                            } else {
+                                $updateRow['estado'] = '0';
+                            }
                         } else {
-                            $updateRow['estado'] = '0';
+                            //si solo existe
+                            $updateRow['estado'] = '1';
                         }
-
 
                         $updateRow['secuencia'] = ltrim($row[$opciones_import[$opciones_validacion['identificador_secuencia']]], '0'); // tiene que ser la cedula o secuencia
                         $updateRow['opciones_id'] = $this->opciones_data; // añade opciones , en teoria deberia realizar exitosamente 
@@ -171,6 +192,9 @@ class EaGemCamImport implements ToCollection, WithValidation, WithHeadingRow, Wi
                     $this->detalle_proceso['msg'] = "No se encuentra configurado los campos que resciben la respuestas del banco , para este subproducto";
                     return $this->detalle_proceso;
                 }
+            } else {
+                $this->detalle_proceso['msg'] = "No existe configuracion campos de identificacion secuencia";
+                return $this->detalle_proceso;
             }
         }
         $this->detalle_proceso['valido'] = $this->condicio_1; //falta poner el mensaje

@@ -24,11 +24,10 @@ class EaProductoController extends Controller
         $productos = EaProducto::where('cliente', $request->cliente)->get();
 
         foreach ($productos as $producto) {
-            $htmlOption .= '<option value="'.$producto->contrato_ama.'">'.$producto->desc_producto.'</option>';
+            $htmlOption .= '<option value="' . $producto->contrato_ama . '">' . $producto->desc_producto . '</option>';
         }
 
-        return response()->json( ['htmlProducto' => $htmlOption] );
-
+        return response()->json(['htmlProducto' => $htmlOption]);
     }
 
 
@@ -38,16 +37,16 @@ class EaProductoController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    function updateMaestroCliente( Request $request ){
+    function updateMaestroCliente(Request $request)
+    {
 
         $existe = EaProducto::where('cliente', $request->clienteEditOld)
-                            ->exists();
+            ->exists();
 
         if ($existe) {
-          EaProducto::where('cliente', $request->clienteEditOld)
-                    ->update( ['cliente' => $request->clienteEdit] );
+            EaProducto::where('cliente', $request->clienteEditOld)
+                ->update(['cliente' => $request->clienteEdit]);
         }
-
     }
 
 
@@ -57,22 +56,24 @@ class EaProductoController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function getProductoModel(Request $request){
+    public function getProductoModel(Request $request)
+    {
 
         $producto = EaProducto::where('cliente', $request->cliente)
-                              ->where('contrato_ama', $request->contrato_ama)
-                              ->get();
+            ->where('contrato_ama', $request->contrato_ama)
+            ->get();
 
-        return response()->json( ['productoModel' => $producto] );
+        return response()->json(['productoModel' => $producto]);
     }
 
-     /**
+    /**
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function getProductosAll(Request $request){
+    public function getProductosAll(Request $request)
+    {
 
         $producto = EaProducto::where('cliente', $request->cliente)->get();
 
@@ -85,11 +86,12 @@ class EaProductoController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function getProductoDetalle( $id_cliente, $contrato_ama){
+    public function getProductoDetalle($id_cliente, $contrato_ama)
+    {
 
         $producto = EaProducto::where('cliente', $id_cliente)
-                              ->where('contrato_ama', $contrato_ama)
-                              ->first();
+            ->where('contrato_ama', $contrato_ama)
+            ->first();
 
         return  $producto;
     }
@@ -102,7 +104,7 @@ class EaProductoController extends Controller
     public function index()
     {
         $Allcampanas = (new EaClienteController)->getAllCampanas();
-        return view ('configProdu.home')->with(compact('Allcampanas'));
+        return view('configProdu.home')->with(compact('Allcampanas'));
     }
 
     /**
@@ -135,16 +137,16 @@ class EaProductoController extends Controller
 
         $idProducto = EaProducto::all()->max('id_producto');
 
-        if ( isset($idProducto) &&  $idProducto > 1 ){
+        if (isset($idProducto) &&  $idProducto > 1) {
             $idProducto++;
             $datosProducto['id_producto'] = $idProducto;
-        }else {
+        } else {
             $datosProducto['id_producto'] = 1;
         }
 
         EaProducto::Insert($datosProducto);
 
-        return redirect()->route('EaProductoController.index')->with([ 'cliente' => $request->clienteAdd, 'desc_producto' => $request->desc_producto, 'trxprod' => 'store' ]);
+        return redirect()->route('EaProductoController.index')->with(['cliente' => $request->clienteAdd, 'desc_producto' => $request->desc_producto, 'trxprod' => 'store']);
     }
 
 
@@ -182,25 +184,28 @@ class EaProductoController extends Controller
     {
 
         $util = (new EaUtilController);
-        $datosProducto = $request->except('_token', '_method', 'id_producto', 'contrato_amaOLD', 'desc_productoOLD' );
+        $datosProducto = $request->except('_token', '_method', 'id_producto', 'contrato_amaOLD', 'desc_productoOLD');
 
         $datosProducto['subproducto'] = $util->quitar_tildes($request->subproducto);
         $datosProducto['desc_producto'] = $util->quitar_tildes($request->desc_producto);
 
         $trx = EaProducto::where('id_producto', $request->id_producto)
-                         ->update($datosProducto);
+            ->update($datosProducto);
 
         //contrato_amaOLD, actualiza a todos los subproductos
-        if (strcmp($trx, 1)===0 ) {
-                (new EaSubproductoController)->UpdateMaestroProducto($request);
+        if (strcmp($trx, 1) === 0) {
+            (new EaSubproductoController)->UpdateMaestroProducto($request);
         }
 
-        return redirect()->route('EaProductoController.index')->with([ 'cliente' => $request->cliente,
-                                                                       'nom_productoOLD' => $request->contrato_amaOLD,
-                                                                       'nom_producto' => $request->contrato_ama,
-                                                                       'desc_productoOLD' => $request->desc_productoOLD,
-                                                                       'desc_producto' => $request->desc_producto,
-                                                                       'trxprod' => 'update' ]);
+        return redirect()->route('EaProductoController.index')
+            ->with([
+                'cliente' => $request->cliente,
+                'nom_productoOLD' => $request->contrato_amaOLD,
+                'nom_producto' => $request->contrato_ama,
+                'desc_productoOLD' => $request->desc_productoOLD,
+                'desc_producto' => $request->desc_producto,
+                'trxprod' => 'update'
+            ]);
     }
 
     /**
@@ -213,13 +218,12 @@ class EaProductoController extends Controller
     public function destroy(Request $request)
     {
 
-       $trx =  EaProducto::where('id_producto', $request->id_productoForm)->delete();
+        $trx =  EaProducto::where('id_producto', $request->id_productoForm)->delete();
 
-       if (strcmp ($trx,1)===0 ) {
-             (new EaSubproductoController)->destroyMaestro($request);
+        if (strcmp($trx, 1) === 0) {
+            (new EaSubproductoController)->destroyMaestro($request);
         }
 
-        return redirect()->route('EaProductoController.index')->with([ 'cliente' => $request->clienteForm, 'desc_producto' => $request->desc_productoForm, 'trxprod' => 'delete' ]);;
-
+        return redirect()->route('EaProductoController.index')->with(['cliente' => $request->clienteForm, 'desc_producto' => $request->desc_productoForm, 'trxprod' => 'delete']);;
     }
 }

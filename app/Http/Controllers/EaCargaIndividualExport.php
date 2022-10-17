@@ -143,16 +143,13 @@ class EaCargaIndividualExport extends Controller
                             $request['opcion_campo'] = $this->op_caracteristica_ba['campo_ba'];
                         }
 
-
                         $textoPlano = "";
                         $this->cont = 0;
                         if (isset($this->op_client['subproducto'])) {
-
                             // condicion manejo carga dentro del mes o si es primera carga
                             // is older mmyyyy = actual
                             //EaCabeceraCargaCorp::where('producto',$this->op_client['codigo_id'])->where()-first();
                             $prod_id = null;
-
                             if (isset($request->opciones_data)) {
                                 try {
                                     $cabezera_datos = EaCabeceraDetalleCarga::where('producto', $this->op_client['codigo_id'])
@@ -185,49 +182,66 @@ class EaCargaIndividualExport extends Controller
                             //dd("fuera de bloque de condiciones ");
                             //ya no tiene realacion con el subproducto de prod si no el de la base en detalles_debitos
                             $ultima_carga = $this->ultima_carga_subproducto($request);
+
                             $ultima_carga = ($ultima_carga != null ? $ultima_carga : null);
+                            /*
                             if (isset($ultima_carga['id_carga'])) {
                                 $ultima_carga['id_carga'] = $ultima_carga['id_carga'] + 1;
                             } else {
                                 $ultima_carga['id_carga'] = 1;
-                            }
+                            }*/
                             $this->ultima_carga = ($ultima_carga != null ? $ultima_carga : null);
-                            $conut_adicionales = 0;
-
-
-
-                            // dd( count($prod_id));
-                            foreach ($prod_id as $producto) {
-                                $conut_adicionales++;
-
-
-                                $this->detalle_subproducto = ((new EaSubproductoController)->getSubproductoDetalle($request->cliente, $producto));
-
-
-                                $objEXPORT = new EaGenCamExport(
-                                    $request,
-                                    $this->detalle_subproducto
-                                );
-
-                                $generacion_txt = $this->genera_cadena_subproducto($objEXPORT, $request,  $textoPlano);
-
-
-
-                                if (($conut_adicionales < count($prod_id))) {
+                            $conut_adicionales = null;
+                            $acumul_adicionales = null;
+                            //dd($ultima_carga);
+                            if (isset($ultima_carga['id_carga'])) {
+                                $ultima_carga['id_carga'] = $ultima_carga['id_carga'] + 1;
+                                if (($ultima_carga->fecha_generacion) == date('mY')) {
+                                    $detalle_subproducto = ((new EaSubproductoController)->getSubproductoDetalle($request->cliente, $prod_id[0]));
+                                    $objEXPORT = new EaGenCamExport($request, $detalle_subproducto);
+                                    $generacion_txt = $this->genera_cadena_subproducto($objEXPORT, $request);
                                     $textoPlano = $textoPlano . $generacion_txt['textoPlano'];
-                                } elseif (($conut_adicionales == count($prod_id))) {
-                                    $textoPlano = $generacion_txt['textoPlano'];
+                                    $conut_adicionales = $conut_adicionales + $generacion_txt['count_recorrido'];
+                                    $acumul_adicionales += $generacion_txt['acumulador_precio'];
+                                } else {
+                                    foreach ($prod_id  as  $producto) {
+                                        $detalle_subproducto = ((new EaSubproductoController)->getSubproductoDetalle($request->cliente, $producto));
+                                        $request['validacion_fechas'] = true;
+                                        $objEXPORT = new EaGenCamExport($request, $detalle_subproducto);
+                                        $generacion_txt = $this->genera_cadena_subproducto($objEXPORT, $request);
+                                        $textoPlano = $textoPlano . $generacion_txt['textoPlano'];
+                                        $conut_adicionales = $conut_adicionales + $generacion_txt['count_recorrido'];
+                                        $acumul_adicionales += $generacion_txt['acumulador_precio'];
+                                    }
                                 }
-
-
-                                if ($textoPlano == "") {
+                            } else {
+                                $ultima_carga['id_carga'] = 1;
+                                foreach ($prod_id  as  $producto) {
+                                    // echo " produc " . ($producto[$conut_adicionales]);
+                                    $detalle_subproducto = ((new EaSubproductoController)->getSubproductoDetalle($request->cliente, $producto));
+                                    // var_dump($detalle_subproducto);
+                                    $request['validacion_fechas'] = true;
+                                    $objEXPORT = new EaGenCamExport($request, $detalle_subproducto);
+                                    $generacion_txt = $this->genera_cadena_subproducto($objEXPORT, $request);
+                                    //$conut_adicionales++;
+                                    //echo " produc " . $conut_adicionales;
+                                    //if (($conut_adicionales < count($prod_id))) {
                                     $textoPlano = $textoPlano . $generacion_txt['textoPlano'];
+                                    $conut_adicionales = $conut_adicionales + $generacion_txt['count_recorrido'];
+                                    $acumul_adicionales += $generacion_txt['acumulador_precio'];
+                                    /*} elseif (($conut_adicionales == count($prod_id))) {
+                                         $textoPlano = $generacion_txt['textoPlano'];
+                                     }*/
                                 }
                             }
 
 
-                            //dd($conut_pruebas);
-                            if (isset($campoC["frase"])) {
+
+                            //dd(($prod_id));
+                            // no tiene sentido si no es la primera generacion, dse duplicara
+
+                            if (isset($this->campoC["frase"])) {
+
                                 switch ($request->cliente) {
                                     case 'BGR':
                                         $contador_bgr = 1; // iniciaba el contador aki , y seguia hasta terminar 
@@ -240,16 +254,51 @@ class EaCargaIndividualExport extends Controller
                                         $primera_linea = $primera_linea . $textoPlano;
                                         $textoPlano = $primera_linea;
                                         break;
-                                        /*
+
                                     case 'PRODUBANCO':
-                                        if (isset($campoC["fraseF"])) {
+                                        /*if (isset($campoC["fraseF"])) {
                                         } else {
-                                            $aproximado_calculo = $generacion_txt['count_recorrido'] * $this->detalle_subproducto['valortotal'];
-                                            $textoPlano .= $campoC["frase"] . $this->cont . " " . $aproximado_calculo . " "; //CALCULO
-                                            $textoPlano .= "\n";
+                                        }*/
+                                        //"TREC02210000000130850130850000000000000000033975300000000000000000000000000                           "
+                                        //$fijos[0] = "TREC";//fijo
+                                        //$fijos[0] = "0221";date('Md');
+                                        //$fijos[0] = "000000";//fijo
+                                        //$fijos[0] = "013085";// cantidad total de registro
+                                        //$fijos[0] = "013085";// cantidad total de registro
+                                        //$fijos[0] = "00000000000000000";//fijo
+                                        //$fijos[0] = "3397530";
+                                        //$fijos[0] = "0000000000000000000000000                           ";//fijo
+                                        //////////////////////////////////////////////////////////////////////////////////////////
+                                        //$fijos[0] = "TREC";
+                                        //$fijos[0] = "0221";date('Md');
+                                        //$fijos[0] = "000000";
+                                        //$fijos[0] = "013085";
+                                        //$fijos[0] = "013085";
+                                        //$fijos[0] = "00000000000000000";
+                                        //$fijos[0] = "3397530";
+                                        //$fijos[0] = "0000000000000000000000000                           ";
+                                        $fijos = "TREC";
+                                        $fijos .= date('md');
+                                        $fijos .= "000000";
+                                        $acoun0 = "";
+                                        for ($i = strlen($conut_adicionales); $i < 6; $i++) {
+                                            $acoun0 .= "0";
                                         }
+                                        $fijos .= $acoun0 . $conut_adicionales;
+                                        $fijos .= $acoun0 . $conut_adicionales;
+                                        $fijos .= "00000000000000000";
+                                        $acoun0 = "";
+                                        for ($i = strlen($acumul_adicionales); $i < 7; $i++) {
+                                            $acoun0 .= "0";
+                                        }
+                                        $fijos .= $acoun0 . $acumul_adicionales; // cantidad
+                                        $fijos .= "0000000000000000000000000                           ";
+                                        $fijos .= "\n";
+                                        //$aproximado_calculo = $generacion_txt['count_recorrido'] * $this->detalle_subproducto['valortotal'];
+                                        //$textoPlano .= $campoC["frase"] . $this->cont . " " . $aproximado_calculo . " "; //CALCULO
+                                        $restructura_texto =  $fijos . $textoPlano;
+                                        $textoPlano = $restructura_texto;
                                         break;
-                                        */
                                     default:
                                         //$textoPlano .= $campoC["frase"];
                                         break;
@@ -264,7 +313,7 @@ class EaCargaIndividualExport extends Controller
                                 $extension_file .= "txt";
                             }
                             $id_carga = (isset($this->ultima_carga['id_carga']) ? $this->ultima_carga['id_carga'] : 1);
-                            
+
                             $fecha_generacion = (isset($this->ultima_carga->fecha_generacion) ? $this->ultima_carga->fecha_generacion : date('mY'));
                             //bloque de insertar cabezera detalle
                             /*
@@ -329,8 +378,10 @@ class EaCargaIndividualExport extends Controller
                             abort(404, ' Configuracion faltante en tabla opciones subproductos');
                         }
                     } else {
+
                         $this->op_client = EaOpcionesCargaCliente::where('codigo_id', $request->producto)->first();
-                        $prod_id = explode(',', $this->op_client['subproducto']);
+                        //$prod_id = explode(',', $this->op_client['subproducto']);
+                        $this->campoC = json_decode($this->op_client->campoc, true);
                         $objEXPORT = new EaGenCamExport(
                             $request
                         );
@@ -375,9 +426,10 @@ class EaCargaIndividualExport extends Controller
         }
     }
 
-    private function genera_cadena_subproducto($objEXPORT, $request, $textoPlano)
+    private function genera_cadena_subproducto($objEXPORT, $request)
     {
         try {
+            $textoPlano = "";
             $campo0 = $this->campo0;
             $campoC = $this->campoC;
             $opciones_fijas = $this->opciones_fijas;
@@ -395,6 +447,7 @@ class EaCargaIndividualExport extends Controller
             }
             $recorrido = $objEXPORT->generar($request);
             $cont = $this->cont;
+            $acumulador_Precios = 0;
             $tiempo_inicial = microtime(true);
             \Log::info('tiempo que inicia : ' . $tiempo_inicial);
             $valido_sec = 1;
@@ -402,9 +455,7 @@ class EaCargaIndividualExport extends Controller
             $valido_reg_sec = $valido_total;
             $limit_insert = 150;
             $row_insert_detalle = array();
-
             $precio_final = null;
-
             switch ($request->cliente) {
                 case 'BGR':
                     $contador_bgr = 1;
@@ -455,6 +506,9 @@ class EaCargaIndividualExport extends Controller
                     }
                 }
                 */
+                if (isset($individual['valortotal'])) {
+                    $precio_final = $individual['valortotal'];
+                }
 
                 if (isset($op_client->num_elem_export)) {
                     $cont++;
@@ -478,10 +532,6 @@ class EaCargaIndividualExport extends Controller
                                     ($campos_export[$i]) == 'subtotal' ||
                                     ($campos_export[$i]) == 'valortotal'
                                 ) {
-                                    if (($campos_export[$i]) == 'valortotal') {
-                                        $precio_final = $value_field;
-                                    }
-
                                     if (str_contains($value_field, ".")) {
                                         $validateLen = explode('.', $value_field);
                                         if (strlen($validateLen[count($validateLen) - 1]) == 2) {
@@ -493,6 +543,7 @@ class EaCargaIndividualExport extends Controller
                                     } else {
                                         $value_field = $value_field . "00";
                                     }
+                                    $acumulador_Precios = $acumulador_Precios + (int)$value_field;
                                 }
                                 if (isset($campo0['tranF_' . $i])) {
                                     if ($campos_export[$i] == 'tipcta' || $campo0['tranF_' . $i] == 'tipcta') {
@@ -569,6 +620,7 @@ class EaCargaIndividualExport extends Controller
                 $row_insert_sets['estado'] = "0"; //sing
                 $row_insert_sets['fecha_generacion'] =  date('mY'); //ok
                 $row_insert_sets['valor_debitado'] = $precio_final;
+                $row_insert_sets['producto'] = $objEXPORT->producto;
                 //bloque que inserta registros dentro de la base
 
                 array_push($row_insert_detalle, $row_insert_sets);
@@ -592,6 +644,7 @@ class EaCargaIndividualExport extends Controller
             $resumen['textoPlano'] = $textoPlano;
             $resumen['fusion_condicion'] = isset($contador_bgr) ? 'true' : 'false';
             $resumen['secuencia_cont'] = $cont;
+            $resumen['acumulador_precio'] = $acumulador_Precios;
             $resumen['count_recorrido'] = count($recorrido);
             $this->cont = $cont;
             // se perdera un poco , no posible repetir si no se encuentra creada como un $THIS->

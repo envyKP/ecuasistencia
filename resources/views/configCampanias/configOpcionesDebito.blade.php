@@ -10,6 +10,16 @@
     <div class="card">
         <div class="card-header">{{ 'Selección de subproducto' }}</div>
         <div class="card-body">
+            <button class="btn btn-sm btn-success mr-md-2 my-1" id="btnAddsubprod" style="visibility:block" type="button"
+                data-toggle="modal" data-target="#addSubproModal">
+                <svg class="c-icon c-icon-2xl my-1">
+                    <use
+                        xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-arrow-thick-to-bottom') }}">
+                    </use>
+                </svg>
+                {{ 'Nuevo' }}
+            </button>
+
             <form action="{{ route('EaSubproductoController.destroy') }}" id="form-Genera-lee" method="post">
                 @csrf
                 {{ method_field('patch') }}
@@ -76,9 +86,9 @@
                             placeholder="Contrato AMA" readonly>
                     </div>
                 </div>
-                utilizar for o similar desde php para que en el formulario se visualize lo que 
-                son las distintas opciones o el encriptado 
-                
+                utilizar for o similar desde php para que en el formulario se visualize lo que
+                son las distintas opciones o el encriptado
+
             -->
                 <button class="btn btn-sm btn-success mr-md-2 my-1" id="btnAddsubprod" style="visibility:block"
                     type="button" data-toggle="modal" data-target="#addSubproModal">
@@ -133,7 +143,7 @@
                                 xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-file') }}">
                             </use>
                         </svg>
-                        {{ 'Generacion Archivo' }}
+                        {{ 'Archivo de salida' }}
                     </button>
                 </div>
                 <div class="form-group">
@@ -144,7 +154,7 @@
                                 xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-find-in-page') }}">
                             </use>
                         </svg>
-                        {{ 'Lectura de Archivo Respuesta' }}
+                        {{ 'Archivo de entrada' }}
                     </button>
                 </div>
             </form>

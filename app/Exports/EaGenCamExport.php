@@ -76,7 +76,14 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
             case 'disable':
                 break;
             default:
-                $fecha_generacion = (isset($detalles->fecha_generacion) ? $detalles->fecha_generacion : 0);
+                // debe ser 0 si es combinado
+                if (isset($request['validacion_fechas'])) {
+                    $fecha_generacion = 0;
+                } else {
+                    $fecha_generacion = (isset($detalles->fecha_generacion) ? $detalles->fecha_generacion : 0);
+                }
+
+
                 if (($fecha_generacion) == date('mY')) {
                     // dd("llego");
                     // echo ($detalles->fecha_generacion) . ($detalles->id_sec) . " se encuentra dentro del mes";
@@ -261,7 +268,7 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
             // puede que no lo borre
             \Log::warning("EaDetalleDebito::where(id_carga," . $cod_carga . " )->where(cliente, " . $cliente);
             // KPE CAMBIO VARIABLE ->where('subproducto_id', $producto)
-            if (isset($adicional_opcion) || $adicional_opcion != null) {
+            if (isset($adicional_opcion)) {
                 EaDetalleDebito::where('id_carga', $cod_carga)
                     ->where('cliente', $cliente)
                     ->where('subproducto_id', $producto)
@@ -276,7 +283,7 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
 
 
 
-            $this->destroy_cab($cod_carga, $cliente, $producto);
+            $this->destroy_cab($cod_carga, $cliente, $producto, $adicional_opcion);
             /* EaCabeceraDetalleCarga::where('cod_carga', $cod_carga)
                 ->where('cliente', $cliente)
                 ->where('producto', $producto)
@@ -311,15 +318,22 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
         }
     }
 
-    public function destroy_cab($cod_carga, $cliente, $producto)
+    public function destroy_cab($cod_carga, $cliente, $producto, $adicional_opcion  = null)
     {
         \Log::warning('funcion destroy_cab_detalle class EaGenCamExport by user ' . \Auth::user()->username);
         try {
-
-            EaCabeceraDetalleCarga::where('cod_carga', $cod_carga)
-                ->where('cliente', $cliente)
-                ->where('producto', $producto)
-                ->delete();
+            if (isset($adicional_opcion)) {
+                EaCabeceraDetalleCarga::where('cod_carga', $cod_carga)
+                    ->where('cliente', $cliente)
+                    ->where('producto', $producto)
+                    ->where('n_custom_code', $adicional_opcion)
+                    ->delete();
+            } else {
+                EaCabeceraDetalleCarga::where('cod_carga', $cod_carga)
+                    ->where('cliente', $cliente)
+                    ->where('producto', $producto)
+                    ->delete();
+            }
         } catch (\Exception $e) {
             \Log::warning('error view_reg_state:  ' . $e);
             // $obj_det_carga_corp->truncate($this->cod_carga, $this->cliente );
@@ -344,7 +358,17 @@ class EaGenCamExport extends \PhpOffice\PhpSpreadsheet\Cell\StringValueBinder im
     {
         //dd($this->cod_carga_corp);
         try {
-            return EaCabeceraDetalleCarga::where('cod_carga', $this->cod_carga_corp)->where('producto', $this->cab_subproducto)->first();
+
+            if (isset($this->request['n_custom_code'])) {
+                return EaCabeceraDetalleCarga::where('cod_carga', $this->cod_carga_corp)
+                    ->where('producto', $this->cab_subproducto)
+                    ->where('n_custom_code', $this->request['n_custom_code'])
+                    ->first();
+            } else {
+                return EaCabeceraDetalleCarga::where('cod_carga', $this->cod_carga_corp)
+                    ->where('producto', $this->cab_subproducto)
+                    ->first();
+            }
         } catch (\Exception $e) {
             $this->errorTecnico = $e->getMessage();
         }

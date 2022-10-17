@@ -373,26 +373,25 @@ class EaCargaIndividualImport extends Controller
 
 
 
-    public function update_datos_cab_carga($cliente,$request, array $datos)
+    public function update_datos_cab_carga($cliente, $request, array $datos)
     {
         // $cod_carga, $producto
         //$request->cod_carga, $request->producto
-        
-        if(isset($request->n_custom_code)){
+
+        if (isset($request->n_custom_code)) {
             $trx =  EaCabeceraDetalleCarga::where('cliente', $cliente)
-            ->where('cod_carga', $request->cod_carga)
-            ->where('producto', $request->producto)
-            ->where('n_custom_code',$request->n_custom_code)
-            ->update($datos);
-        return $trx;
-        }else{
+                ->where('cod_carga', $request->cod_carga)
+                ->where('producto', $request->producto)
+                ->where('n_custom_code', $request->n_custom_code)
+                ->update($datos);
+            return $trx;
+        } else {
             $trx =  EaCabeceraDetalleCarga::where('cliente', $cliente)
-            ->where('cod_carga', $request->cod_carga)
-            ->where('producto', $request->producto)
-            ->update($datos);
-        return $trx;
+                ->where('cod_carga', $request->cod_carga)
+                ->where('producto', $request->producto)
+                ->update($datos);
+            return $trx;
         }
-       
     }
 
 
@@ -436,12 +435,15 @@ class EaCargaIndividualImport extends Controller
         $row_insert_detalle['cliente'] = $request->cliente;
         $row_insert_detalle['estado'] = "0";
         $varcontrolsecuencia = $request->carga_resp;
-        if (isset(($objEXPORT->is_carga_older_solo_id($request->n_custom_code)->id_carga))) {
-            if ($varcontrolsecuencia == ($objEXPORT->is_carga_older($request->cliente, $request->producto)->id_carga)) {
+        $campo_adicional = isset($request->n_custom_code) ? $request->n_custom_code : null;
+        $condicion_carga  = $objEXPORT->is_carga_older_solo_id($campo_adicional);
+        if (isset($condicion_carga->id_carga)) {
+
+            if ($varcontrolsecuencia == $condicion_carga->id_carga) {
                 \Log::warning('se destruyo la carga :' . $row_insert_detalle['id_carga']);
                 $adicional_opcion = isset($request->n_custom_code) ? $request->n_custom_code : null;
-                //dd($adicional_opcion);
                 $objEXPORT->destroy_cab_detalle($varcontrolsecuencia, $request->cliente, $request->producto, $adicional_opcion);
+
                 $success = 'Borrado registros de : Id_carga =' . $row_insert_detalle['id_carga'] . ' - cliente -' . $row_insert_detalle['cliente'] . ' - producto  : ';
             } else {
                 \Log::info('No pudo destruirse la carga');
@@ -449,6 +451,7 @@ class EaCargaIndividualImport extends Controller
                 //abort(409, $errorTecnico);
             }
         } else {
+
             $objEXPORT->destroy_cab($varcontrolsecuencia, $request->cliente, $request->producto);
             return redirect()->route('EaCargaIndividualImport.index')->with([
                 'success' =>  'no existe registro en tabla detalle se elimino datos en cabezera'

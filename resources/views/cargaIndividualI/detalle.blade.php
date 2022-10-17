@@ -70,21 +70,21 @@
                         <div>
                             @php
                                 /*
-                                                                                                                                                                $value_custom = '';
-                                                                                                                                                                if(isset($registro->custom_code) && isset($registro->n_custom_code) )
-                                                                                                                                                                {
-                                                                                                                                                                    $value_custom = $registro->n_custom_code;
-                                                                                                                                                                    if(isset($registro->opciones_validacion)){
-                                                                                                                                                                        $opciones_validacion= json_decode($registro->opciones_validacion, true);
-                                                                                                                                                                        for ($i=1; $i <= $opciones_validacion['total']; $i++) { 
-                                                                                                                                                                            if($opciones_validacion['var_camp_'.$i]== $registro->n_custom_code){
-                                                                                                                                                                                $value_custom = $opciones_validacion['var_val_'.$i];
-                                                                                                                                                                            }
-                                                                                                                                                                        }
-                                                                                                                                                                    }
-                                                                                                                                                                }
-                                                                                                                                                                echo $value_custom;
-                                                                                                                                                                */
+                                $value_custom = '';
+                                if(isset($registro->custom_code) && isset($registro->n_custom_code) )
+                                {
+                                    $value_custom = $registro->n_custom_code;
+                                    if(isset($registro->opciones_validacion)){
+                                        $opciones_validacion= json_decode($registro->opciones_validacion, true);
+                                        for ($i=1; $i <= $opciones_validacion['total']; $i++) { 
+                                            if($opciones_validacion['var_camp_'.$i]== $registro->n_custom_code){
+                                                $value_custom = $opciones_validacion['var_val_'.$i];
+                                            }
+                                        }
+                                    }
+                                }
+                                echo $value_custom;
+                                */
                             @endphp
                             {{ $registro->opciones_validacion }}
                         </div>
@@ -146,6 +146,7 @@
                                 <input type="hidden" name="cliente" value="{{ $registro->cliente }}">
                                 <input type="hidden" name="producto" value="{{ $registro->producto }}">
                                 <input type="hidden" name="desc_producto" value="{{ $registro->desc_producto }}">
+                                <input type="hidden" name="n_custom_code" value="{{ $registro->n_custom_code }}">
                                 <button class="btn btn-success mx-1" title="descargar generacion" type="submit">
                                     <svg class="c-icon c-icon-1xl">
                                         <use
@@ -197,7 +198,7 @@
                         <div class="row content-center">
                             <form id="form-factura" action="{{ route('EaCargaIndividualExport.generarFactura') }}"
                                 method="get">
-                                @if (strcmp($registro->estado, 'PENDIENTE') == 0)
+                                @if (strcmp($registro->estado, 'PROCESADO') == 0)
                                     <input type="hidden" name="carga_resp" value="{{ $registro->cod_carga }}">
                                     <input type="hidden" name="cliente" value="{{ $registro->cliente }}">
                                     <input type="hidden" name="opciones_data" value="{{ $registro->n_custom_code }}">
