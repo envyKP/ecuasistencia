@@ -18,59 +18,23 @@
     <div class="card-body">
 
 
-        <div class="card-body">
+        <!--<div class="card-body">
             <form action="" id="form-Genera-lee" method="post">
                 <button class="btn btn-success" type="submit">
                     <svg class="c-icon c-icon-xl">
-                        <use xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-save') }} ">
+                        <use xlink:href=" asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-save') ">
                         </use>
                     </svg>
                     Nueva Opcion
                 </button>
             </form>
-        </div>
+        </div>-->
+
         <div class="card-body">
             <form action="" id="form-Genera-lee" method="post">
                 @csrf
                 {{ method_field('patch') }}
-                <div>{{ 'Configuracion' }}</div>
-                <div class="form-group">
-                    <div class="input-group">
-                        <div class="input-group-prepend">
-                            <span class="input-group-text">
-                                <svg class="c-icon mr-1">
-                                    <use
-                                        xlink:href=" {{ asset('admin/node_modules/@coreui/icons/sprites/brand.svg#cib-cplusplus') }}">
-                                    </use>
-                                </svg>{{ 'Configuracion' }}
-                            </span>
-                        </div>
-                        <select class="custom-select" name="campaniasOpcionesID" id="campaniasOpcionesID" required>
-                            <option selected>{{ 'Seleccione una Configuracion...' }}</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <!--<button class="btn btn-secondary" type="button" data-dismiss="modal" onclick="window.close();">Cancelar</button>-->
-                    <button class="btn btn-success" type="submit">
-                        <svg class="c-icon c-icon-xl">
-                            <use
-                                xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-save') }} ">
-                            </use>
-                        </svg>
-                        Añadir Producto/Editar Opciones
-                    </button>
 
-                    <button class="btn btn-sm btn-outline-danger mr-md-2  my-1" id="btnElimprod" type="button"
-                        data-toggle="modal" data-target="#dangerModal">
-                        <svg class="c-icon c-icon-2xl my-1">
-                            <use
-                                xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-trash') }}">
-                            </use>
-                        </svg>
-                        {{ 'Eliminar Opcion' }}
-                    </button>
-                </div>
                 <div class="form-group">
                     <div>{{ 'Detalles' }}</div>
                     <div class="input-group">

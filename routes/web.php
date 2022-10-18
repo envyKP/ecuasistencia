@@ -139,7 +139,7 @@ Route::middleware(['auth', 'prevent-back-history', 'isAdmin'])->group(function (
     Route::get('configCampanias/index/', [EaControlCampania::class, 'index'])->name('EaControlCampania.index');
     Route::get('recepcion/archivo/cargaIndividual/indexJsonEntrada/', [EaControlCampania::class, 'indexJsonEntrada'])->name('EaControlCampania.indexJsonEntrada');
     Route::get('getOpcionesModelAllCliente/', [EaControlCampania::class, 'getOpcionesModelAllCliente'])->name('EaControlCampania.getOpcionesModelAllCliente');
-    Route::get('getOpcionesModel/', [EaControlCampania::class, 'getImpuestoModel'])->name('EaControlCampania.getImpuestoModel');
+    Route::get('getOpcionesModel/', [EaControlCampania::class, 'getOpcionesModel'])->name('EaControlCampania.getOpcionesModel');
     /* Route::patch('producto/delete/', [EaProductoController::class, 'destroy'])->name('EaProductoController.destroy');
     Route::patch('producto/store/', [EaProductoController::class, 'store'])->name('EaProductoController.store');
     Route::patch('producto/update/', [EaProductoController::class, 'update'])->name('EaProductoController.update');

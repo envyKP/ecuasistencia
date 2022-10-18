@@ -6,26 +6,105 @@
             $("#clienteCMB").change(function() {
                 if ($("#clienteCMB").val() !== "clienteNull") {
                     $.ajax({
-                        url: "{{ route('EaControlCampania.getOpcionesModelAllCliente') }}?cliente=" + $(
-                                this)
-                            .val(),
+                        url: "{{ route('EaControlCampania.getOpcionesModelAllCliente') }}?cliente=" +
+                            $(this).val(),
                         method: "GET",
                         success: function(data) {
-                            $('#opcionEntrada').html(data.htmlProducto);
-                            $('#opcionSalida').html(data.htmlProducto);
+                            $('#campaniasOpcionesID').html(data.htmlProducto);
                         }
                     });
                 }
             });
 
+            //cambiar a combobox que usa la opciones
+            $("#campaniasOpcionesID").change(function() {
+                $.ajax({
+                    url: "{{ route('EaControlCampania.getOpcionesModel') }}?codigo_id=" +
+                        $(this).val(),
+                    method: "get",
+                    success: function(data) {
+                        /*
+                            campoIdentificador: "vale"
+                            detalle: "descripcion"
+                            fecha_actualizacion:"fecha_autorizacion"
+                            identificador:"secuencia"
+                            validacion_archivo_campo_1:"establecimiento"
+                            validacion_archivo_valor_1:"872876"
+                            valor_debitado:"total"
+                        */
+                        /*
+                        fechaDebitado
+                        FormatoFecha
+                        valorDebitado
+                        campoValidacionArchivo
+                        valorValidacionArchivo
+                        */
+                        JSON.stringify(data.opcionesModel, function(key, value) {
+
+                            $select = document.querySelector('#IdentificadoEntrada');
+                            $select.value = value.identificador;
 
 
+                            if (typeof value.campoIdentificador !== 'undefined') {
+                                $("#campoIdentificador").val(value.campoIdentificador);
+                            }
+
+                            if (typeof value.fecha_actualizacion !== 'undefined') {
+                                $("#fechaDebitado").val(value.fecha_actualizacion);
+                            }
+                            if (typeof value.valor_debitado !== 'undefined') {
+                                $("#valorDebitado").val(value.valor_debitado);
+                            }
+                            if (typeof value.validacion_archivo_campo_1 !==
+                                'undefined') {
+                                $("#campoValidacionArchivo").val(value
+                                    .validacion_archivo_campo_1);
+                            }
+                            if (typeof value.validacion_archivo_valor_1 !==
+                                'undefined') {
+                                $("#valorValidacionArchivo").val(value
+                                    .validacion_archivo_valor_1);
+                            }
+                            if (typeof value.valorValidacionDebitado !==
+                                'undefined') {
+                                $("#valorValidacionDebitado").val(value
+                                    .valorValidacionDebitado);
+                            }
+                            if (typeof value.campoValidacionDebitado !==
+                                'undefined') {
+                                $("#campoValidacionDebitado").val(value
+                                    .campoValidacionDebitado);
+                            }
+                            //falta detalle
+
+                            /*if (typeof value.FormatoFecha !== 'undefined') {
+                                $("#FormatoFecha").innerHTML = value.identificador;
+                            }*/
+
+                            /*$("#clienteFormSub").val(value[0].cliente);
+                                    $("#contrato_amaSubForm").val(value[0].contrato_ama);
+                                    $("#sub-subproductoForm").val(value[0].subproducto);
+                                    $("#tipo_subproductoForm").val(value[0].tipo_subproducto);
+                                    $("#desc_subproductoForm").val(value[0].desc_subproducto);
+                                    $("#valortotalform").val(value[0].valortotal);
+                                    $("#nom_impuestoFormSub").val(value[0].nom_impuesto);
+                                */
+                        });
+
+                    }
+                });
+
+            });
+
+            function editEntradaValue() {
+                $("#name").prop('readonly', false);
+            }
 
 
         });
 
         /*function PopUpSalida() {
-            var popup = document.getElementById("myPopupSalida");
+            var popup = $("#myPopupSalida");
             popup.classList.toggle("show");
         }*/
     </script>
