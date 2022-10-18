@@ -200,6 +200,8 @@
         </form>
 
     </div>
+
+    
     <br>
     <div class="col-sm-12 form-group" id="processCargaDetalle" style="display:none">
         <strong>{{ 'Procesando...' }}</strong>
