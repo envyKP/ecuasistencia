@@ -10,6 +10,7 @@ use App\Models\EaOpcionesCargaCliente;
 use App\Http\Controllers\EaUtilController;
 
 
+
 class EaControlCampania extends Controller
 {
     /**
@@ -151,12 +152,8 @@ class EaControlCampania extends Controller
             }
             //{"validacion_campo_1":"fecha_autorizacion","validacion_valor_1":"","num_validacion":"1"
             // debe almacenarce vacio en caso que solo exista el campo
-
-
-
             if (isset($opciones->campos_import)) {
                 //echo "esta en campos_import";
-
                 $opciones_import = json_decode($opciones->campos_import, true);
                 if (isset($opciones_import)) {
                     if (isset($opciones_validacion['identificador_secuencia'])) {
@@ -178,8 +175,62 @@ class EaControlCampania extends Controller
                 }
             }
         }
+        //opciones Generar TXT / archivo Salida
+        /*opciones_fijas ,campos_export,campoc,campo0 */
+        /* cliente,tipo_subproducto,subproducto,archivo_nombre,formato_fecha,op_caracteristica_ba*/
+        if (isset($opciones->codigo_id)) {
+            $recopilado['codigo_id'] = $opciones->codigo_id;
+        }
+        if (isset($opciones->cliente)) {
+            $recopilado['cliente'] = $opciones->cliente;
+        }
+        if (isset($opciones->tipo_subproducto)) {
+            $recopilado['tipo_subproducto'] = $opciones->tipo_subproducto;
+        }
+        if (isset($opciones->subproducto)) {
+            $recopilado['subproducto'] = $opciones->subproducto;
+        }
+        if (isset($opciones->archivo_nombre)) {
+            $recopilado['archivo_nombre'] = $opciones->archivo_nombre;
+        }
+        if (isset($opciones->formato_fecha)) {
+            $recopilado['formato_fecha'] = $opciones->formato_fecha;
+        }
+        if (isset($opciones->op_caracteristica_ba)) {
+            $recopilado['op_caracteristica_ba'] = $opciones->op_caracteristica_ba;
+        }
+
         //dd($recopilado);
         return response()->json(['opcionesModel' => $recopilado]);
+    }
+
+    // llamar a otro metodo , o que otra funcion llame a lo que es el export , 
+    //cedula_id=1712215092&cliente=SEGUROSUNIDOS&proceso=
+
+    public function getOpcionesCampoExport(Request  $request)
+    {
+        $opciones = EaOpcionesCargaCliente::where('codigo_id', $request->codigo_id)->first();
+        $campos_export = json_decode($opciones->campos_export, true);
+        return response()->json(['opcionesCampoExport' => $campos_export]);
+    }
+    public function getOpcionesCampofijos(Request  $request)
+    {
+        $opciones = EaOpcionesCargaCliente::where('codigo_id', $request->codigo_id)->first();
+        $campos_fijos = json_decode($opciones->campos_export, true);
+        return response()->json(['opcionesCampofijos' => $campos_fijos]);
+    }
+    public function getOpcionesCampoC(Request  $request)
+    {
+        $opciones = EaOpcionesCargaCliente::where('codigo_id', $request->codigo_id)->first();
+        $campos_C = json_decode($opciones->campos_export, true);
+        return response()->json(['opcionesCampoC' => $campos_C]);
+    }
+
+    public function getOpcionesCampo0(Request  $request)
+    {
+        $opciones = EaOpcionesCargaCliente::where('codigo_id', $request->codigo_id)->first();
+        $campos_0 = json_decode($opciones->campos_export, true);
+        return response()->json(['opcionesCampo0' => $campos_0]);
     }
 
     /**
@@ -190,6 +241,9 @@ class EaControlCampania extends Controller
     public function getOpcionesModelAllCliente(Request  $request)
     {
         //retornar valor asociado a un cliente 
+
+
+
         $htmlOption = '<option value="" selected>Selecciona Producto</option>';
         $Opciones = EaOpcionesCargaCliente::where('cliente', $request->cliente)->get();
         foreach ($Opciones as $producto) {
@@ -197,4 +251,106 @@ class EaControlCampania extends Controller
         }
         return response()->json(['htmlProducto' => $htmlOption]);
     }
+
+    /**
+     * Display the specified resource.
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function post_import_guardar(Request  $request)
+    {
+        //retornar valor asociado a un cliente 
+
+         /*
+        "IdentificadoEntrada" => "secuencia"
+        "campoIdentificador" => "vale"
+        "fechaDebitado" => "fecha_autorizacion"
+        "detalle" => "descripcion"
+        "formatoFecha" => null
+        "valorDebitado" => "total"
+        */
+
+        //{"cedula_id":"numero_identificacion","fecha_actualizacion":"fecha_proceso","valor_debitado":"valor_enviado","detalle":"mensaje_de_procesamiento"}
+        $datos = $request->except('_token', '_method');
+        //EaOpcionesCargaCliente
+        
+        /*   $json_text = array();
+
+            if (isset($request->IdentificadoEntrada)) {
+            }
+        */
+
+        //EaOpcionesCargaCliente::where('codigo_id', $request->codigo_id)->update([' campos_import' => $json_text]);
+         
+        return response()->json(['respuesta' => $datos]);
+    }
+
+     /**
+     * Display the specified resource.
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function post_import_guardar_validacion(Request  $request)
+    {
+        //retornar valor asociado a un cliente 
+
+         /*
+        "IdentificadoEntrada" => "secuencia"
+        "campoIdentificador" => "vale"
+        "fechaDebitado" => "fecha_autorizacion"
+        "detalle" => "descripcion"
+        "formatoFecha" => null
+        "valorDebitado" => "total"
+        */
+
+        //{"cedula_id":"numero_identificacion","fecha_actualizacion":"fecha_proceso","valor_debitado":"valor_enviado","detalle":"mensaje_de_procesamiento"}
+        $datos = $request->except('_token', '_method');
+        //EaOpcionesCargaCliente
+        
+        /*   $json_text = array();
+
+            if (isset($request->IdentificadoEntrada)) {
+            }
+        */
+
+        //EaOpcionesCargaCliente::where('codigo_id', $request->codigo_id)->update([' campos_import' => $json_text]);
+         
+        return response()->json(['respuesta' => $datos]);
+    }
+
+
+     /**
+     * Display the specified resource.
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function post_import_guardar_datos(Request  $request)
+    {
+        //retornar valor asociado a un cliente 
+
+         /*
+        "IdentificadoEntrada" => "secuencia"
+        "campoIdentificador" => "vale"
+        "fechaDebitado" => "fecha_autorizacion"
+        "detalle" => "descripcion"
+        "formatoFecha" => null
+        "valorDebitado" => "total"
+        */
+
+        //{"cedula_id":"numero_identificacion","fecha_actualizacion":"fecha_proceso","valor_debitado":"valor_enviado","detalle":"mensaje_de_procesamiento"}
+        $datos = $request->except('_token', '_method');
+        //EaOpcionesCargaCliente
+        
+        /*   $json_text = array();
+
+            if (isset($request->IdentificadoEntrada)) {
+            }
+        */
+
+        //EaOpcionesCargaCliente::where('codigo_id', $request->codigo_id)->update([' campos_import' => $json_text]);
+         
+        return response()->json(['respuesta' => $datos]);
+    }
+
+
 }

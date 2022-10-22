@@ -45,8 +45,15 @@ class EaUtilController extends Controller
         $contenido = file_get_contents("../salsa.txt");
         $clave = Key::loadFromAsciiSafeString($contenido);
 
-       /*$coleccion = EaBaseActiva::where('id_sec', '>', 2000)
+       /*
+        $coleccion = EaBaseActiva::where('id_sec', '>', 1004192)
 							     ->where('id_sec', '<=', 2001)
+                                 ->orderBy('id_sec')
+                                 ->get();
+*/
+
+
+       $coleccion = EaBaseActiva::where('id_sec', '>', 1004192)
                                  ->orderBy('id_sec')
                                  ->get();
 
@@ -68,7 +75,7 @@ class EaUtilController extends Controller
 
             $index = 'id_sec';
             Batch::update($userInstance, $value, $index);
-        }*/
+        }
 
 
         $mensajeSecreto = "8493607700";

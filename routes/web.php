@@ -133,20 +133,7 @@ Route::middleware(['auth', 'prevent-back-history', 'isAdmin'])->group(function (
     Route::patch('Subproducto/store/', [EaSubproductoController::class, 'store'])->name('EaSubproductoController.store');
     Route::patch('Subproducto/update/', [EaSubproductoController::class, 'update'])->name('EaSubproductoController.update');
 });
-//KPE Edicion Campanias
- //opciones menu configuracion cargas
-Route::middleware(['auth', 'prevent-back-history', 'isAdmin'])->group(function () {
-    Route::get('configCampanias/index/', [EaControlCampania::class, 'index'])->name('EaControlCampania.index');
-    Route::get('recepcion/archivo/cargaIndividual/indexJsonEntrada/', [EaControlCampania::class, 'indexJsonEntrada'])->name('EaControlCampania.indexJsonEntrada');
-    Route::get('getOpcionesModelAllCliente/', [EaControlCampania::class, 'getOpcionesModelAllCliente'])->name('EaControlCampania.getOpcionesModelAllCliente');
-    Route::get('getOpcionesModel/', [EaControlCampania::class, 'getOpcionesModel'])->name('EaControlCampania.getOpcionesModel');
-    /* Route::patch('producto/delete/', [EaProductoController::class, 'destroy'])->name('EaProductoController.destroy');
-    Route::patch('producto/store/', [EaProductoController::class, 'store'])->name('EaProductoController.store');
-    Route::patch('producto/update/', [EaProductoController::class, 'update'])->name('EaProductoController.update');
-    Route::patch('Subproducto/delete/', [EaSubproductoController::class, 'destroy'])->name('EaSubproductoController.destroy');
-    Route::patch('Subproducto/store/', [EaSubproductoController::class, 'store'])->name('EaSubproductoController.store');
-    Route::patch('Subproducto/update/', [EaSubproductoController::class, 'update'])->name('EaSubproductoController.update');*/
-});
+
 
 
 
@@ -198,6 +185,10 @@ Route::middleware(['auth', 'prevent-back-history', 'isAdmin'])->group(function (
     Route::post('recepcion/archivo/financiero/subirArchivo/', [EaRecepArchiFinanController::class, 'uploadArchivos'])->name('EaRecepArchiFinanController.uploadArchivos');
     Route::post('recepcion/archivo/financiero/destroy/', [EaRecepArchiFinanController::class, 'destroy'])->name('EaRecepArchiFinanController.destroy');
     Route::post('recepcion/archivo/financiero/procesar/', [EaRecepArchiFinanController::class, 'procesar'])->name('EaRecepArchiFinanController.procesar');
+});
+
+
+Route::middleware(['auth', 'prevent-back-history'])->group(function () {
     ///////////////////////// cambio KPE Cargas
     //Route::get('generacion/archivo/cargaIndividual/index/', [EaCargaIndividualExport::class, 'index'])->name('EaCargaIndividualExport.index');
     //Route::post('generacion/archivo/cargaIndividual/destroy/', [EaCargaIndividualExport::class, 'destroy'])->name('EaCargaIndividualExport.destroy');
@@ -251,4 +242,22 @@ Route::middleware(['auth', 'isAdmin'])->group(function () {
     Route::get('generacion/archivo/financiero/export/', [EaGenArchiFinanController::class, 'exportar_archivo'])->name('EaGenArchiFinanController.exportar_archivo');
     Route::get('generacion/archivo/sinInformacionFinanciera/export/{cod_carga}', [EaRecepArchiFinanController::class, 'export_sin_infor_finan'])->name('EaGenArchiFinanController.export_sin_infor_finan');
     Route::post('reporte/cargaInicial/', [EaCabCargaInicialController::class, 'exportar_reporte'])->name('EaCabCargaInicialController.exportar_reporte');
+});
+
+
+//KPE Edicion Campanias
+//opciones menu configuracion cargas
+Route::middleware(['auth', 'prevent-back-history', 'isAdmin'])->group(function () {
+    Route::get('configCampanias/index/', [EaControlCampania::class, 'index'])->name('EaControlCampania.index');
+    Route::get('recepcion/archivo/cargaIndividual/indexJsonEntrada/', [EaControlCampania::class, 'indexJsonEntrada'])->name('EaControlCampania.indexJsonEntrada');
+    Route::get('getOpcionesModelAllCliente/', [EaControlCampania::class, 'getOpcionesModelAllCliente'])->name('EaControlCampania.getOpcionesModelAllCliente');
+    Route::get('getOpcionesModel/', [EaControlCampania::class, 'getOpcionesModel'])->name('EaControlCampania.getOpcionesModel');
+    Route::post('import/cabecera/confop/', [EaControlCampania::class, 'post_import_guardar'])->name('EaControlCampania.post_import_guardar');
+    Route::get('getOpcionesCampoC/', [EaControlCampania::class, 'getOpcionesCampoC'])->name('EaControlCampania.getOpcionesCampoC');
+    Route::get('getOpcionesCampofijos/', [EaControlCampania::class, 'getOpcionesCampofijos'])->name('EaControlCampania.getOpcionesCampofijos');
+    Route::get('getOpcionesCampoExport/', [EaControlCampania::class, 'getOpcionesCampoExport'])->name('EaControlCampania.getOpcionesCampoExport');
+    Route::get('getOpcionesCampo0/', [EaControlCampania::class, 'getOpcionesCampo0'])->name('EaControlCampania.getOpcionesCampo0');
+    Route::post('import/validacion/', [EaControlCampania::class, 'post_import_guardar_validacion'])->name('EaControlCampania.post_import_guardar_validacion');
+    Route::post('import/guardar/datos', [EaControlCampania::class, 'post_import_guardar_datos'])->name('EaControlCampania.post_import_guardar_datos');
+    
 });

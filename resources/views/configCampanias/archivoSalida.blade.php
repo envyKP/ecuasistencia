@@ -17,20 +17,7 @@
 
     <div class="card-body">
 
-
-        <!--<div class="card-body">
-            <form action="" id="form-Genera-lee" method="post">
-                <button class="btn btn-success" type="submit">
-                    <svg class="c-icon c-icon-xl">
-                        <use xlink:href=" asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-save') ">
-                        </use>
-                    </svg>
-                    Nueva Opcion
-                </button>
-            </form>
-        </div>-->
-
-        <div class="card-body">
+          <div class="card-body">
             <form action="" id="form-Genera-lee" method="post">
                 @csrf
                 {{ method_field('patch') }}
@@ -47,7 +34,7 @@
                                 </svg>{{ 'Nombre de Opcion' }}
                             </span>
                         </div>
-                        <input class="form-control" type="text" id="contrato_amaForm" name="contrato_amaForm"
+                        <input class="form-control" type="text" id="OpcionName" name="OpcionName"
                             value="" placeholder="Nombre de opcion" readonly>
                     </div>
                 </div>
@@ -62,7 +49,7 @@
                                 </svg>{{ 'Tipo' }}
                             </span>
                         </div>
-                        <input class="form-control" type="text" id="contrato_amaForm" name="contrato_amaForm"
+                        <input class="form-control" type="text" id="tipoCtasPresentacion" name="tipoCtasPresentacion"
                             value="" placeholder="tipo TC o CTAS" readonly>
                     </div>
                 </div>
@@ -80,16 +67,17 @@
             </form>
         </div>
         <div class="form-group">
-            <div>{{ 'Cadena Opciones de Validacion' }}</div>
-            <iframe id="inlineFrameExample" title="Inline_entrada" width="690" height="400"
-                src="{{ url('recepcion/archivo/cargaIndividual/indexJsonEntrada/') }}">
-            </iframe>
+            <button class="btn btn-success" id="btn-Generacion-archivos" type="button" data-toggle="modal" data-target="#exampleModalCenter">
+                <svg class="c-icon c-icon-xl ">
+                    <use
+                        xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/free.svg#cil-save') }} ">
+                    </use>
+                </svg>{{'Generación de archivos salida'}}
+            </button>
         </div>
     </div>
 
-    <!--<form action="" method="post">
-        </form> -->
-
+    @include('configCampanias.modalGenArchivos')
 
 
 

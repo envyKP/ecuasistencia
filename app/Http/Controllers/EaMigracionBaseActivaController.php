@@ -9,7 +9,8 @@ use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\EaClienteController;
 use App\Http\Controllers\EaBaseActivaController;
 use App\Http\Controllers\EaUtilController;
-
+use Defuse\Crypto\Crypto;
+use Defuse\Crypto\Key;
 class EaMigracionBaseActivaController extends Controller
 {
     /**
@@ -194,7 +195,8 @@ class EaMigracionBaseActivaController extends Controller
      */
     public function procesarFichero(EaMigracionBaseActiva $eaMigracionBaseActiva)
     {
-
+        $contenido = file_get_contents("../salsa.txt");
+        $clave = Key::loadFromAsciiSafeString($contenido);
         $fecha_hoy = date('Y-m-d H:i:s');
         $ObjBaseActiva = (new EaBaseActivaController);
         $producto = (new EaProductoController);
@@ -226,7 +228,11 @@ class EaMigracionBaseActivaController extends Controller
 
                         $data['fecact']  = trim( preg_replace("/[^A-Za-z0-9\-\/:']/", '', str_replace("\"", "", explode("\t", $linea_spanish)[0]) ));
                         $data['cuenta']  = trim( preg_replace("/[^A-Za-z0-9\-\/:']/", '', str_replace("\"", "", explode("\t", $linea_spanish)[1]) ));
+                        $data['cuenta'] =  !empty($data['cuenta']) ? Crypto::encrypt($data['cuenta'], $clave) :  '' ;
+                        
                         $data['tarjeta'] = trim( preg_replace("/[^A-Za-z0-9\-\/:']/", '', str_replace("\"", "", explode("\t", $linea_spanish)[2]) ));
+                        $data['tarjeta'] =  !empty($data['tarjeta']) ? Crypto::encrypt($data['tarjeta'], $clave) :  '' ;
+                        
                         $data['nombre']  = trim( str_replace("\"", "", explode("\t", $linea_spanish)[3]) );
                         $data['tipide']  = trim( preg_replace("/[^A-Za-z0-9\-\/:']/", '', str_replace("\"", "", explode("\t", $linea_spanish)[4]) ));
                         $data['dettipide'] = trim( preg_replace("/[^A-Za-z0-9\-\/:']/", '', str_replace("\"", "", explode("\t", $linea_spanish)[5]) ));

@@ -57,7 +57,7 @@
                         </svg>
                         Añadir Producto/Editar Opciones
                     </button>
-                    <button class="btn btn-sm btn-outline-danger mr-md-2  my-1" id="btnElimprod" type="button"
+                    <button class="btn btn-sm btn-outline-danger mr-md-2  my-1" id="" type="button"
                         data-toggle="modal" data-target="#dangerModal">
                         <svg class="c-icon c-icon-2xl my-1">
                             <use
