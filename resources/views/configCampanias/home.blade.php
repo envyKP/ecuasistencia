@@ -3,6 +3,8 @@
     <script type="text/javascript">
         $(document).ready(function() {
 
+
+            var row = 1
             $("#clienteCMB").change(function() {
                 if ($("#clienteCMB").val() !== "clienteNull") {
                     $.ajax({
@@ -32,6 +34,16 @@
 
                             if (typeof value.codigo_id !== 'undefined') {
                                 $("#codigo_id_import").val(value.codigo_id);
+                                get_generate_text(value.codigo_id);
+                            }
+
+                            if (typeof value.codigo_id !== 'undefined') {
+                                $("#codigo_id_import_validacion").val(value.codigo_id);
+                            }
+
+                            if (typeof value.codigo_id !== 'undefined') {
+                                $("#codigo_id_import_guardar_datos").val(value
+                                    .codigo_id);
                             }
 
                             if (typeof value.campoIdentificador !== 'undefined') {
@@ -99,184 +111,258 @@
                             }
 
                         });
+
+
                     }
                 }); //fin ajax
 
-                $("#filtroeditarEntradaDetalles").click(function() {
-                    if ($("#filtroeditarEntradaDetalles").is(":checked")) {
-
-                        $("#IdentificadoEntrada").prop("disabled", false);
-                        $("#campoIdentificador").prop('readonly', false);
-                        $("#detalle").prop('readonly', false);
-                        $("#fechaDebitado").prop('readonly', false);
-                        $("#valorDebitado").prop('readonly', false);
-                        $("#formatoFecha").prop('readonly', false);
-                    } else {
-                        $("#IdentificadoEntrada").prop("disabled", "disabled");
-                        $("#campoIdentificador").prop('readonly', true);
-                        $("#detalle").prop('readonly', true);
-                        $("#fechaDebitado").prop('readonly', true);
-                        $("#valorDebitado").prop('readonly', true);
-                        $("#formatoFecha").prop('readonly', true);
-                    }
-                });
-
-                $("#filtroeditarEntradaDetallesDebitado").click(function() {
-                    if ($("#filtroeditarEntradaDetallesDebitado").is(":checked")) {
-                        $("#campoValidacionDebitado").prop('readonly', false);
-                        $("#valorValidacionDebitado").prop('readonly', false);
-
-                    } else {
-                        $("#valorValidacionDebitado").prop('readonly', true);
-                        $("#campoValidacionDebitado").prop('readonly', true);
-
-                    }
-                });
-
-                $("#filtroeditarEntradaValidaA").click(function() {
-                    if ($("#filtroeditarEntradaValidaA").is(":checked")) {
-                        $("#valorValidacionArchivo").prop('readonly', false);
-                        $("#campoValidacionArchivo").prop('readonly', false);
-
-                    } else {
-                        $("#valorValidacionArchivo").prop('readonly', true);
-                        $("#campoValidacionArchivo").prop('readonly', true);
-
-                    }
-                });
-
             });
+
+            function get_generate_text(values_opcion) {
+
+                $.ajax({
+                    url: "{{ route('EaControlCampania.get_export_genera_datos') }}?codigo_id=" +
+                        values_opcion,
+                    method: "GET",
+                    success: function(data) {
+                        $("#div-opcion-archivos").append(data.htmlDetalleGenera);
+                    }
+                });
+
+            }
+
+            $("#filtroeditarEntradaDetalles").click(function() {
+                if ($("#filtroeditarEntradaDetalles").is(":checked")) {
+                    $("#IdentificadoEntrada").prop("disabled", false);
+                    $("#campoIdentificador").prop('readonly', false);
+                    $("#detalle").prop('readonly', false);
+                    $("#fechaDebitado").prop('readonly', false);
+                    $("#valorDebitado").prop('readonly', false);
+                    $("#formatoFecha").prop('readonly', false);
+                } else {
+                    $("#IdentificadoEntrada").prop("disabled", "disabled");
+                    $("#campoIdentificador").prop('readonly', true);
+                    $("#detalle").prop('readonly', true);
+                    $("#fechaDebitado").prop('readonly', true);
+                    $("#valorDebitado").prop('readonly', true);
+                    $("#formatoFecha").prop('readonly', true);
+                }
+            });
+
+            $("#filtroeditarEntradaDetallesDebitado").click(function() {
+                if ($("#filtroeditarEntradaDetallesDebitado").is(":checked")) {
+                    $("#campoValidacionDebitado").prop('readonly', false);
+                    $("#valorValidacionDebitado").prop('readonly', false);
+
+                } else {
+                    $("#valorValidacionDebitado").prop('readonly', true);
+                    $("#campoValidacionDebitado").prop('readonly', true);
+
+                }
+            });
+
+            $("#filtroeditarEntradaValidaA").click(function() {
+                if ($("#filtroeditarEntradaValidaA").is(":checked")) {
+                    $("#valorValidacionArchivo").prop('readonly', false);
+                    $("#campoValidacionArchivo").prop('readonly', false);
+
+                } else {
+                    $("#valorValidacionArchivo").prop('readonly', true);
+                    $("#campoValidacionArchivo").prop('readonly', true);
+
+                }
+            });
+
+
 
 
 
             $("#btn-guardar-import_cab").click(function(e) {
-
                 e.preventDefault();
-
                 $.ajax({
-
                     url: $("#form-genera-imort").prop("action"),
                     method: "post",
                     data: $("#form-genera-imort").serialize(),
-
                     beforeSend: function() {
-
                         $("#btn-guardar-import_cab").prop('disabled', true);
                         $("#processCargaDetalle").css('display', 'block');
                     },
-
                     success: function(data) {
-                       //$("#modalGuardar").modal('show');
+                        //$("#modalGuardar").modal('show');
                     },
-
                 }).done(function(response) {
-
                     $("#modalGuardar").modal('show');
                     $("#btn-guardar-import_cab").prop('disabled', false);
                     $("#processCargaDetalle").css('display', 'none');
                     location.reload();
-
                 }).error(function(err) {
                     alert(err);
                 });
-
             });
 
 
-            
+
             $("#btn-guardar-validacion").click(function(e) {
-
                 e.preventDefault();
-
                 $.ajax({
-
                     url: $("#form-Validacion").prop("action"),
                     method: "post",
                     data: $("#form-Validacion").serialize(),
-
                     beforeSend: function() {
-
                         $("#btn-guardar-validacion").prop('disabled', true);
                         $("#processValidacion").css('display', 'block');
                     },
-
                     success: function(data) {
-                    //$("#modalGuardar").modal('show');
+                        //$("#modalGuardar").modal('show');
                     },
-
                 }).done(function(response) {
-
                     $("#modalGuardar").modal('show');
                     $("#btn-guardar-validacion").prop('disabled', false);
                     $("#processValidacion").css('display', 'none');
                     location.reload();
-
                 }).error(function(err) {
                     alert(err);
                 });
-
             });
 
 
             $("#btn-guardar-datos-import").click(function(e) {
-
                 e.preventDefault();
-
                 $.ajax({
-
                     url: $("#frm-import-guadar-datos").prop("action"),
                     method: "post",
                     data: $("#frm-import-guadar-datos").serialize(),
-
                     beforeSend: function() {
-
                         $("#btn-guardar-datos-import").prop('disabled', true);
                         $("#processDatosImport").css('display', 'block');
                     },
-
                     success: function(data) {
-                    //$("#modalGuardar").modal('show');
+                        //$("#modalGuardar").modal('show');
                     },
-
                 }).done(function(response) {
-
                     $("#modalGuardar").modal('show');
                     $("#btn-guardar-datos-import").prop('disabled', false);
                     $("#processDatosImport").css('display', 'none');
                     location.reload();
-
                 }).error(function(err) {
                     alert(err);
                 });
-
             });
 
 
-           /*===========================================================================*/
-            $("#btnElimprod").click(function(e){
-                
+            /*===========================================================================*/
+            $("#btnElimprod").click(function(e) {
+
                 $("#campoIdentificador").val(null);
                 $("#IdentificadoEntrada").val("selec");
                 $("#fechaDebitado").val(null);
                 $("#detalle").val(null);
                 $("#formatoFecha").val(null);
                 $("#valorDebitado").val(null);
-                $("#checkbox").val(null); 
+                $("#checkbox").val(null);
 
             });
 
-            $("#vaciar_validacion").click(function(e){
-                
+            $("#vaciar_validacion").click(function(e) {
                 $("#campoValidacionDebitado").val(null);
                 $("#valorValidacionDebitado").val(null);
-             
             });
 
-            $("#btn-vaciar-datos-import").click(function(e){
-                                
+            $("#btn-vaciar-datos-import").click(function(e) {
                 $("#campoValidacionArchivo").val(null);
                 $("#valorValidacionArchivo").val(null);
             });
+
+
+            /* LOGICA DE AGREGAR ELEMENTOS AL DOCUMENTE */
+            $("#btn-anadir").click(function(e) {
+
+                $("#div-opcion-archivos").append(
+                    '<div class="row col pt-3 justify-content-between" id="fila_' + row + '"></div>');
+                $('#fila_' + row).append('<input class="form-control col-1" name="gn-' + row +
+                    '-id" value="' + row + '" type="text" id="gn-' + row + '-id" />');
+
+                if ($("#opconfig").val() == 'fijo') {
+                    $('#fila_' + row).append('<input class="form-control col-4" name="gn-' + row +
+                        '-values" value="" type="text" id="gn-' + row + '-values"/>');
+                }
+
+                if ($("#opconfig").val() == 'fecha') {
+                    $('#fila_' + row).append('<input class="form-control col-4" name="gn-' + row +
+                        '-values_fecha" value="" type="text" id="gn-' + row + '-values_fecha"/>');
+                }
+
+                if ($("#opconfig").val() == 'base') {
+                    $('#fila_' + row).append('<select class="custom-select col-4" name="gn-' + row +
+                        '-values_base"  id="gn-' + row +
+                        '-values_base"> <option values="tarjeta" selected>tarjeta</option> <option value="cod_establecimiento">cod_establecimiento</option><option values="subtotal">subtotal</option> <option values="cuenta">cuenta</option> <option values="tipcta">tipcta</option> <option values="tipide">tipide</option> <option values="deduccion_impuesto">deduccion_impuesto</option> <option values="nombre">nombre</option> <option values="direccion">direccion</option> <option values="ciudadet">ciudadet</option> <option values="valortotal">valortotal</option> </select>'
+                    );
+                }
+
+                $('#fila_' + row).append('<input class="form-control col-1" name="gn-' + row +
+                    '-cantidad" value=" " type="text" id="gn-' + row + '-cantidad" />');
+                $('#fila_' + row).append('<select class="custom-select col-4" name="gn-' + row +
+                    '-campos" id="gn-' + row +
+                    '-campos"> <option value selected>NADA</option> <option value="campoED_">Espacio Dereacha</option> <option value="campoE_">Espacio Izquierda</option> <option value="campo0D_">Cero Derecha</option> <option value="campo0_">Cero Izquierda</option> </select>'
+                );
+
+                row++;
+
+            });
+
+
+
+            $("#btn-export-guardar-datos").click(function(e) {
+                e.preventDefault();
+                $.ajax({
+                    url: $("#form-export-guardar-datos").prop("action"),
+                    method: "post",
+                    data: $("#form-export-guardar-datos").serialize(),
+                    beforeSend: function() {
+                        $("#btn-export-guardar-datos").prop('disabled', true);
+                        $("#processExportGuardarDatos").css('display', 'block');
+                    },
+                    success: function(data) {
+                        //$("#modalGuardar").modal('show');
+                    },
+                }).done(function(response) {
+                    $("#modalGuardar").modal('show');
+                    $("#btn-export-guardar-datos").prop('disabled', false);
+                    $("#processExportGuardarDatos").css('display', 'none');
+                    location.reload();
+                }).error(function(err) {
+                    alert(err);
+                });
+
+            });
+
+
+            $("#btn-guardar_producto").click(function(e) {
+
+                e.preventDefault();
+                $.ajax({
+                    url: $("#form-guardar_producto").prop("action"),
+                    method: "post",
+                    data: $("#form-guardar_producto").serialize(),
+                    beforeSend: function() {
+                        $("#btn-guardar_producto").prop('disabled', true);
+                        $("#processGuardarProducto").css('display', 'block');
+                    },
+                    success: function(data) {
+                        //$("#modalGuardar").modal('show');
+                    },
+                }).done(function(response) {
+                    $("#modalGuardar").modal('show');
+                    $("#btn-guardar_producto").prop('disabled', false);
+                    $("#processGuardarProducto").css('display', 'none');
+                    location.reload();
+                }).error(function(err) {
+                    alert(err);
+                });
+
+            });
+
+
 
 
 

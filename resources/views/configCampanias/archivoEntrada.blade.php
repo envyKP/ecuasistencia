@@ -154,10 +154,10 @@
                 <div>{{ 'en caso que complete el campo y el valor tomara este como condicion para debitar' }}</div>
                 <div>{{ 'en caso de estar vacio todos no habra condicion para debitar y debitara todo lo que lea' }}
                 </div>
-                <form id="form-guardar-datos" method="post" action="{{ route('EaControlCampania.post_import_guardar_validacion') }}">
+                <form id="form-Validacion" method="post" action="{{ route('EaControlCampania.post_import_guardar_validacion') }}">
                     @csrf
                     @method('post')
-                    <input type="hidden" name="codigo_id_import" id="codigo_id_import" value="">
+                    <input type="hidden" name="codigo_id_import_validacion" id="codigo_id_import_validacion" value="">
                     <div class="col-sm-12 form-group" id="processValidacion" style="display:none">
                         <strong>{{ 'Procesando...' }}</strong>
                         <progress class="col-sm-12" max="100">100%</progress>
@@ -229,7 +229,7 @@
                 <form id="frm-import-guadar-datos" action= "{{ route('EaControlCampania.post_import_guardar_datos') }}" method="post">
                     @csrf
                     @method('post')
-                    <input type="hidden" name="codigo_id_import" id="codigo_id_import" value="">
+                    <input type="hidden" name="codigo_id_import_guardar_datos" id="codigo_id_import_guardar_datos" value="">
                     <div class="col-sm-12 form-group" id="processDatosImport" style="display:none">
                         <strong>{{ 'Procesando...' }}</strong>
                         <progress class="col-sm-12" max="100">100%</progress>

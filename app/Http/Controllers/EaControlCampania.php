@@ -260,20 +260,66 @@ class EaControlCampania extends Controller
     public function post_import_guardar(Request  $request)
     {
         //retornar valor asociado a un cliente 
-
-         /*
-        "IdentificadoEntrada" => "secuencia"
-        "campoIdentificador" => "vale"
-        "fechaDebitado" => "fecha_autorizacion"
-        "detalle" => "descripcion"
-        "formatoFecha" => null
-        "valorDebitado" => "total"
+        /*
+        "_token" => "aoMkYKruZH5L9h3mj7aZFLjmhfQNnzHrpi6nR6o7"
+      "_method" => "post"
+      "codigo_id_import" => "14"
+      "IdentificadoEntrada" => "secuencia"
+      "campoIdentificador" => "vale"
+      "fechaDebitado" => "fecha_autorizacion"
+      "detalle" => "descripcion"
+      "formatoFecha" => null
+      "valorDebitado" => "total"
         */
+        $opciones = EaOpcionesCargaCliente::where('codigo_id', $request->codigo_id_import)->first();
 
+        //{"validacion_campo_1":"mensaje_de_procesamiento","validacion_valor_1":"PROCESO OK","num_validacion":"1","identificador_secuencia":"cedula_id"}
+        $opciones_validacion = json_decode($opciones->opciones_validacion, true);
+        // solo cambiar identificador secuencia
+        // $opciones_validacion_new = json_decode($opciones->opciones_validacion, true);
         //{"cedula_id":"numero_identificacion","fecha_actualizacion":"fecha_proceso","valor_debitado":"valor_enviado","detalle":"mensaje_de_procesamiento"}
+        $opciones_import = json_decode($opciones->campos_import, true);
+
+        if (isset($request->campoIdentificador)) {
+            $opciones_import[$opciones_validacion['identificador_secuencia']];
+        }
+
+
+        if (isset($request->IdentificadoEntrada)) {
+            if ($request->IdentificadoEntrada == "selec") {
+                unset($opciones_validacion['identificador_secuencia']);
+                unset($opciones_import[$opciones_validacion['identificador_secuencia']]);
+            } else {
+                if ($opciones_validacion['identificador_secuencia'] != $request->IdentificadoEntrada) {
+                    if (isset($opciones_import[$opciones_validacion['identificador_secuencia']])) {
+                        unset($opciones_import[$opciones_validacion['identificador_secuencia']]);
+                    }
+                    $opciones_validacion['identificador_secuencia'] = $request->IdentificadoEntrada;
+                    //$opciones_import[$opciones_validacion['identificador_secuencia']] = isset($request->campoIdentificador) || $request->campoIdentificador != ""  ? $request->campoIdentificador 
+                    if (isset($request->campoIdentificador) && $request->campoIdentificador != "") {
+                        $opciones_import[$opciones_validacion['identificador_secuencia']] = $request->campoIdentificador;
+                    }
+                } else {
+                    if (isset($opciones_import[$opciones_validacion['identificador_secuencia']])) {
+                        $opciones_import[$opciones_validacion['identificador_secuencia']] = $request->campoIdentificador;
+                    }
+                }
+            }
+        }
+
+
+        $enconde_validacion = json_encode($opciones_validacion);
+        $enconde_validacion_data = json_encode($opciones_import);
+
+        dd($enconde_validacion . " data : " . $enconde_validacion_data);
+
+
+
+
+
         $datos = $request->except('_token', '_method');
         //EaOpcionesCargaCliente
-        
+
         /*   $json_text = array();
 
             if (isset($request->IdentificadoEntrada)) {
@@ -281,11 +327,14 @@ class EaControlCampania extends Controller
         */
 
         //EaOpcionesCargaCliente::where('codigo_id', $request->codigo_id)->update([' campos_import' => $json_text]);
-         
+
         return response()->json(['respuesta' => $datos]);
     }
 
-     /**
+
+    // no llega nada error
+    // algo de index
+    /**
      * Display the specified resource.
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
@@ -293,20 +342,23 @@ class EaControlCampania extends Controller
     public function post_import_guardar_validacion(Request  $request)
     {
         //retornar valor asociado a un cliente 
-
-         /*
-        "IdentificadoEntrada" => "secuencia"
-        "campoIdentificador" => "vale"
-        "fechaDebitado" => "fecha_autorizacion"
-        "detalle" => "descripcion"
-        "formatoFecha" => null
-        "valorDebitado" => "total"
+        /*
+        "_token" => "aoMkYKruZH5L9h3mj7aZFLjmhfQNnzHrpi6nR6o7"
+      "_method" => "post"
+      "codigo_id_import" => "14"
+      "IdentificadoEntrada" => "secuencia"
+      "campoIdentificador" => "vale"
+      "fechaDebitado" => "fecha_autorizacion"
+      "detalle" => "descripcion"
+      "formatoFecha" => null
+      "valorDebitado" => "total"
         */
+        dd($request);
 
         //{"cedula_id":"numero_identificacion","fecha_actualizacion":"fecha_proceso","valor_debitado":"valor_enviado","detalle":"mensaje_de_procesamiento"}
         $datos = $request->except('_token', '_method');
         //EaOpcionesCargaCliente
-        
+
         /*   $json_text = array();
 
             if (isset($request->IdentificadoEntrada)) {
@@ -314,43 +366,122 @@ class EaControlCampania extends Controller
         */
 
         //EaOpcionesCargaCliente::where('codigo_id', $request->codigo_id)->update([' campos_import' => $json_text]);
-         
+
         return response()->json(['respuesta' => $datos]);
     }
 
-
-     /**
+    // no llega ID
+    /**
      * Display the specified resource.
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
     public function post_import_guardar_datos(Request  $request)
     {
-        //retornar valor asociado a un cliente 
 
-         /*
-        "IdentificadoEntrada" => "secuencia"
-        "campoIdentificador" => "vale"
-        "fechaDebitado" => "fecha_autorizacion"
-        "detalle" => "descripcion"
-        "formatoFecha" => null
-        "valorDebitado" => "total"
-        */
-
+        dd($request);
         //{"cedula_id":"numero_identificacion","fecha_actualizacion":"fecha_proceso","valor_debitado":"valor_enviado","detalle":"mensaje_de_procesamiento"}
         $datos = $request->except('_token', '_method');
         //EaOpcionesCargaCliente
-        
-        /*   $json_text = array();
 
-            if (isset($request->IdentificadoEntrada)) {
-            }
-        */
-
+        /*$json_text = array();
+        if (isset($request->IdentificadoEntrada)) {
+        }*/
         //EaOpcionesCargaCliente::where('codigo_id', $request->codigo_id)->update([' campos_import' => $json_text]);
-         
+
         return response()->json(['respuesta' => $datos]);
     }
 
 
+    /**
+     * Display the specified resource.
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function post_export_guardar_datos(Request  $request)
+    {
+        dd($request);
+        $datos = $request->except('_token', '_method');
+
+
+        return response()->json(['respuesta' => $datos]);
+    }
+
+
+    /**
+     * Display the specified resource.
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function get_export_genera_datos(Request  $request)
+    {
+        // dd($request);
+        $datos = $request->except('_token', '_method');
+        /*
+    public function getMenuSubproductoOpciones(Request $request)
+    {
+        $html = '<option value="" selected>Selecciona Producto</option>';
+        $subproductos = EaOpcionesCargaCliente::where('cliente', $request->cliente)
+            ->get();
+        foreach ($subproductos as $subproducto) {
+            $html .= '<option value="' . $subproducto->codigo_id  . '">' . $subproducto->archivo_nombre . '</option>';
+        }
+        return response()->json(['htmlProducto' => $html]);
+    }
+
+ $("#div-opcion-archivos").append(
+                    '<div class="row col pt-3 justify-content-between" id="fila_' + row + '"></div>');
+                $('#fila_' + row).append('<input class="form-control col-1" name="gn-' + row +
+                    '-id" value="' + row + '" type="text" id="gn-' + row + '-id" />');
+
+                if ($("#opconfig").val() == 'fijo') {
+                    $('#fila_' + row).append('<input class="form-control col-4" name="gn-' + row +
+                        '-values" value="" type="text" id="gn-' + row + '-values"/>');
+                }
+
+                if ($("#opconfig").val() == 'fecha') {
+                    $('#fila_' + row).append('<input class="form-control col-4" name="gn-' + row +
+                        '-values_fecha" value="" type="text" id="gn-' + row + '-values_fecha"/>');
+                }
+
+                if ($("#opconfig").val() == 'base') {
+                    $('#fila_' + row).append('<select class="custom-select col-4" name="gn-' + row +
+                        '-values_base"  id="gn-' + row +
+                        '-values_base"> <option values="tarjeta" selected>tarjeta</option> <option value="cod_establecimiento">cod_establecimiento</option><option values="subtotal">subtotal</option> <option values="cuenta">cuenta</option> <option values="tipcta">tipcta</option> <option values="tipide">tipide</option> <option values="deduccion_impuesto">deduccion_impuesto</option> <option values="nombre">nombre</option> <option values="direccion">direccion</option> <option values="ciudadet">ciudadet</option> <option values="valortotal">valortotal</option> </select>'
+                    );
+                }
+
+                $('#fila_' + row).append('<input class="form-control col-1" name="gn-' + row +
+                    '-cantidad" value=" " type="text" id="gn-' + row + '-cantidad" />');
+                $('#fila_' + row).append('<select class="custom-select col-4" name="gn-' + row +
+                    '-campos" id="gn-' + row +
+                    '-campos"> <option value selected>NADA</option> <option value="campoED_">Espacio Dereacha</option> <option value="campoE_">Espacio Izquierda</option> <option value="campo0D_">Cero Derecha</option> <option value="campo0_">Cero Izquierda</option> </select>'
+                );
+
+
+
+
+*/
+
+        $row_id = 1;
+        $field_datos = "<div class=\"row col pt-3 justify-content-between\" id=\"fila_" . $row_id . "\"></div>";
+        $field_datos .= "<input class=\"form-control col-1\" name=\"gn-" . $row_id . "-id\" value=\"" . $row_id . "\" type=\"text\" id=\"gn-" . $row_id . "-id\" />";
+
+        return response()->json(['htmlDetalleGenera' => $field_datos]);
+    }
+
+
+
+    /**
+     * Display the specified resource.
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function post_guardar_producto(Request  $request)
+    {
+        dd($request);
+        $datos = $request->except('_token', '_method');
+
+        return response()->json(['respuesta' => $datos]);
+    }
 }

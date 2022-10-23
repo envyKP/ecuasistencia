@@ -12,16 +12,12 @@
     </h4>
 </div>
 <div class="card">
-    <div class="card-header">
-        {{ 'Descripcion: Exportacion\generacion de texto plano que se enviara a los clientes' }}</div>
-
+    <div class="card-header"> {{ 'Descripcion: Exportacion\generacion de texto plano que se enviara a los clientes' }}</div>
     <div class="card-body">
-
           <div class="card-body">
             <form action="" id="form-Genera-lee" method="post">
                 @csrf
                 {{ method_field('patch') }}
-
                 <div class="form-group">
                     <div>{{ 'Detalles' }}</div>
                     <div class="input-group">
@@ -34,8 +30,7 @@
                                 </svg>{{ 'Nombre de Opcion' }}
                             </span>
                         </div>
-                        <input class="form-control" type="text" id="OpcionName" name="OpcionName"
-                            value="" placeholder="Nombre de opcion" readonly>
+                        <input class="form-control" type="text" id="OpcionName" name="OpcionName"  value="" placeholder="Nombre de opcion" readonly>
                     </div>
                 </div>
                 <div class="form-group">
@@ -49,8 +44,7 @@
                                 </svg>{{ 'Tipo' }}
                             </span>
                         </div>
-                        <input class="form-control" type="text" id="tipoCtasPresentacion" name="tipoCtasPresentacion"
-                            value="" placeholder="tipo TC o CTAS" readonly>
+                        <input class="form-control" type="text" id="tipoCtasPresentacion" name="tipoCtasPresentacion"  value="" placeholder="tipo TC o CTAS" readonly>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -76,10 +70,6 @@
             </button>
         </div>
     </div>
-
     @include('configCampanias.modalGenArchivos')
-
-
-
 </div>
 </div>

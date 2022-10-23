@@ -24,8 +24,7 @@
                             <use xlink:href="{{ asset('admin/node_modules/@coreui/icons/sprites/brand.svg#cib-opsgenie')}} "></use>
                         </svg>
                         <label>{{'Cliente'}}</label>
-                        <input class="form-control" maxlength="40" name="nombre" value="" type="text" placeholder="Nombre del cliente" required
-                        oninput="this.value = this.value.toUpperCase();">
+                        <input class="form-control" maxlength="40" name="nombre" value="" type="text" placeholder="Nombre del cliente" required oninput="this.value = this.value.toUpperCase();">
                     </div>
                 </div>
                 <div class="col-sm-2 co-md-2">

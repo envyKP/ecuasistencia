@@ -259,5 +259,8 @@ Route::middleware(['auth', 'prevent-back-history', 'isAdmin'])->group(function (
     Route::get('getOpcionesCampo0/', [EaControlCampania::class, 'getOpcionesCampo0'])->name('EaControlCampania.getOpcionesCampo0');
     Route::post('import/validacion/', [EaControlCampania::class, 'post_import_guardar_validacion'])->name('EaControlCampania.post_import_guardar_validacion');
     Route::post('import/guardar/datos', [EaControlCampania::class, 'post_import_guardar_datos'])->name('EaControlCampania.post_import_guardar_datos');
-    
+    Route::post('configCampanias/post_export_guardar_datos', [EaControlCampania::class, 'post_export_guardar_datos'])->name('EaControlCampania.post_export_guardar_datos');
+    Route::get('configCampanias/get_export_genera_datos', [EaControlCampania::class, 'get_export_genera_datos'])->name('EaControlCampania.get_export_genera_datos');
+    Route::post('configCampanias/guardar/producto', [EaControlCampania::class, 'post_guardar_producto'])->name('EaControlCampania.post_guardar_producto');
 });
+
