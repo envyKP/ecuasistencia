@@ -53,9 +53,7 @@
                 <strong>{{ 'Procesando...' }}</strong>
                 <progress class="col-sm-12" max="100">100%</progress>
             </div>
-            <div id="div-opcion-archivos" class="form-group">
 
-            </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">{{'Cerrar'}}</button>

@@ -199,6 +199,10 @@ class EaControlCampania extends Controller
         if (isset($opciones->op_caracteristica_ba)) {
             $recopilado['op_caracteristica_ba'] = $opciones->op_caracteristica_ba;
         }
+        if (isset($opciones->num_elem_export)) {
+            $recopilado['num_elem_export'] = $opciones->num_elem_export;
+        }
+
 
         //dd($recopilado);
         return response()->json(['opcionesModel' => $recopilado]);
@@ -233,6 +237,7 @@ class EaControlCampania extends Controller
         return response()->json(['opcionesCampo0' => $campos_0]);
     }
 
+
     /**
      * Display the specified resource.
      * @param  \Illuminate\Http\Request  $request
@@ -260,22 +265,12 @@ class EaControlCampania extends Controller
     public function post_import_guardar(Request  $request)
     {
         //retornar valor asociado a un cliente 
-        /*
-        "_token" => "aoMkYKruZH5L9h3mj7aZFLjmhfQNnzHrpi6nR6o7"
-      "_method" => "post"
-      "codigo_id_import" => "14"
-      "IdentificadoEntrada" => "secuencia"
-      "campoIdentificador" => "vale"
-      "fechaDebitado" => "fecha_autorizacion"
-      "detalle" => "descripcion"
-      "formatoFecha" => null
-      "valorDebitado" => "total"
-        */
+
         $opciones = EaOpcionesCargaCliente::where('codigo_id', $request->codigo_id_import)->first();
 
         //{"validacion_campo_1":"mensaje_de_procesamiento","validacion_valor_1":"PROCESO OK","num_validacion":"1","identificador_secuencia":"cedula_id"}
         $opciones_validacion = json_decode($opciones->opciones_validacion, true);
-        // solo cambiar identificador secuencia
+
         // $opciones_validacion_new = json_decode($opciones->opciones_validacion, true);
         //{"cedula_id":"numero_identificacion","fecha_actualizacion":"fecha_proceso","valor_debitado":"valor_enviado","detalle":"mensaje_de_procesamiento"}
         $opciones_import = json_decode($opciones->campos_import, true);
@@ -283,8 +278,6 @@ class EaControlCampania extends Controller
         if (isset($request->campoIdentificador)) {
             $opciones_import[$opciones_validacion['identificador_secuencia']];
         }
-
-
         if (isset($request->IdentificadoEntrada)) {
             if ($request->IdentificadoEntrada == "selec") {
                 unset($opciones_validacion['identificador_secuencia']);
@@ -305,26 +298,46 @@ class EaControlCampania extends Controller
                     }
                 }
             }
-        }
+            // EaOpcionesCargaCliente::where('codigo_id', $request->codigo_id_import)->update(['opciones_validacion'=>$opciones_import,'campos_import'=>$opciones_import]); 
 
+
+        }
+        /*
+        "_token" => "aoMkYKruZH5L9h3mj7aZFLjmhfQNnzHrpi6nR6o7"
+      "_method" => "post"
+      "codigo_id_import" => "14"
+      "IdentificadoEntrada" => "secuencia"
+      "campoIdentificador" => "vale"
+      "fechaDebitado" => "fecha_autorizacion"
+      "detalle" => "descripcion"
+      "formatoFecha" => null
+      "valorDebitado" => "total"
+        */
+
+        if (isset($request->fechaDebitado)) {
+            $opciones_import['fecha_actualizacion'] = $request->fechaDebitado;
+            $enconde_validacion_data = json_encode($opciones_import);
+            // EaOpcionesCargaCliente::where('codigo_id', $request->codigo_id_import)->update(['opciones_import' => $enconde_validacion_data]);
+        }
+        if (isset($request->detalle)) {
+            $opciones_import['detalle'] = $request->detalle;
+            $enconde_validacion_data = json_encode($opciones_import);
+            // EaOpcionesCargaCliente::where('codigo_id', $request->codigo_id_import)->update(['opciones_import' => $enconde_validacion_data]);
+        }
+        if (isset($request->formatoFecha)) {
+            //EaOpcionesCargaCliente::where('codigo_id', $request->codigo_id_import)->update(['formato_fecha' => $request->formatoFecha]);
+        }
+        if (isset($request->valorDebitado)) {
+            $opciones_import['valor_debitado'] = $request->valorDebitado;
+            $enconde_validacion_data = json_encode($opciones_import);
+            // EaOpcionesCargaCliente::where('codigo_id', $request->codigo_id_import)->update(['opciones_import' => $enconde_validacion_data]);
+        }
 
         $enconde_validacion = json_encode($opciones_validacion);
         $enconde_validacion_data = json_encode($opciones_import);
-
-        dd($enconde_validacion . " data : " . $enconde_validacion_data);
-
-
-
-
+        // dd($enconde_validacion . " data : " . $enconde_validacion_data);
 
         $datos = $request->except('_token', '_method');
-        //EaOpcionesCargaCliente
-
-        /*   $json_text = array();
-
-            if (isset($request->IdentificadoEntrada)) {
-            }
-        */
 
         //EaOpcionesCargaCliente::where('codigo_id', $request->codigo_id)->update([' campos_import' => $json_text]);
 
@@ -357,13 +370,6 @@ class EaControlCampania extends Controller
 
         //{"cedula_id":"numero_identificacion","fecha_actualizacion":"fecha_proceso","valor_debitado":"valor_enviado","detalle":"mensaje_de_procesamiento"}
         $datos = $request->except('_token', '_method');
-        //EaOpcionesCargaCliente
-
-        /*   $json_text = array();
-
-            if (isset($request->IdentificadoEntrada)) {
-            }
-        */
 
         //EaOpcionesCargaCliente::where('codigo_id', $request->codigo_id)->update([' campos_import' => $json_text]);
 
@@ -402,7 +408,72 @@ class EaControlCampania extends Controller
     {
         dd($request);
         $datos = $request->except('_token', '_method');
+        $opciones = EaOpcionesCargaCliente::where('codigo_id', $request->codigo_id)->first();
 
+        $row_id = 1;
+        $field_datos = "";
+        $campos_string = array('campo0_', 'campo0D_', 'campoE_', 'campoED_');
+        $nombre_campos_string = array('campo0_' => 'Cero Izquierda', 'campo0D_' => 'Cero Derecha', 'campoE_' => 'Espacio Izquierda', 'campoED_' => 'Espacio Derecha');
+
+        $datos_combo = array('contador_secuencia', 'tarjeta', 'valortotal', 'ciudadet', 'direccion', 'nombre', 'deduccion_impuesto', 'tipide', 'tipcta', 'cuenta', 'subtotal', 'cod_establecimiento');
+        $opciones_fijas = json_decode($opciones->opciones_fijas, true);
+        $opciones_export = json_decode($opciones->campos_export, true);
+        $camposC = json_decode($opciones->campoc, true);
+        $campos_0 = json_decode($opciones->campo0, true);
+        for ($i = 1; $i <= $request->num_elem_export; $i++) {
+            if (isset($request['gn-' . $i . "-id"])) {
+                $count_existe = 0; // lo almacena en fijo 
+                // si hago un unset asi no exista dara error? 
+                if (isset($request['gn-' . $i . "-values_base"])) {
+                    // guardar en export
+                    $opciones_export[$i] = $request['gn-' . $i . "-values_base"];
+                    $count_existe = 1;
+                    //puedo usar un isset para preguntar si existe y hacer unset o directamente hacer un unset a los que no pertenezcan 
+                    //campoC_
+                    unset($camposC['campoC_' . $i]);
+                    unset($opciones_fijas[$i]);
+                    //unset($opciones_export[$i]);
+                } elseif (isset($request['gn-' . $i . "-values"])) {
+                    //guardar en fijo
+                    $opciones_fijas[$i] = $request['gn-' . $i . "-values"];
+                    unset($camposC['campoC_' . $i]);
+                    //unset($opciones_fijas[$i]);
+                    unset($opciones_export[$i]);
+                    $count_existe = 1;
+                } elseif (isset($request['gn-' . $i . "-values_fecha"])) {
+                    $camposC['campoC_' . $i] = $request['gn-' . $i . "-values_fecha"];
+                    //unset($camposC['campoC_' . $i]);
+                    unset($opciones_fijas[$i]);
+                    unset($opciones_export[$i]);
+                    //guardar en campoC
+                    $count_existe = 1;
+                }
+                if ($count_existe == 0) {
+                    //guardar en campo_C
+                    // no tiene nada es vacio pertenece a fijo por defecto
+                    unset($camposC['campoC_' . $i]);
+                    //unset($opciones_fijas[$i]);
+                    unset($opciones_export[$i]);
+                    $opciones_fijas[$i] = "";
+
+                }
+
+                if (isset($request["gn-" . $i . "-cantidad"])) {
+                    if (isset($request["gn-" . $i . "-campos"])) {
+                        $campos_0[$request["gn-" . $i . "-campos"] . $i] = $request["gn-" . $i . "-cantidad"];
+                    }
+                }
+                if (isset($request["gn-" . $i . "-campos"])) {
+                    //lo identifique como vacio 
+                    //inserte en fijo 
+                }
+            }
+        }
+        $opciones_fijas = json_decode($opciones->opciones_fijas, true);
+        $opciones_export = json_decode($opciones->campos_export, true);
+        $camposC = json_decode($opciones->campoc, true);
+
+        //EaOpcionesCargaCliente::where('codigo_id', $request->codigo_id)->update(['opciones_fijas'=>$opciones_fijas ,'campos_export'=>$opciones_export,'campoc'=>$camposC]);
 
         return response()->json(['respuesta' => $datos]);
     }
@@ -415,59 +486,171 @@ class EaControlCampania extends Controller
      */
     public function get_export_genera_datos(Request  $request)
     {
-        // dd($request);
+        //dd($request);
         $datos = $request->except('_token', '_method');
-        /*
-    public function getMenuSubproductoOpciones(Request $request)
-    {
-        $html = '<option value="" selected>Selecciona Producto</option>';
-        $subproductos = EaOpcionesCargaCliente::where('cliente', $request->cliente)
-            ->get();
-        foreach ($subproductos as $subproducto) {
-            $html .= '<option value="' . $subproducto->codigo_id  . '">' . $subproducto->archivo_nombre . '</option>';
-        }
-        return response()->json(['htmlProducto' => $html]);
-    }
-
- $("#div-opcion-archivos").append(
-                    '<div class="row col pt-3 justify-content-between" id="fila_' + row + '"></div>');
-                $('#fila_' + row).append('<input class="form-control col-1" name="gn-' + row +
-                    '-id" value="' + row + '" type="text" id="gn-' + row + '-id" />');
-
-                if ($("#opconfig").val() == 'fijo') {
-                    $('#fila_' + row).append('<input class="form-control col-4" name="gn-' + row +
-                        '-values" value="" type="text" id="gn-' + row + '-values"/>');
-                }
-
-                if ($("#opconfig").val() == 'fecha') {
-                    $('#fila_' + row).append('<input class="form-control col-4" name="gn-' + row +
-                        '-values_fecha" value="" type="text" id="gn-' + row + '-values_fecha"/>');
-                }
-
-                if ($("#opconfig").val() == 'base') {
-                    $('#fila_' + row).append('<select class="custom-select col-4" name="gn-' + row +
-                        '-values_base"  id="gn-' + row +
-                        '-values_base"> <option values="tarjeta" selected>tarjeta</option> <option value="cod_establecimiento">cod_establecimiento</option><option values="subtotal">subtotal</option> <option values="cuenta">cuenta</option> <option values="tipcta">tipcta</option> <option values="tipide">tipide</option> <option values="deduccion_impuesto">deduccion_impuesto</option> <option values="nombre">nombre</option> <option values="direccion">direccion</option> <option values="ciudadet">ciudadet</option> <option values="valortotal">valortotal</option> </select>'
-                    );
-                }
-
-                $('#fila_' + row).append('<input class="form-control col-1" name="gn-' + row +
-                    '-cantidad" value=" " type="text" id="gn-' + row + '-cantidad" />');
-                $('#fila_' + row).append('<select class="custom-select col-4" name="gn-' + row +
-                    '-campos" id="gn-' + row +
-                    '-campos"> <option value selected>NADA</option> <option value="campoED_">Espacio Dereacha</option> <option value="campoE_">Espacio Izquierda</option> <option value="campo0D_">Cero Derecha</option> <option value="campo0_">Cero Izquierda</option> </select>'
-                );
-
-
-
-
-*/
+        $opciones = EaOpcionesCargaCliente::where('codigo_id', $request->codigo_id)->first();
 
         $row_id = 1;
-        $field_datos = "<div class=\"row col pt-3 justify-content-between\" id=\"fila_" . $row_id . "\"></div>";
-        $field_datos .= "<input class=\"form-control col-1\" name=\"gn-" . $row_id . "-id\" value=\"" . $row_id . "\" type=\"text\" id=\"gn-" . $row_id . "-id\" />";
+        $field_datos = "";
+        $campos_string = array('campo0_', 'campo0D_', 'campoE_', 'campoED_');
+        $nombre_campos_string = array('campo0_' => 'Cero Izquierda', 'campo0D_' => 'Cero Derecha', 'campoE_' => 'Espacio Izquierda', 'campoED_' => 'Espacio Derecha');
+        $datos_combo = array('contador_secuencia', 'tarjeta', 'valortotal', 'ciudadet', 'direccion', 'nombre', 'deduccion_impuesto', 'tipide', 'tipcta', 'cuenta', 'subtotal', 'cod_establecimiento');
+        // contador_secuencia // condicion en campoC
+        $campos_C = json_decode($opciones->campoc, true);
+        //dd($campos_C);
+        $opciones_fijas = json_decode($opciones->opciones_fijas, true);
+        $opciones_export = json_decode($opciones->campos_export, true);
+        $campos_0 = json_decode($opciones->campo0, true);
+        //dd($opciones_export);
 
-        return response()->json(['htmlDetalleGenera' => $field_datos]);
+        for ($i = 1; $i <= $opciones->num_elem_export; $i++) {
+
+            if (isset($opciones_export[$i])) {
+                $field_datos .= "<div class=\"row col pt-3 justify-content-between\" id=\"fila_" . $i . "\">";
+                $field_datos .= "<input class=\"form-control col-1\" name=\"gn-" . $i . "-id\" value=\"" . $i . "\" type=\"text\" id=\"gn-" . $i . "-id\" />";
+                $field_datos .= "<select class=\"custom-select col-4\" name=\"gn-" . $i . "-values_base\" value=\"" . $i . "\" id=\"gn-" . $i . "-values_base\"> ";
+                foreach ($datos_combo as $next_c) {
+                    if ($next_c == $opciones_export[$i]) {
+                        $field_datos .= "<option values=\"" . $next_c . "\" selected>" . $next_c . "</option> ";
+                    } else {
+                        $field_datos .= "<option values=\"" . $next_c . "\">" . $next_c . "</option> ";
+                    }
+                }
+                $field_datos .= "</select>";
+
+                $count_camp = null;
+                $select_camp = null;
+                foreach ($campos_string as $cam_stri) {
+                    if (isset($campos_0[$cam_stri . $i])) {
+                        $count_camp = $i;
+                        $field_datos .= "<input class=\"form-control col-1\" name=\"gn-" . $i . "-cantidad\" value=\"" . $campos_0[$cam_stri . $i] . "\" type=\"text\" id=\"gn-" . $i . "-cantidad\" />";
+                        $select_camp = $cam_stri;
+                    }
+                }
+                if (!isset($count_camp)) {
+                    $field_datos .= "<input class=\"form-control col-1\" name=\"gn-" . $i . "-cantidad\" value=\"\" type=\"text\" id=\"gn-" . $i . "-cantidad\" />";
+                }
+                $field_datos .= "<select class=\"custom-select col-4\" name=\"gn-" . $i . "-campos\" id=\"gn-" . $i . "-campos\">";
+                if (isset($count_camp) && isset($select_camp)) {
+                    $field_datos .= "<option value >NADA</option> ";
+                    foreach ($campos_string as $cam_stri) {
+                        if ($select_camp == $cam_stri) {
+                            $field_datos .=    "<option value=\"" . $cam_stri . "\" selected>$nombre_campos_string[$cam_stri]</option> ";
+                        } else {
+                            $field_datos .=    "<option value=\"" . $cam_stri . "\">$nombre_campos_string[$cam_stri]</option> ";
+                        }
+                    }
+                    $field_datos .=  "</select>";
+                } else {
+
+                    $field_datos .=  "<option value selected>NADA</option>";
+                    $field_datos .=    "<option value=\"campoED_\">Espacio Derecha</option> ";
+                    $field_datos .=    "<option value=\"campoE_\">Espacio Izquierda</option> ";;
+                    $field_datos .=   " <option value=\"campo0D_\">Cero Derecha</option> ";
+                    $field_datos .=    " <option value=\"campo0_\">Cero Izquierda</option> </select>";
+                }
+                $field_datos .= "</div>";
+            } elseif (isset($opciones_fijas[$i])) {
+                $field_datos .= "<div class=\"row col pt-3 justify-content-between\" id=\"fila_" . $i . "\">";
+                $field_datos .= "<input class=\"form-control col-1\" name=\"gn-" . $i . "-id\" value=\"" . $i . "\" type=\"text\" id=\"gn-" . $i . "-id\" />";
+                $field_datos .= "<input class=\"form-control col-4\" name=\"gn-" . $i . "-values\" value=\"" . $opciones_fijas[$i] . "\" type=\"text\" id=\"gn-" . $i . "-values\"/>";
+
+                $count_camp = null;
+                $select_camp = null;
+                foreach ($campos_string as $cam_stri) {
+                    if (isset($campos_0[$cam_stri . $i])) {
+                        $count_camp = $i;
+                        $field_datos .= "<input class=\"form-control col-1\" name=\"gn-" . $i . "-cantidad\" value=\"" . $campos_0[$cam_stri . $i] . "\" type=\"text\" id=\"gn-" . $i . "-cantidad\" />";
+                        $select_camp = $cam_stri;
+                    }
+                }
+                if (!isset($count_camp)) {
+                    $field_datos .= "<input class=\"form-control col-1\" name=\"gn-" . $i . "-cantidad\" value=\"\" type=\"text\" id=\"gn-" . $i . "-cantidad\" />";
+                }
+                $field_datos .= "<select class=\"custom-select col-4\" name=\"gn-" . $i . "-campos\" id=\"gn-" . $i . "-campos\">";
+                if (isset($count_camp) && isset($select_camp)) {
+                    $field_datos .= "<option value >NADA</option> ";
+                    foreach ($campos_string as $cam_stri) {
+                        if ($select_camp == $cam_stri) {
+                            $field_datos .=    "<option value=\"" . $cam_stri . "\" selected>$nombre_campos_string[$cam_stri]</option> ";
+                        } else {
+                            $field_datos .=    "<option value=\"" . $cam_stri . "\">$nombre_campos_string[$cam_stri]</option> ";
+                        }
+                    }
+                    $field_datos .=  "</select>";
+                } else {
+
+                    $field_datos .=  "<option value selected>NADA</option>";
+                    $field_datos .=    "<option value=\"campoED_\">Espacio Derecha</option> ";
+                    $field_datos .=    "<option value=\"campoE_\">Espacio Izquierda</option> ";;
+                    $field_datos .=   " <option value=\"campo0D_\">Cero Derecha</option> ";
+                    $field_datos .=    " <option value=\"campo0_\">Cero Izquierda</option> </select>";
+                }
+                $field_datos .= "</div>";
+            } elseif (isset($campos_C['campoC_' . $i])) {
+                $field_datos .= "<div class=\"row col pt-3 justify-content-between\" id=\"fila_" . $i . "\">";
+                $field_datos .= "<input class=\"form-control col-1\" name=\"gn-" . $i . "-id\" value=\"" . $i . "\" type=\"text\" id=\"gn-" . $i . "-id\" />";
+
+                $field_datos .= "<input class=\"form-control col-4\" name=\"gn-" . $i . "-values_fecha\" value=\"" . $campos_C['campoC_' . $i] . "\" type=\"text\" id=\"gn-" . $i . "-values_fecha\"/>";
+
+                $count_camp = null;
+                $select_camp = null;
+                foreach ($campos_string as $cam_stri) {
+                    if (isset($campos_0[$cam_stri . $i])) {
+                        $count_camp = $i;
+                        $field_datos .= "<input class=\"form-control col-1\" name=\"gn-" . $i . "-cantidad\" value=\"" . $campos_0[$cam_stri . $i] . "\" type=\"text\" id=\"gn-" . $i . "-cantidad\" />";
+                        $select_camp = $cam_stri;
+                    }
+                }
+                if (!isset($count_camp)) {
+                    $field_datos .= "<input class=\"form-control col-1\" name=\"gn-" . $i . "-cantidad\" value=\"\" type=\"text\" id=\"gn-" . $i . "-cantidad\" />";
+                }
+                $field_datos .= "<select class=\"custom-select col-4\" name=\"gn-" . $i . "-campos\" id=\"gn-" . $i . "-campos\">";
+                if (isset($count_camp) && isset($select_camp)) {
+                    $field_datos .= "<option value >NADA</option> ";
+                    foreach ($campos_string as $cam_stri) {
+                        if ($select_camp == $cam_stri) {
+                            $field_datos .=    "<option value=\"" . $cam_stri . "\" selected>$nombre_campos_string[$cam_stri]</option> ";
+                        } else {
+                            $field_datos .=    "<option value=\"" . $cam_stri . "\">$nombre_campos_string[$cam_stri]</option> ";
+                        }
+                    }
+                    $field_datos .=  "</select>";
+                } else {
+
+                    $field_datos .=  "<option value selected>NADA</option>";
+                    $field_datos .=    "<option value=\"campoED_\">Espacio Derecha</option> ";
+                    $field_datos .=    "<option value=\"campoE_\">Espacio Izquierda</option> ";;
+                    $field_datos .=   " <option value=\"campo0D_\">Cero Derecha</option> ";
+                    $field_datos .=    " <option value=\"campo0_\">Cero Izquierda</option> </select>";
+                }
+                $field_datos .= "</div>";
+            }
+        }
+
+
+        /*
+        $field_datos .= "<option values=\"tarjeta\" selected>tarjeta</option> " .
+            "<option value=\"cod_establecimiento\">cod_establecimiento</option>" .
+            "<option values=\"subtotal\">subtotal</option>" .
+            " <option values=\"cuenta\">cuenta</option> " .
+            "<option values=\"tipcta\">tipcta</option>" .
+            " <option values=\"tipide\">tipide</option> " .
+            "<option values=\"deduccion_impuesto\">deduccion_impuesto</option> " .
+            "<option values=\"nombre\">nombre</option>" .
+            " <option values=\"direccion\">direccion</option>" .
+            " <option values=\"ciudadet\">ciudadet</option>" .
+            " <option values=\"valortotal\">valortotal</option> " .
+            "</select>";
+            */
+
+        // $field_datos .= "<input class=\"form-control col-1\" name=\"gn-" . $row_id . "-cantidad\" value=\" \" type=\"text\" id=\"gn-" . $row_id . "-cantidad\" />";
+
+
+
+        // $row_id=null;
+        //$field_datos =null;
+        return response()->json(['htmlDetalleGenera' => $field_datos, 'last_id' => $row_id]);
     }
 
 
@@ -479,8 +662,33 @@ class EaControlCampania extends Controller
      */
     public function post_guardar_producto(Request  $request)
     {
+
         dd($request);
         $datos = $request->except('_token', '_method');
+        $export = array();
+        $fijo = array();
+        $fecha = array();
+        //campos_C , solo esta la fecha falta validacion por parte de la vista 
+        // falta de campos_c: contador_secuencia -- identificador
+        //{"campoC_3":"contador_secuencia","campoC_4":"Ymd","espacios":"\t","insert_date_18":"M-Y","identificador":"cedula_id"}
+
+
+        for ($i = 0; $i <= $request->num_elem_export; $i++) {
+            foreach ($request as $unique_camp) {
+                if (isset($request['gn-' . $i . '-id'])) {
+                    if (isset($request['gn-' . $i . '-values'])) {
+                        $export[$request['gn-' . $i . '-id']] = $request['gn-' . $i . '-values'];
+                    }
+                    if (isset($request['gn-' . $i . '-values_base'])) {
+                        $export[$request['gn-' . $i . '-id']] = $request['gn-' . $i . '-values_base'];
+                    }
+                    if (isset($request['gn-' . $i . '-values_fecha'])) {
+                    }
+                }
+            }
+        }
+
+
 
         return response()->json(['respuesta' => $datos]);
     }

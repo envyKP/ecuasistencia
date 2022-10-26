@@ -4,7 +4,8 @@
         $(document).ready(function() {
 
 
-            var row = 1
+            var row = 1;
+
             $("#clienteCMB").change(function() {
                 if ($("#clienteCMB").val() !== "clienteNull") {
                     $.ajax({
@@ -35,8 +36,12 @@
                             if (typeof value.codigo_id !== 'undefined') {
                                 $("#codigo_id_import").val(value.codigo_id);
                                 get_generate_text(value.codigo_id);
+                                $("#codigo_id_export").val(value.codigo_id);
                             }
 
+                            if (typeof value.num_elem_export !== 'undefined') {
+                                $("#num_elem_export").val(value.num_elem_export);
+                            }
                             if (typeof value.codigo_id !== 'undefined') {
                                 $("#codigo_id_import_validacion").val(value.codigo_id);
                             }
@@ -125,7 +130,9 @@
                         values_opcion,
                     method: "GET",
                     success: function(data) {
-                        $("#div-opcion-archivos").append(data.htmlDetalleGenera);
+                        $("#div-opcion-archivos").html(data.htmlDetalleGenera);
+                        $("#last_id_base").val(data.last_id);
+
                     }
                 });
 
@@ -277,6 +284,11 @@
             /* LOGICA DE AGREGAR ELEMENTOS AL DOCUMENTE */
             $("#btn-anadir").click(function(e) {
 
+                if (!isNaN(parseFloat($("#last_id_base").val()))) {
+                    row = parseInt($("#num_elem_export").val()) + 1;
+                    $("#num_elem_export").val(row);
+                }
+
                 $("#div-opcion-archivos").append(
                     '<div class="row col pt-3 justify-content-between" id="fila_' + row + '"></div>');
                 $('#fila_' + row).append('<input class="form-control col-1" name="gn-' + row +
@@ -295,7 +307,7 @@
                 if ($("#opconfig").val() == 'base') {
                     $('#fila_' + row).append('<select class="custom-select col-4" name="gn-' + row +
                         '-values_base"  id="gn-' + row +
-                        '-values_base"> <option values="tarjeta" selected>tarjeta</option> <option value="cod_establecimiento">cod_establecimiento</option><option values="subtotal">subtotal</option> <option values="cuenta">cuenta</option> <option values="tipcta">tipcta</option> <option values="tipide">tipide</option> <option values="deduccion_impuesto">deduccion_impuesto</option> <option values="nombre">nombre</option> <option values="direccion">direccion</option> <option values="ciudadet">ciudadet</option> <option values="valortotal">valortotal</option> </select>'
+                        '-values_base"><option values="contador_secuencia" selected>contador_secuencia</option> <option values="tarjeta" selected>tarjeta</option> <option value="cod_establecimiento">cod_establecimiento</option><option values="subtotal">subtotal</option> <option values="cuenta">cuenta</option> <option values="tipcta">tipcta</option> <option values="tipide">tipide</option> <option values="deduccion_impuesto">deduccion_impuesto</option> <option values="nombre">nombre</option> <option values="direccion">direccion</option> <option values="ciudadet">ciudadet</option> <option values="valortotal">valortotal</option> </select>'
                     );
                 }
 
@@ -305,13 +317,18 @@
                     '-campos" id="gn-' + row +
                     '-campos"> <option value selected>NADA</option> <option value="campoED_">Espacio Dereacha</option> <option value="campoE_">Espacio Izquierda</option> <option value="campo0D_">Cero Derecha</option> <option value="campo0_">Cero Izquierda</option> </select>'
                 );
+                // falta quitar campos 
+                //$('#fila_' + row).append('<input type=\"button\" value=\"Delete\" onclick=\"Delete(this);\"/>');
 
-                row++;
+
+                //row++;
 
             });
 
-
-
+            /*function Delete(currentEl) {
+                        currentEl.parentNode.removeChild(currentEl.parentNode);
+                    }
+              */
             $("#btn-export-guardar-datos").click(function(e) {
                 e.preventDefault();
                 $.ajax({

@@ -22,14 +22,17 @@
                 </div>
                 <div class="form-group col-3">
                     <button type="button" class="btn btn-primary" id="btn-anadir">{{'Anadir'}}</button>
-                     <button type="button" class="btn btn-success" id="btn-guardar">{{'Guardar'}}</button>
                 </div>
             </div>
             <div class="col-sm-12 form-group" id="processExportGuardarDatos" style="display:none">
                 <strong>{{ 'Procesando...' }}</strong>
                 <progress class="col-sm-12" max="100">100%</progress>
             </div>
+            <input type="hidden" name="last_id_base" id="last_id_base" >
+            <input type="hidden" name="codigo_id_export" id="codigo_id_export" >
+            <input type="hidden" name="num_elem_export" id="num_elem_export" >
             <div id="div-opcion-archivos" class="form-group">
+              
 
             </div>
         </div>
