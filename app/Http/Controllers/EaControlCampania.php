@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\EaProducto;
+use App\Models\EaSubproducto;
 use Illuminate\Http\Request;
 use App\Http\Controllers\EaClienteController;
 use App\Http\Controllers\EaSubproductoController;
@@ -203,9 +203,32 @@ class EaControlCampania extends Controller
             $recopilado['num_elem_export'] = $opciones->num_elem_export;
         }
 
+        $productoList = EaSubproducto::where('cliente', $opciones->cliente)->get();
 
-        //dd($recopilado);
-        return response()->json(['opcionesModel' => $recopilado]);
+        $count = 0;
+
+        $htmllista = "
+        <span class=\"anchor\">Seleccione SubProductos</span>
+        <ul class=\"items\">";
+        $list_producto = explode(",", $recopilado['subproducto']);
+        //dd($productoList);
+        foreach ($productoList as $prod) {
+            $count++;
+            $count2 = 0;
+            foreach ($list_producto as $indProduc) {
+                if ($prod->id_subproducto == $indProduc) {
+                    $count2++;
+                    $htmllista .= "<li><input type=\"checkbox\" id=\"subproducto_" . $count . "\" name=\"subproducto_" . $count . "\" value=\"" . $prod->id_subproducto . "\" checked />" . $prod->subproducto . " " . $prod->tipo_subproducto . "</li>";
+                }
+            }
+            if ($count2 == 0) {
+                $htmllista .= "<li><input type=\"checkbox\" id=\"subproducto_" . $count . "\" name=\"subproducto_" . $count . "\" value=\"" . $prod->id_subproducto . "\" />" . $prod->subproducto . " " . $prod->tipo_subproducto . "</li>";
+            }
+        }
+
+        $htmllista .=  "</ul>";
+
+        return response()->json(['opcionesModel' => $recopilado, 'checkboxList' => $htmllista]);
     }
 
     // llamar a otro metodo , o que otra funcion llame a lo que es el export , 
@@ -246,15 +269,24 @@ class EaControlCampania extends Controller
     public function getOpcionesModelAllCliente(Request  $request)
     {
         //retornar valor asociado a un cliente 
-
-
-
         $htmlOption = '<option value="" selected>Selecciona Producto</option>';
         $Opciones = EaOpcionesCargaCliente::where('cliente', $request->cliente)->get();
+        $productoList = EaSubproducto::where('cliente', $request->cliente)->get();
         foreach ($Opciones as $producto) {
             $htmlOption .= '<option value="' . $producto->codigo_id . '">' . $producto->archivo_nombre . '</option>';
         }
-        return response()->json(['htmlProducto' => $htmlOption]);
+        //$htmllista = "<div id=\"list1\" name=\"list1\" class=\"dropdown-check-list\" tabindex=\"100\">";
+
+        $htmllista = "
+        <span class=\"anchor\">Seleccione SubProductos</span>
+        <ul class=\"items\">";
+        $count = 0;
+        foreach ($productoList as $prod) {
+            $count++;
+            $htmllista .= "<li><input type=\"checkbox\" id=\"subproducto_" . $count . "\" name=\"subproducto_" . $count . "\" value=\"" . $prod->id_subproducto . "\" />" . $prod->subproducto . " " . $prod->tipo_subproducto . "</li>";
+        }
+        $htmllista .=  "</ul>";
+        return response()->json(['htmlProducto' => $htmlOption, 'clienteID_form' => $request->cliente, 'htmlLista' => $htmllista]);
     }
 
     /**
@@ -312,6 +344,7 @@ class EaControlCampania extends Controller
       "detalle" => "descripcion"
       "formatoFecha" => null
       "valorDebitado" => "total"
+      codigo_id_import_validacion
         */
 
         if (isset($request->fechaDebitado)) {
@@ -339,7 +372,7 @@ class EaControlCampania extends Controller
 
         $datos = $request->except('_token', '_method');
 
-        //EaOpcionesCargaCliente::where('codigo_id', $request->codigo_id)->update([' campos_import' => $json_text]);
+        EaOpcionesCargaCliente::where('codigo_id', $request->codigo_id)->update(['campos_import' => $enconde_validacion_data ,'opciones_validacion' => $enconde_validacion ]);
 
         return response()->json(['respuesta' => $datos]);
     }
@@ -354,24 +387,23 @@ class EaControlCampania extends Controller
      */
     public function post_import_guardar_validacion(Request  $request)
     {
-        //retornar valor asociado a un cliente 
-        /*
-        "_token" => "aoMkYKruZH5L9h3mj7aZFLjmhfQNnzHrpi6nR6o7"
-      "_method" => "post"
-      "codigo_id_import" => "14"
-      "IdentificadoEntrada" => "secuencia"
-      "campoIdentificador" => "vale"
-      "fechaDebitado" => "fecha_autorizacion"
-      "detalle" => "descripcion"
-      "formatoFecha" => null
-      "valorDebitado" => "total"
-        */
-        dd($request);
 
-        //{"cedula_id":"numero_identificacion","fecha_actualizacion":"fecha_proceso","valor_debitado":"valor_enviado","detalle":"mensaje_de_procesamiento"}
+        /* "codigo_id_import_validacion" => null
+      "campoValidacionDebitado" => null
+      "valorValidacionDebitado" => null */
         $datos = $request->except('_token', '_method');
 
-        //EaOpcionesCargaCliente::where('codigo_id', $request->codigo_id)->update([' campos_import' => $json_text]);
+        $opciones = EaOpcionesCargaCliente::where('codigo_id', $request->codigo_id_import_validacion)->first();
+
+        $opciones_validacion = json_decode($opciones->opciones_validacion, true);
+        $opciones_validacion['validacion_campo_1'] = $request->campoValidacionDebitado;
+        $opciones_validacion['validacion_valor_1'] = $request->valorValidacionDebitado;
+        if (isset($opciones_validacion['num_validacion'])) {
+            $opciones_validacion['num_validacion']  = "1";
+        }
+        $opciones_validacion = json_encode($opciones_validacion);
+
+        EaOpcionesCargaCliente::where('codigo_id', $request->codigo_id)->update([' opciones_validacion' => $opciones_validacion]);
 
         return response()->json(['respuesta' => $datos]);
     }
@@ -384,16 +416,37 @@ class EaControlCampania extends Controller
      */
     public function post_import_guardar_datos(Request  $request)
     {
+        //codigo_id_import_guardar_datos
+        /* 
+        "codigo_id_import_guardar_datos" => "14"
+        "campoValidacionArchivo" => "establecimiento"
+        "valorValidacionArchivo" => "888669"
+        se almacena en el import
+        */
 
-        dd($request);
         //{"cedula_id":"numero_identificacion","fecha_actualizacion":"fecha_proceso","valor_debitado":"valor_enviado","detalle":"mensaje_de_procesamiento"}
         $datos = $request->except('_token', '_method');
-        //EaOpcionesCargaCliente
 
-        /*$json_text = array();
-        if (isset($request->IdentificadoEntrada)) {
-        }*/
-        //EaOpcionesCargaCliente::where('codigo_id', $request->codigo_id)->update([' campos_import' => $json_text]);
+        $opciones = EaOpcionesCargaCliente::where('codigo_id', $request->codigo_id_import_guardar_datos)->first();
+
+        $opciones_import = json_decode($opciones->campos_import, true);
+
+        if (isset($request->campoValidacionArchivo) && isset($request->valorValidacionArchivo)) {
+            $opciones_import['validacion_campo_1'] = $request->campoValidacionArchivo;
+            $opciones_import['validacion_valor_1'] = $request->valorValidacionArchivo;
+            if (isset($opciones_import['num_validacion'])) {
+                $opciones_import['num_validacion']  = "1";
+            }
+            $opciones_import = json_encode($opciones_import);
+        }else{
+            unset($opciones_import['validacion_campo_1']);
+            unset($opciones_import['validacion_valor_1']);
+            unset($opciones_import['num_validacion']);
+            
+        }
+
+        EaOpcionesCargaCliente::where('codigo_id', $request->codigo_id)->update([' campos_import' => $opciones_import]);
+
 
         return response()->json(['respuesta' => $datos]);
     }
@@ -406,16 +459,9 @@ class EaControlCampania extends Controller
      */
     public function post_export_guardar_datos(Request  $request)
     {
-        dd($request);
+        //dd($request);
         $datos = $request->except('_token', '_method');
-        $opciones = EaOpcionesCargaCliente::where('codigo_id', $request->codigo_id)->first();
-
-        $row_id = 1;
-        $field_datos = "";
-        $campos_string = array('campo0_', 'campo0D_', 'campoE_', 'campoED_');
-        $nombre_campos_string = array('campo0_' => 'Cero Izquierda', 'campo0D_' => 'Cero Derecha', 'campoE_' => 'Espacio Izquierda', 'campoED_' => 'Espacio Derecha');
-
-        $datos_combo = array('contador_secuencia', 'tarjeta', 'valortotal', 'ciudadet', 'direccion', 'nombre', 'deduccion_impuesto', 'tipide', 'tipcta', 'cuenta', 'subtotal', 'cod_establecimiento');
+        $opciones = EaOpcionesCargaCliente::where('codigo_id', $request->codigo_id_export)->first();
         $opciones_fijas = json_decode($opciones->opciones_fijas, true);
         $opciones_export = json_decode($opciones->campos_export, true);
         $camposC = json_decode($opciones->campoc, true);
@@ -455,7 +501,6 @@ class EaControlCampania extends Controller
                     //unset($opciones_fijas[$i]);
                     unset($opciones_export[$i]);
                     $opciones_fijas[$i] = "";
-
                 }
 
                 if (isset($request["gn-" . $i . "-cantidad"])) {
@@ -469,12 +514,11 @@ class EaControlCampania extends Controller
                 }
             }
         }
-        $opciones_fijas = json_decode($opciones->opciones_fijas, true);
-        $opciones_export = json_decode($opciones->campos_export, true);
-        $camposC = json_decode($opciones->campoc, true);
-
-        //EaOpcionesCargaCliente::where('codigo_id', $request->codigo_id)->update(['opciones_fijas'=>$opciones_fijas ,'campos_export'=>$opciones_export,'campoc'=>$camposC]);
-
+        $opciones_fijas = json_encode($opciones_fijas);
+        $opciones_export = json_encode($opciones_export);
+        $camposC = json_encode($camposC);
+        $datos = $camposC . $opciones_export . $opciones_fijas;
+        EaOpcionesCargaCliente::where('codigo_id', $request->codigo_id)->update(['opciones_fijas'=>$opciones_fijas ,'campos_export'=>$opciones_export,'campoc'=>$camposC]);
         return response()->json(['respuesta' => $datos]);
     }
 
@@ -629,27 +673,6 @@ class EaControlCampania extends Controller
         }
 
 
-        /*
-        $field_datos .= "<option values=\"tarjeta\" selected>tarjeta</option> " .
-            "<option value=\"cod_establecimiento\">cod_establecimiento</option>" .
-            "<option values=\"subtotal\">subtotal</option>" .
-            " <option values=\"cuenta\">cuenta</option> " .
-            "<option values=\"tipcta\">tipcta</option>" .
-            " <option values=\"tipide\">tipide</option> " .
-            "<option values=\"deduccion_impuesto\">deduccion_impuesto</option> " .
-            "<option values=\"nombre\">nombre</option>" .
-            " <option values=\"direccion\">direccion</option>" .
-            " <option values=\"ciudadet\">ciudadet</option>" .
-            " <option values=\"valortotal\">valortotal</option> " .
-            "</select>";
-            */
-
-        // $field_datos .= "<input class=\"form-control col-1\" name=\"gn-" . $row_id . "-cantidad\" value=\" \" type=\"text\" id=\"gn-" . $row_id . "-cantidad\" />";
-
-
-
-        // $row_id=null;
-        //$field_datos =null;
         return response()->json(['htmlDetalleGenera' => $field_datos, 'last_id' => $row_id]);
     }
 
@@ -663,33 +686,73 @@ class EaControlCampania extends Controller
     public function post_guardar_producto(Request  $request)
     {
 
-        dd($request);
+        // se tiene que llamar el hidden id_opciones_edit
         $datos = $request->except('_token', '_method');
-        $export = array();
-        $fijo = array();
-        $fecha = array();
-        //campos_C , solo esta la fecha falta validacion por parte de la vista 
-        // falta de campos_c: contador_secuencia -- identificador
-        //{"campoC_3":"contador_secuencia","campoC_4":"Ymd","espacios":"\t","insert_date_18":"M-Y","identificador":"cedula_id"}
-
-
-        for ($i = 0; $i <= $request->num_elem_export; $i++) {
-            foreach ($request as $unique_camp) {
-                if (isset($request['gn-' . $i . '-id'])) {
-                    if (isset($request['gn-' . $i . '-values'])) {
-                        $export[$request['gn-' . $i . '-id']] = $request['gn-' . $i . '-values'];
+        $registro = array();
+        //dd($request);
+        if ($request->espaciosSalida == "\\t") {
+            $request->espaciosSalida = "\t";
+        }
+        $request->id_opciones_edit = '10';
+        if (isset($request->id_opciones_edit)) {
+            $opciones = EaOpcionesCargaCliente::where('codigo_id', $request->id_opciones_edit)->first();
+            $campos_C = json_decode($opciones->campoc, true);
+            $campos_C['espacios'] = isset($request->espaciosSalida) ? $request->espaciosSalida : "";
+            $campos_C['indentificador'] = $request->Identificadosalidatxt;
+            $campos_C = json_encode($campos_C);
+            $registro['campoc'] = $campos_C;
+            $registro['cliente'] = $request->clienteForm;
+            $registro['tipo_subproducto'] = $request->tipoProductodata;
+            $registro['subproducto'] = "";
+            $registro['archivo_nombre'] = $request->nameOpcion;
+            $registro['op_caracteristica_ba'] = $request->op_caracteristica_ba;
+            //$registro['cliente'] = $request->clienteForm;
+            $contador = 0;
+            for ($i = 0; $i < count($request->all()); $i++) {
+                if (isset($request['subproducto_' . $i])) {
+                    if ($contador == 0) {
+                        $registro['subproducto'] .= $request['subproducto_' . $i];
+                    } else {
+                        $registro['subproducto'] .= "," . $request['subproducto_' . $i];
                     }
-                    if (isset($request['gn-' . $i . '-values_base'])) {
-                        $export[$request['gn-' . $i . '-id']] = $request['gn-' . $i . '-values_base'];
-                    }
-                    if (isset($request['gn-' . $i . '-values_fecha'])) {
-                    }
+                    $contador++;
                 }
             }
+           
+            EaOpcionesCargaCliente::where('codigo_id',$opciones->codigo_id)->update($registro);
+
+        } else {
+            $pruebas = EaOpcionesCargaCliente::select('codigo_id',)->orderby('codigo_id')->get();
+            $orderOpciones = 0;
+            foreach ($pruebas as $prueba) {
+                if ($orderOpciones < intval($prueba['codigo_id'])) {
+                    $orderOpciones = intval($prueba['codigo_id']);
+                }
+            }
+            $orderOpciones++;
+            $registro['codigo_id'] = $orderOpciones;
+            $registro['cliente'] = $request->clienteForm;
+            $registro['tipo_subproducto'] = $request->tipoProductodata;
+            $registro['subproducto'] = "";
+            $registro['archivo_nombre'] = $request->nameOpcion;
+            $registro['op_caracteristica_ba'] = $request->op_caracteristica_ba;
+            $contador = 0;
+            for ($i = 0; $i < count($request->all()); $i++) {
+                if (isset($request['subproducto_' . $i])) {
+                    if ($contador == 0) {
+                        $registro['subproducto'] .= $request['subproducto_' . $i];
+                    } else {
+                        $registro['subproducto'] .= "," . $request['subproducto_' . $i];
+                    }
+                    $contador++;
+                }
+            }
+            $camposC['espacios'] = $request->espaciosSalida;
+            $camposC['indentificador'] = $request->Identificadosalidatxt;
+            $camposC = json_encode($camposC);
+            $registro['campoc'] = $camposC;
+            EaOpcionesCargaCliente::insert($registro);
         }
-
-
-
         return response()->json(['respuesta' => $datos]);
     }
 }

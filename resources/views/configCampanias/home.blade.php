@@ -14,6 +14,8 @@
                         method: "GET",
                         success: function(data) {
                             $('#campaniasOpcionesID').html(data.htmlProducto);
+                            $("#clienteForm").val(data.clienteID_form);
+                            $("#list1").html(data.htmlLista);
                         }
                     });
                 }
@@ -44,6 +46,7 @@
                             }
                             if (typeof value.codigo_id !== 'undefined') {
                                 $("#codigo_id_import_validacion").val(value.codigo_id);
+                                $("#list1").html(value.checkboxList);
                             }
 
                             if (typeof value.codigo_id !== 'undefined') {
@@ -88,6 +91,8 @@
                                 'undefined') {
                                 $("#clienteValue").val(value
                                     .cliente);
+
+
                             }
                             if (typeof value.tipo_subproducto !==
                                 'undefined') {
@@ -379,7 +384,13 @@
 
             });
 
-
+            var checkList = document.getElementById('list1');
+            checkList.getElementsByClassName('anchor')[0].onclick = function(evt) {
+                if (checkList.classList.contains('visible'))
+                    checkList.classList.remove('visible');
+                else
+                    checkList.classList.add('visible');
+            }
 
 
 
@@ -451,6 +462,58 @@
             to {
                 opacity: 1;
             }
+        }
+
+        .dropdown-check-list {
+            display: inline-block;
+        }
+
+        .dropdown-check-list .anchor {
+            position: relative;
+            cursor: pointer;
+            display: inline-block;
+            padding: 5px 50px 5px 10px;
+            border: 1px solid #ccc;
+        }
+
+        .dropdown-check-list .anchor:after {
+            position: absolute;
+            content: "";
+            border-left: 2px solid black;
+            border-top: 2px solid black;
+            padding: 5px;
+            right: 10px;
+            top: 20%;
+            -moz-transform: rotate(-135deg);
+            -ms-transform: rotate(-135deg);
+            -o-transform: rotate(-135deg);
+            -webkit-transform: rotate(-135deg);
+            transform: rotate(-135deg);
+        }
+
+        .dropdown-check-list .anchor:active:after {
+            right: 8px;
+            top: 21%;
+        }
+
+        .dropdown-check-list ul.items {
+            padding: 2px;
+            display: none;
+            margin: 0;
+            border: 1px solid #ccc;
+            border-top: none;
+        }
+
+        .dropdown-check-list ul.items li {
+            list-style: none;
+        }
+
+        .dropdown-check-list.visible .anchor {
+            color: #0094ff;
+        }
+
+        .dropdown-check-list.visible .items {
+            display: block;
         }
     </style>
 @endsection

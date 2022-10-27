@@ -152,7 +152,7 @@
                             </svg>
                         </div>
                         <small
-                            class="text-muted text-uppercase font-weight-bold">{{ 'Importacion de archivo de campañas' }}</small>
+                            class="text-muted text-uppercase font-weight-bold">{{ 'Entrada / Salida de archivo de campañas' }}</small>
                         <div class="progress progress-white progress-xs mt-3">
                             <div class="progress-bar" role="progressbar" style="width: 25%" aria-valuenow="25"
                                 aria-valuemin="0" aria-valuemax="100"></div>
